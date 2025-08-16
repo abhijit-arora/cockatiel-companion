@@ -60,13 +60,19 @@ class _HomePageState extends State<HomePage> {
               // Get the individual bird document
               final birdDocument = birdDocs[index];
               final birdName = birdDocument['name'] as String;
+              final birdId = birdDocument.id;
 
               // Display it in a nice list tile
               return ListTile(
-                leading: const Icon(Icons.star_border), // A little icon for flair
+                leading: const Icon(Icons.star_border),
                 title: Text(birdName),
                 onTap: () {
-                  // TODO: Navigate to the detail/dashboard screen for this bird
+                  // Navigate to the ProfileScreen in "Edit Mode"
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ProfileScreen(birdId: birdId),
+                    ),
+                  );
                 },
               );
             },
