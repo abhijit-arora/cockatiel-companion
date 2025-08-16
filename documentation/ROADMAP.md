@@ -12,7 +12,8 @@ The goal of the MVP is to deliver the core value proposition to our target user:
 
 *   **Module 1: User & Bird Profile**
     *   **[x] 1.1. Basic email/password user account creation.** (Completed)
-    *   **[ ] 1.3. Ability to create and edit a single bird profile.** (We will build the *database* to support multiple birds, but the *UI* will only allow one for the MVP to keep it simple).
+    *   **[x] 1.3a. Create and list bird profiles.** (Completed)
+    *   **[ ] 1.3b. View and edit an existing bird profile.**
 
 *   **Module 2: The Owner's Journey**
     *   **[ ] 2.2. The Guided "First 30 Days" Plan.** This is a key feature for our target user.
