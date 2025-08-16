@@ -11,18 +11,18 @@ The goal of the MVP is to deliver the core value proposition to our target user:
 **Core Modules & Features for MVP:**
 
 *   **Module 1: User & Bird Profile**
-    *   [x] 1.1. Basic email/password user account creation.
-    *   [x] 1.3. Ability to create and edit a single bird profile. (We will build the *database* to support multiple birds, but the *UI* will only allow one for the MVP to keep it simple).
+    *   **[x] 1.1. Basic email/password user account creation.** (Completed)
+    *   **[ ] 1.3. Ability to create and edit a single bird profile.** (We will build the *database* to support multiple birds, but the *UI* will only allow one for the MVP to keep it simple).
 
 *   **Module 2: The Owner's Journey**
-    *   [x] 2.2. The Guided "First 30 Days" Plan. This is a key feature for our target user.
+    *   **[ ] 2.2. The Guided "First 30 Days" Plan.** This is a key feature for our target user.
 
 *   **Module 3: The Care Hub**
-    *   [x] 3.1. The "Smart" Daily Log (local storage only for MVP).
-    *   [x] 3.2. Health & Wellness Reminders.
+    *   **[ ] 3.1. The "Smart" Daily Log.** (local storage only for MVP).
+    *   **[ ] 3.2. Health & Wellness Reminders.**
 
 *   **Module 4: The Knowledge Center**
-    *   [x] 4.1. Curated Resource Library. We will start with a foundational set of ~20 high-quality articles covering the most common new-owner questions.
+    *   **[ ] 4.1. Curated Resource Library.** We will start with a foundational set of ~20 high-quality articles covering the most common new-owner questions.
 
 ---
 
