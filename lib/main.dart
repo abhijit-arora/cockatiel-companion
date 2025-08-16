@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cockatiel_companion/screens/auth_screen.dart';
+import 'package:cockatiel_companion/auth_gate.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       ),
       // This removes the "DEBUG" banner from the top right corner
       debugShowCheckedModeBanner: false,
-      home: const AuthScreen(),
+      home: const AuthGate(),
     );
   }
 }
