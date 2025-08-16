@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -64,14 +66,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // --- Save Button ---
             ElevatedButton(
-              onPressed: () {
-                // TODO: Implement save logic
-              },
+              onPressed: _saveProfile,
               child: const Text('Save Profile'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _saveProfile() async {
+    // Get the currently logged-in user
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      // This should not happen if they got to this screen, but it's good practice to check
+      print('Error: No user is logged in.');
+      return;
+    }
+
+    // Get the bird's name from the controller
+    final birdName = _nameController.text.trim();
+
+    // Simple validation: ensure the name is not empty
+    if (birdName.isEmpty) {
+      print('Error: Bird name cannot be empty.');
+      // Later, we can show a user-friendly error message here
+      return;
+    }
+
+    try {
+      // Access our 'birds' collection and add a new document
+      await FirebaseFirestore.instance.collection('birds').add({
+        'name': birdName,
+        'gotchaDay': null, // We'll add the date picker logic later
+        'ownerId': user.uid, // This links the bird to the current user
+        'createdAt': FieldValue.serverTimestamp(), // Sets the creation time
+      });
+
+      print('Profile saved successfully!');
+
+      // After saving, go back to the previous screen (HomePage)
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+    } catch (e) {
+      print('Error saving profile: $e');
+      // Handle potential Firestore errors here
+    }
   }
 }
