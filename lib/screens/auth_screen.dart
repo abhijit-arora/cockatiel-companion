@@ -52,9 +52,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
             // Login Button
             ElevatedButton(
-              onPressed: () {
-                // We will add login logic here later
-              },
+              onPressed: _signIn,
               child: const Text('Login'),
             ),
 
@@ -93,6 +91,28 @@ class _AuthScreenState extends State<AuthScreen> {
     } on FirebaseAuthException catch (e) {
       // Handle potential errors, like if the email is already in use
       print('Failed to sign up: ${e.message}');
+      // We can show a dialog to the user here later
+    }
+  }
+
+  Future<void> _signIn() async {
+    try {
+      // Get the email and password from the controllers
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+
+      // Use Firebase Auth to sign in an existing user
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Optional: print a success message to the console
+      print('Successfully signed in: ${userCredential.user?.email}');
+
+    } on FirebaseAuthException catch (e) {
+      // Handle potential errors, like wrong password or user not found
+      print('Failed to sign in: ${e.message}');
       // We can show a dialog to the user here later
     }
   }
