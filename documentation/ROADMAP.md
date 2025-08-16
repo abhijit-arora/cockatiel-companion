@@ -28,16 +28,17 @@ The goal of the MVP is to deliver the core value proposition to our target user:
 
 ### **Version 1.1: The Community & Commerce Update**
 
-The goal of this phase is to build user engagement and test our first monetization channel.
+The goal of this phase is to build user engagement, reduce friction, and test our first monetization channel.
 
-*   **Module 5: The Community Aviary**
+*   **[ ] Module 5: The Community Aviary**
     *   [ ] 5.1. Implement the basic Community Forum / Q&A.
 
-*   **Module 4: The Knowledge Center**
+*   **[ ] Module 4: The Knowledge Center**
     *   [ ] 4.3. Launch the Shopping & Gear Hub with affiliate links.
 
-*   **Core App Improvements**
+*   **[ ] Core App Improvements**
     *   [ ] Allow creation of multiple bird profiles under one account.
+    *   [ ] **(New)** Implement Social Sign-In (Google & Apple) for a frictionless login experience.
 
 ---
 

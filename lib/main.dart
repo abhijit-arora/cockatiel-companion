@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/screens/home_screen.dart';
 import 'package:cockatiel_companion/screens/auth_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async { // <-- Add 'async'
+  // Ensure that Flutter is ready before we run Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 

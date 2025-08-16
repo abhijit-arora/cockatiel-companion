@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "143751027251",
+    "project_id": "flockwell-d3cb4",
+    "storage_bucket": "flockwell-d3cb4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:143751027251:android:89c6501f0afc1ec4bce146",
+        "android_client_info": {
+          "package_name": "com.flockwell.cockatiel_companion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfoSdiahSsRRQqWkym3XuKGO8jlF8Mgd0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
