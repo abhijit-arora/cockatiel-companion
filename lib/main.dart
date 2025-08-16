@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/screens/home_screen.dart';
+import 'package:cockatiel_companion/screens/auth_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
       ),
       // This removes the "DEBUG" banner from the top right corner
       debugShowCheckedModeBanner: false,
-      home: const HomePage(),
+      home: const AuthScreen(),
     );
   }
 }
