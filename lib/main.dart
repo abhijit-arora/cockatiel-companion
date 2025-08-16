@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,23 +20,6 @@ class MyApp extends StatelessWidget {
       // This removes the "DEBUG" banner from the top right corner
       debugShowCheckedModeBanner: false,
       home: const HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Cockatiel Companion'),
-      ),
-      body: const Center(
-        child: Text('Welcome to your new app!'),
-      ),
     );
   }
 }
