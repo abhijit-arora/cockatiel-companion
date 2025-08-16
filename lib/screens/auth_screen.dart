@@ -1,7 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class AuthScreen extends StatelessWidget {
+class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
+
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends State<AuthScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +26,7 @@ class AuthScreen extends StatelessWidget {
           children: [
             // Email Text Field
             TextField(
+              controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: 'Email',
@@ -29,6 +39,7 @@ class AuthScreen extends StatelessWidget {
 
             // Password Text Field
             TextField(
+              controller: _passwordController,
               obscureText: true, // This hides the password characters
               decoration: InputDecoration(
                 labelText: 'Password',
@@ -52,11 +63,8 @@ class AuthScreen extends StatelessWidget {
 
             // Sign Up Button
             ElevatedButton(
-              onPressed: () {
-                // We will add sign up logic here later
-              },
+              onPressed: _signUp,
               style: ElevatedButton.styleFrom(
-                // A slightly different style to distinguish it
                 backgroundColor: Colors.grey.shade200,
               ),
               child: const Text('Sign Up'),
@@ -65,5 +73,27 @@ class AuthScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _signUp() async {
+    try {
+      // Get the email and password from the controllers
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+
+      // Use Firebase Auth to create a new user
+      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Optional: print a success message to the console
+      print('Successfully signed up: ${userCredential.user?.email}');
+
+    } on FirebaseAuthException catch (e) {
+      // Handle potential errors, like if the email is already in use
+      print('Failed to sign up: ${e.message}');
+      // We can show a dialog to the user here later
+    }
   }
 }
