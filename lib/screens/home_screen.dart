@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/screens/profile_screen.dart';
+import 'package:cockatiel_companion/screens/daily_log_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,7 +17,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Cockatiel Companion'),
+        title: const Text('Your Flock'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -66,14 +67,28 @@ class _HomePageState extends State<HomePage> {
               return ListTile(
                 leading: const Icon(Icons.star_border),
                 title: Text(birdName),
+                // PRIMARY ACTION: Tapping anywhere on the tile goes to the log
                 onTap: () {
-                  // Navigate to the ProfileScreen in "Edit Mode"
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => ProfileScreen(birdId: birdId),
+                      builder: (context) => DailyLogScreen(
+                        birdId: birdId,
+                        birdName: birdName,
+                      ),
                     ),
                   );
                 },
+                // SECONDARY ACTION: An explicit button for editing
+                trailing: IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ProfileScreen(birdId: birdId),
+                      ),
+                    );
+                  },
+                ),
               );
             },
           );

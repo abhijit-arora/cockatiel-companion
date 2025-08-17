@@ -18,7 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.birdId == null ? 'Add Your Bird' : 'Edit Profile'),
+        title: Text(widget.birdId == null ? 'Add to Your Flock' : 'Edit Profile'),
       ),
       body: _isLoading
         ? const Center(child: CircularProgressIndicator())
