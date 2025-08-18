@@ -6,6 +6,7 @@ import 'package:async/async.dart';
 import 'package:cockatiel_companion/widgets/log_dialogs/diet_log_dialog.dart';
 import 'package:cockatiel_companion/widgets/log_dialogs/droppings_log_dialog.dart';
 import 'package:cockatiel_companion/widgets/log_dialogs/behavior_log_dialog.dart';
+import 'package:cockatiel_companion/widgets/log_dialogs/weight_log_dialog.dart';
 
 class DailyLogScreen extends StatefulWidget {
   final String birdId;
@@ -64,6 +65,19 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     );
   }
   
+  ListTile _buildWeightListTile(Map<String, dynamic> data) {
+    final double weight = (data['weight'] ?? 0.0).toDouble();
+    final String unit = data['unit'] ?? 'g';
+    final formattedTime = _formatTimestamp(data['timestamp']);
+
+    return ListTile(
+      leading: const Icon(Icons.scale, color: Colors.teal),
+      title: Text('Weight: $weight $unit'),
+      subtitle: Text(data['context'] ?? 'Unspecified'),
+      trailing: Text(formattedTime),
+    );
+  }
+  
   String _formatTimestamp(dynamic timestamp) {
     if (timestamp == null) return '';
     final dt = (timestamp as Timestamp).toDate();
@@ -90,13 +104,15 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
 
     Stream<QuerySnapshot> dietStream = dailyLogRef.collection('diet_entries').snapshots();
     Stream<QuerySnapshot> droppingsStream = dailyLogRef.collection('droppings_entries').snapshots();
-    Stream<QuerySnapshot> behaviorStream = dailyLogRef.collection('behavior_entries').snapshots();        
+    Stream<QuerySnapshot> behaviorStream = dailyLogRef.collection('behavior_entries').snapshots();
+    Stream<QuerySnapshot> weightStream = dailyLogRef.collection('weight_entries').snapshots();
 
     // Combine the streams
-    _combinedLogStream = StreamZip([dietStream, droppingsStream, behaviorStream]).map((results) {
+    _combinedLogStream = StreamZip([dietStream, droppingsStream, behaviorStream, weightStream]).map((results) {
       final dietDocs = results[0].docs;
       final droppingsDocs = results[1].docs;
       final behaviorDocs = results[2].docs;
+      final weightDocs = results[3].docs;
 
       // Convert each document to a map and add a 'type' field
       List<Map<String, dynamic>> combinedList = [];
@@ -108,6 +124,9 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       }
       for (var doc in behaviorDocs) {
         combinedList.add({'type': 'behavior', ...doc.data() as Map<String, dynamic>});
+      }
+      for (var doc in weightDocs) {
+        combinedList.add({'type': 'weight', ...doc.data() as Map<String, dynamic>});
       }
 
       // Sort the combined list by timestamp
@@ -246,9 +265,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                 leading: const Icon(Icons.scale),
                 title: const Text('Weight'),
                 subtitle: const Text('Tap to log weight'),
-                onTap: () {
-                  // TODO: Open Weight logging dialog/screen
-                },
+                onTap: _showWeightLogDialog,
               ),
             ],
           ),
@@ -286,6 +303,8 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                         return _buildDroppingsListTile(entry);
                       case 'behavior':
                         return _buildBehaviorListTile(entry);
+                      case 'weight':
+                        return _buildWeightListTile(entry);
                       default:
                         return const ListTile(title: Text('Unknown log type'));
                     }
@@ -414,6 +433,37 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       print('Behavior log saved successfully!');
     } catch (e) {
       print('Error saving behavior log: $e');
+    }
+  }
+
+  void _showWeightLogDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => WeightLogDialog(onSave: _saveWeightLog),
+    );
+  }
+  
+  Future<void> _saveWeightLog({
+    required double weight,
+    required String unit,
+    required String context,
+    required String notes,
+  }) async {
+    final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final logDocRef = FirebaseFirestore.instance.collection('birds').doc(widget.birdId).collection('daily_logs').doc(logDateId);
+    try {
+      await logDocRef.collection('weight_entries').add({
+        'weight': weight,
+        'unit': unit,
+        'context': context,
+        'notes': notes,
+        'timestamp': FieldValue.serverTimestamp(),
+        'birdId': widget.birdId,
+      });
+      await logDocRef.set({}, SetOptions(merge: true));
+      print('Weight log saved successfully!');
+    } catch (e) {
+      print('Error saving weight log: $e');
     }
   }
 }
