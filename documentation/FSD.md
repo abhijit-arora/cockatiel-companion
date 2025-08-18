@@ -82,6 +82,34 @@ This document details the features and functionalities of the Cockatiel Companio
 
 ### Module 6: Monetization & App Structure
 
-*   **6.1. Freemium Model:**
-    *   **Free Tier:** Limited bird profiles (e.g., 2), local data storage, community access, shopping hub access, limited access to the Knowledge Center.
-    *   **Premium Tier (Subscription):** Unlimited bird profiles, cloud data sync (enabling Flock feature), full access to the Knowledge Center, and all AI-powered features.
+*   **6.1. Monetization Strategy: A Fair Hybrid Model**
+    
+    The app will operate on a hybrid model that balances user choice, fairness, and predictable business revenue. It consists of three tiers that directly map to the features defined in this FSD.
+
+    ---
+    #### **Tier 1: Free**
+    *Goal: Provide core utility and attract a large user base.*
+    *   **User & Nest Management (Module 1):** Manage up to 2 bird profiles. Nest/sharing features are disabled.
+    *   **Daily Log (Module 3.1):** Full access to all daily log types.
+    *   **Data Storage (Module 3.3):** All data is stored locally on the user's device with manual backup/restore.
+    *   **Knowledge Center (Module 4):** Limited access (e.g., 3 free articles per month).
+    *   **Community (Module 5):** Full access to community forums and social features.
+
+    ---
+    #### **Tier 2: FlockWell Plus (Subscription)**
+    *Goal: Provide unlimited core features and convenience for a predictable monthly/annual fee.*
+    *   **User & Nest Management (Module 1):** Unlocks unlimited bird profiles and enables the full "Nest" system for sharing with caregivers.
+    *   **Data Storage (Module 3.3):** Enables secure, automatic cloud sync for all data across multiple devices.
+    *   **Knowledge Center (Module 4):** Grants unlimited access to all articles and resources.
+    *   **Health & Wellness Reminders (Module 3.2):** Unlocks advanced, customizable health and care reminders.
+    *   **Data Visualization (Future):** Unlocks non-AI charts and trend analysis tools.
+
+    ---
+    #### **Tier 3: AI Credits (Consumable Purchase)**
+    *Goal: Provide fair, pay-for-what-you-use access to features with high operational costs.*
+    *   These are a separate purchase from the "Plus" subscription. Users can buy packs of "AI Credits."
+    *   **AI-Powered Insights (Module 3.4):** Credits are spent on a per-use basis for features like:
+        *   AI Droppings Analysis from a photo.
+        *   AI Symptom Checker consultation.
+        *   Generating detailed weekly AI Behavior Reports.
+    *   **Cloud Storage for Media:** While data sync is part of "Plus," storing large amounts of photos/videos will be tied to a separate, affordable storage plan (e.g., pay per 10GB). This ensures heavy users pay proportionally for their storage costs.
