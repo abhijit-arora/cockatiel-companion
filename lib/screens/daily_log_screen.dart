@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
+import 'package:async/async.dart';
 import 'package:cockatiel_companion/widgets/log_dialogs/diet_log_dialog.dart';
+import 'package:cockatiel_companion/widgets/log_dialogs/droppings_log_dialog.dart';
 
 class DailyLogScreen extends StatefulWidget {
   final String birdId;
@@ -19,6 +22,91 @@ class DailyLogScreen extends StatefulWidget {
 
 class _DailyLogScreenState extends State<DailyLogScreen> {
   DateTime _selectedDate = DateTime.now();
+
+  ListTile _buildDietListTile(Map<String, dynamic> data) {
+    final String foodType = data['foodType'] ?? 'Unknown';
+    final String description = data['description'] ?? 'No description';
+    final String consumption = data['consumptionLevel'] ?? '-';
+    final formattedTime = _formatTimestamp(data['timestamp']);
+
+    return ListTile(
+      leading: Icon(Icons.restaurant, color: _getColorForConsumption(consumption)),
+      title: Text('$foodType - $description'),
+      subtitle: Text('Consumption: $consumption'),
+      trailing: Text(formattedTime),
+    );
+  }
+
+  ListTile _buildDroppingsListTile(Map<String, dynamic> data) {
+    final String color = data['color'] ?? '-';
+    final String consistency = data['consistency'] ?? '-';
+    final formattedTime = _formatTimestamp(data['timestamp']);
+
+    return ListTile(
+      leading: const Icon(Icons.monitor_heart, color: Colors.brown), // Example color
+      title: Text('Droppings Observation'),
+      subtitle: Text('Color: $color, Consistency: $consistency'),
+      trailing: Text(formattedTime),
+    );
+  }
+
+  String _formatTimestamp(dynamic timestamp) {
+    if (timestamp == null) return '';
+    final dt = (timestamp as Timestamp).toDate();
+    return DateFormat.jm().format(dt);
+  }
+
+  Stream<List<Map<String, dynamic>>>? _combinedLogStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupCombinedStream();
+  }
+
+  @override
+  void didUpdateWidget(covariant DailyLogScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _setupCombinedStream();
+  }
+
+  void _setupCombinedStream() {
+    // Define the stream for diet entries
+    Stream<QuerySnapshot> dietStream = FirebaseFirestore.instance
+        .collection('birds').doc(widget.birdId)
+        .collection('daily_logs').doc(DateFormat('yyyy-MM-dd').format(_selectedDate))
+        .collection('diet_entries').snapshots();
+
+    // Define the stream for droppings entries
+    Stream<QuerySnapshot> droppingsStream = FirebaseFirestore.instance
+        .collection('birds').doc(widget.birdId)
+        .collection('daily_logs').doc(DateFormat('yyyy-MM-dd').format(_selectedDate))
+        .collection('droppings_entries').snapshots();
+
+    // Combine the streams
+    _combinedLogStream = StreamZip([dietStream, droppingsStream]).map((results) {
+      final dietDocs = results[0].docs;
+      final droppingsDocs = results[1].docs;
+
+      // Convert each document to a map and add a 'type' field
+      List<Map<String, dynamic>> combinedList = [];
+      for (var doc in dietDocs) {
+        combinedList.add({'type': 'diet', ...doc.data() as Map<String, dynamic>});
+      }
+      for (var doc in droppingsDocs) {
+        combinedList.add({'type': 'droppings', ...doc.data() as Map<String, dynamic>});
+      }
+
+      // Sort the combined list by timestamp
+      combinedList.sort((a, b) {
+        Timestamp tsA = a['timestamp'] ?? Timestamp.now();
+        Timestamp tsB = b['timestamp'] ?? Timestamp.now();
+        return tsB.compareTo(tsA); // descending
+      });
+
+      return combinedList;
+    });
+  }
 
   Color _getColorForConsumption(String consumptionLevel) {
     switch (consumptionLevel) {
@@ -53,6 +141,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   onPressed: () {
                     setState(() {
                       _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+                      _setupCombinedStream();
                     });
                   },
                 ),
@@ -74,6 +163,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                         if (picked != null && picked != _selectedDate) {
                           setState(() {
                             _selectedDate = picked;
+                            _setupCombinedStream();
                           });
                         }
                       },
@@ -88,6 +178,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                       onPressed: () {
                         setState(() {
                           _selectedDate = DateTime.now();
+                          _setupCombinedStream();
                         });
                       },
                     ),
@@ -106,6 +197,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                         _selectedDate.year == DateTime.now().year) return;
                     setState(() {
                       _selectedDate = _selectedDate.add(const Duration(days: 1));
+                      _setupCombinedStream();
                     });
                   },
                 ),
@@ -129,9 +221,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                 leading: const Icon(Icons.monitor_heart),
                 title: const Text('Droppings'),
                 subtitle: const Text('Tap to log health observations'),
-                onTap: () {
-                  // TODO: Open Droppings logging dialog/screen
-                },
+                onTap: _showDroppingsLogDialog, // <-- Update this
               ),
               ListTile(
                 leading: const Icon(Icons.psychology),
@@ -157,60 +247,39 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
           // --- DISPLAY LIST: For showing saved entries ---
           // This is a dynamic list that reads from Firestore.
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('birds')
-                  .doc(widget.birdId)
-                  .collection('daily_logs')
-                  .doc(DateFormat('yyyy-MM-dd').format(_selectedDate))
-                  .collection('diet_entries')
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: _combinedLogStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(
-                    child: Text('No diet entries logged for this day.'),
+                    child: Text('No entries logged for this day.'),
                   );
                 }
 
-                final dietEntries = snapshot.data!.docs;
+                final logEntries = snapshot.data!;
 
                 return ListView.builder(
-                  itemCount: dietEntries.length,
+                  itemCount: logEntries.length,
                   itemBuilder: (context, index) {
-                    final entry = dietEntries[index];
-                    final data = entry.data() as Map<String, dynamic>;
-
-                    final String foodType = data['foodType'] ?? 'Unknown';
-                    final String description = data['description'] ?? 'No description';
-                    final String consumption = data['consumptionLevel'] ?? '-';
-
-                    String formattedTime = '';
-                    if (data['timestamp'] != null) {
-                      // The timestamp from Firestore is a special Timestamp object
-                      final timestamp = data['timestamp'] as Timestamp;
-                      // Convert it to a normal DateTime object
-                      final dateTime = timestamp.toDate();
-                      // Format it to show only the time (e.g., 10:30 AM)
-                      formattedTime = DateFormat.jm().format(dateTime);
+                    final entry = logEntries[index];
+                    final String type = entry['type'];
+                    
+                    // Use a switch statement to build the correct widget
+                    switch (type) {
+                      case 'diet':
+                        return _buildDietListTile(entry);
+                      case 'droppings':
+                        return _buildDroppingsListTile(entry);
+                      default:
+                        return const ListTile(title: Text('Unknown log type'));
                     }
-
-                    return ListTile(
-                      leading: Icon(
-                        Icons.restaurant,
-                        color: _getColorForConsumption(consumption), // <-- APPLY THE COLOR
-                      ),
-                      title: Text('$foodType - $description'),
-                      subtitle: Text('Consumption: $consumption'),
-                      trailing: Text(formattedTime),
-                    );
                   },
                 );
               },
-            ),
+            )
           ),
         ],
       ),
@@ -267,6 +336,41 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     } catch (e) {
       print('Error saving diet log: $e');
       // Handle errors later
+    }
+  }
+
+  void _showDroppingsLogDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => DroppingsLogDialog(onSave: _saveDroppingsLog),
+    );
+  }
+
+  Future<void> _saveDroppingsLog({
+    required String color,
+    required String consistency,
+    required String notes,
+  }) async {
+    final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final logDocRef = FirebaseFirestore.instance
+        .collection('birds')
+        .doc(widget.birdId)
+        .collection('daily_logs')
+        .doc(logDateId);
+
+    try {
+      await logDocRef.collection('droppings_entries').add({
+        'color': color,
+        'consistency': consistency,
+        'notes': notes,
+        'imageUrl': null, // For future use
+        'timestamp': FieldValue.serverTimestamp(),
+        'birdId': widget.birdId,
+      });
+      await logDocRef.set({}, SetOptions(merge: true));
+      print('Droppings log saved successfully!');
+    } catch (e) {
+      print('Error saving droppings log: $e');
     }
   }
 }
