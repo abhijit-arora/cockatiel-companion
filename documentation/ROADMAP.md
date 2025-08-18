@@ -54,12 +54,21 @@ The goal of this phase is to introduce the multi-user and premium subscription a
     *   [ ] 3.3. Implement cloud data sync for premium users.
     *   [ ] 6.1. Introduce the Premium subscription model to unlock the Flock feature and cloud sync.
 
+### **Version 1.3: The Power-User & Efficiency Update**
+
+The goal of this phase is to introduce time-saving features for multi-bird owners.
+
+*   **[ ] Shared Activities:** Implement logging for activities (like "Out of Cage Time") across multiple birds at once.
+*   **[ ] Activity Timer:** Add a start/stop timer for duration-based activities.
+*   **[ ] Batch Metric Entry:** Create a way to log a single metric (like weight) for all birds on one screen.
+
 ---
 
 ### **Future Versions: "The Nest Egg" (Long-Term Goals)**
 
-These are major features to be prioritized after a successful premium launch.
+These are major features to be prioritized after the core app is feature-complete.
 
+*   **[ ] Data Visualization & Trends:** A new section for viewing graphs and filtered lists of log data over time.
 *   **[ ] AI-Powered Insights:** Implement all features under FSD section 3.4.
 *   **[ ] Pre-Flight Checklist:** Implement the pre-adoption module (FSD 2.1).
 *   **[ ] Social Feed:** Implement the photo & milestone sharing feed (FSD 5.2).
