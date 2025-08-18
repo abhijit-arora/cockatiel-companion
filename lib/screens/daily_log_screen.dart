@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:async/async.dart';
 import 'package:cockatiel_companion/widgets/log_dialogs/diet_log_dialog.dart';
 import 'package:cockatiel_companion/widgets/log_dialogs/droppings_log_dialog.dart';
+import 'package:cockatiel_companion/widgets/log_dialogs/behavior_log_dialog.dart';
 
 class DailyLogScreen extends StatefulWidget {
   final String birdId;
@@ -50,6 +51,19 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     );
   }
 
+  ListTile _buildBehaviorListTile(Map<String, dynamic> data) {
+    final List<dynamic> behaviors = data['behaviors'] ?? [];
+    final String mood = data['mood'] ?? '-';
+    final formattedTime = _formatTimestamp(data['timestamp']);
+
+    return ListTile(
+      leading: const Icon(Icons.psychology, color: Colors.blue),
+      title: Text('Mood: $mood'),
+      subtitle: Text(behaviors.join(', ')),
+      trailing: Text(formattedTime),
+    );
+  }
+  
   String _formatTimestamp(dynamic timestamp) {
     if (timestamp == null) return '';
     final dt = (timestamp as Timestamp).toDate();
@@ -71,22 +85,18 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   }
 
   void _setupCombinedStream() {
-    // Define the stream for diet entries
-    Stream<QuerySnapshot> dietStream = FirebaseFirestore.instance
-        .collection('birds').doc(widget.birdId)
-        .collection('daily_logs').doc(DateFormat('yyyy-MM-dd').format(_selectedDate))
-        .collection('diet_entries').snapshots();
+    final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final dailyLogRef = FirebaseFirestore.instance.collection('birds').doc(widget.birdId).collection('daily_logs').doc(logDateId);
 
-    // Define the stream for droppings entries
-    Stream<QuerySnapshot> droppingsStream = FirebaseFirestore.instance
-        .collection('birds').doc(widget.birdId)
-        .collection('daily_logs').doc(DateFormat('yyyy-MM-dd').format(_selectedDate))
-        .collection('droppings_entries').snapshots();
+    Stream<QuerySnapshot> dietStream = dailyLogRef.collection('diet_entries').snapshots();
+    Stream<QuerySnapshot> droppingsStream = dailyLogRef.collection('droppings_entries').snapshots();
+    Stream<QuerySnapshot> behaviorStream = dailyLogRef.collection('behavior_entries').snapshots();        
 
     // Combine the streams
-    _combinedLogStream = StreamZip([dietStream, droppingsStream]).map((results) {
+    _combinedLogStream = StreamZip([dietStream, droppingsStream, behaviorStream]).map((results) {
       final dietDocs = results[0].docs;
       final droppingsDocs = results[1].docs;
+      final behaviorDocs = results[2].docs;
 
       // Convert each document to a map and add a 'type' field
       List<Map<String, dynamic>> combinedList = [];
@@ -95,6 +105,9 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       }
       for (var doc in droppingsDocs) {
         combinedList.add({'type': 'droppings', ...doc.data() as Map<String, dynamic>});
+      }
+      for (var doc in behaviorDocs) {
+        combinedList.add({'type': 'behavior', ...doc.data() as Map<String, dynamic>});
       }
 
       // Sort the combined list by timestamp
@@ -227,9 +240,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                 leading: const Icon(Icons.psychology),
                 title: const Text('Behavior & Mood'),
                 subtitle: const Text('Tap to log behavior'),
-                onTap: () {
-                  // TODO: Open Behavior logging dialog/screen
-                },
+                onTap: _showBehaviorLogDialog,
               ),
               ListTile(
                 leading: const Icon(Icons.scale),
@@ -273,6 +284,8 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                         return _buildDietListTile(entry);
                       case 'droppings':
                         return _buildDroppingsListTile(entry);
+                      case 'behavior':
+                        return _buildBehaviorListTile(entry);
                       default:
                         return const ListTile(title: Text('Unknown log type'));
                     }
@@ -371,6 +384,36 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       print('Droppings log saved successfully!');
     } catch (e) {
       print('Error saving droppings log: $e');
+    }
+  }
+
+  void _showBehaviorLogDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => BehaviorLogDialog(onSave: _saveBehaviorLog),
+    );
+  }
+  
+  Future<void> _saveBehaviorLog({
+    required List<String> behaviors,
+    required String mood,
+    required String notes,
+  }) async {
+    final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    final logDocRef = FirebaseFirestore.instance.collection('birds').doc(widget.birdId).collection('daily_logs').doc(logDateId);
+
+    try {
+      await logDocRef.collection('behavior_entries').add({
+        'behaviors': behaviors,
+        'mood': mood,
+        'notes': notes,
+        'timestamp': FieldValue.serverTimestamp(),
+        'birdId': widget.birdId,
+      });
+      await logDocRef.set({}, SetOptions(merge: true));
+      print('Behavior log saved successfully!');
+    } catch (e) {
+      print('Error saving behavior log: $e');
     }
   }
 }
