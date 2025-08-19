@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/screens/profile_screen.dart';
 import 'package:cockatiel_companion/screens/daily_log_screen.dart';
 import 'package:cockatiel_companion/screens/knowledge_center_screen.dart';
+import 'package:cockatiel_companion/widgets/onboarding_tip_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -65,42 +66,69 @@ class _HomePageState extends State<HomePage> {
           // If we get here, it means we have data!
           final birdDocs = snapshot.data!.docs;
 
-          return ListView.builder(
-            itemCount: birdDocs.length,
-            itemBuilder: (context, index) {
-              // Get the individual bird document
-              final birdDocument = birdDocs[index];
-              final birdName = birdDocument['name'] as String;
-              final birdId = birdDocument.id;
+          // Sort the documents by creation date to get the first bird reliably
+          birdDocs.sort((a, b) {
+            final aData = a.data() as Map<String, dynamic>;
+            final bData = b.data() as Map<String, dynamic>;
+            final Timestamp aTs = aData['createdAt'] ?? Timestamp.now();
+            final Timestamp bTs = bData['createdAt'] ?? Timestamp.now();
+            return aTs.compareTo(bTs); // Ascending order
+          });
 
-              // Display it in a nice list tile
-              return ListTile(
-                leading: const Icon(Icons.star_border),
-                title: Text(birdName),
-                // PRIMARY ACTION: Tapping anywhere on the tile goes to the log
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => DailyLogScreen(
-                        birdId: birdId,
-                        birdName: birdName,
-                      ),
-                    ),
-                  );
-                },
-                // SECONDARY ACTION: An explicit button for editing
-                trailing: IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => ProfileScreen(birdId: birdId),
+          final mainBirdDocData = birdDocs.first.data() as Map<String, dynamic>;
+          Timestamp? gotchaDayTimestamp;
+
+          // Safely get the timestamp from the first bird's data
+          if (mainBirdDocData.containsKey('gotchaDay') && mainBirdDocData['gotchaDay'] is Timestamp) {
+            gotchaDayTimestamp = mainBirdDocData['gotchaDay'] as Timestamp;
+          }
+
+          return Column(
+            children: [
+              // --- ONBOARDING TIP CARD ---
+              if (gotchaDayTimestamp != null)
+                OnboardingTipCard(birdName: mainBirdDocData['name'],gotchaDay: gotchaDayTimestamp),
+
+              // --- BIRD LIST ---
+              Expanded(
+                child: ListView.builder(
+                  itemCount: birdDocs.length,
+                  itemBuilder: (context, index) {
+                    final birdDocument = birdDocs[index];
+                    final birdData = birdDocument.data() as Map<String, dynamic>;
+                    final birdName = birdData['name'] as String;
+                    final birdId = birdDocument.id;
+
+                    return ListTile(
+                      leading: const Icon(Icons.star_border),
+                      title: Text(birdName),
+                      // PRIMARY ACTION: Tapping anywhere on the tile goes to the log
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => DailyLogScreen(
+                              birdId: birdId,
+                              birdName: birdName,
+                            ),
+                          ),
+                        );
+                      },
+                      // SECONDARY ACTION: An explicit button for editing
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ProfileScreen(birdId: birdId),
+                            ),
+                          );
+                        },
                       ),
                     );
                   },
                 ),
-              );
-            },
+              ),
+            ],
           );
         },
       ),

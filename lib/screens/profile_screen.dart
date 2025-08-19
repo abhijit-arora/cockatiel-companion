@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? birdId;
@@ -12,6 +13,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
+  final _gotchaDateController = TextEditingController();
+  DateTime? _selectedGotchaDate;
   bool _isLoading = false;
 
   @override
@@ -53,16 +56,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 const SizedBox(height: 16),
 
-                // --- Gotcha Day Field (Placeholder) ---
+                // --- Gotcha Day Field ---
                 TextField(
-                  readOnly: true, // Makes the field not editable by keyboard
+                  controller: _gotchaDateController, // <-- Use the new controller
+                  readOnly: true,
                   decoration: const InputDecoration(
                     labelText: 'Gotcha Day (Date you got your bird)',
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.calendar_today),
                   ),
-                  onTap: () {
-                    // TODO: Implement date picker logic
+                  onTap: () async { // <-- Implement onTap
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedGotchaDate ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _selectedGotchaDate = picked;
+                        // Use our intl package to format the date nicely
+                        _gotchaDateController.text = DateFormat.yMMMMd().format(picked);
+                      });
+                    }
                   },
                 ),
 
@@ -101,6 +117,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final data = doc.data()!;
         // Set the text of our controller with the fetched name
         _nameController.text = data['name'];
+        if (data['gotchaDay'] != null) {
+          // Convert the Firestore Timestamp back to a DateTime
+          final timestamp = data['gotchaDay'] as Timestamp;
+          _selectedGotchaDate = timestamp.toDate();
+          _gotchaDateController.text = DateFormat.yMMMMd().format(_selectedGotchaDate!);
+        }
       }
     } catch (e) {
       print('Error fetching bird data: $e');
@@ -133,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // CREATE MODE: Add a new document
         await FirebaseFirestore.instance.collection('birds').add({
           'name': birdName,
-          'gotchaDay': null,
+          'gotchaDay': _selectedGotchaDate,
           'ownerId': user.uid,
           'createdAt': FieldValue.serverTimestamp(),
         });
@@ -142,6 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // EDIT MODE: Update an existing document
         await FirebaseFirestore.instance.collection('birds').doc(widget.birdId).update({
           'name': birdName,
+          'gotchaDay': _selectedGotchaDate,
           // We can add other fields to update here later
         });
         print('Profile updated successfully!');
