@@ -16,7 +16,7 @@ The goal of the MVP is to deliver the core value proposition to our target user:
     *   **[x] 1.3b. View and edit an existing bird profile.**
 
 *   **Module 2: The Owner's Journey**
-    *   **[ ] 2.2. The Guided "First 30 Days" Plan.** This is a key feature for our target user.
+    *   **[x] 2.2. The Guided "First 30 Days" Plan.** This is a key feature for our target user.
 
 *   **Module 3: The Care Hub**
     *   **[x] 3.1. The "Smart" Daily Log. (Completed)**
