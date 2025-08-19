@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/screens/profile_screen.dart';
 import 'package:cockatiel_companion/screens/daily_log_screen.dart';
+import 'package:cockatiel_companion/screens/knowledge_center_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +20,15 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Your Flock'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.library_books),
+            tooltip: 'Knowledge Center',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const KnowledgeCenterScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
