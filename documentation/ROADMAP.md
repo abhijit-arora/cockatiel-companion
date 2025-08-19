@@ -23,7 +23,7 @@ The goal of the MVP is to deliver the core value proposition to our target user:
     *   **[ ] 3.2. Health & Wellness Reminders.**
 
 *   **Module 4: The Knowledge Center**
-    *   **[ ] 4.1. Curated Resource Library.** We will start with a foundational set of ~20 high-quality articles covering the most common new-owner questions.
+    *   **[x] 4.1. Curated Resource Library.** We will start with a foundational set of ~20 high-quality articles covering the most common new-owner questions.
 
 ---
 
