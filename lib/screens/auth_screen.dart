@@ -18,54 +18,74 @@ class _AuthScreenState extends State<AuthScreen> {
       appBar: AppBar(
         title: const Text('Login / Sign Up'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Email Text Field
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
+      body: SingleChildScrollView( // <-- Add ScrollView for smaller screens
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            // We don't need mainAxisAlignment here anymore
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 60), // Add space from the top
+
+              // --- NEW BRANDING SECTION ---
+              Image.asset(
+                'assets/images/logo.png',
+                height: 150, // A bit larger than the AppBar version
               ),
-            ),
-
-            // Spacer
-            const SizedBox(height: 16.0),
-
-            // Password Text Field
-            TextField(
-              controller: _passwordController,
-              obscureText: true, // This hides the password characters
-              decoration: InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              Text(
+                'FlockWell',
+                textAlign: TextAlign.center,
+                // Use the beautiful headline style from our theme
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-            ),
+              const SizedBox(height: 40),
+        
+              // Email Text Field
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+              ),
 
-            // Spacer
-            const SizedBox(height: 24.0),
+              // Spacer
+              const SizedBox(height: 16.0),
 
-            // Login Button
-            ElevatedButton(
-              onPressed: _signIn,
-              child: const Text('Login'),
-            ),
+              // Password Text Field
+              TextField(
+                controller: _passwordController,
+                obscureText: true, // This hides the password characters
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
 
-            // Spacer
-            const SizedBox(height: 8.0),
+              // Spacer
+              const SizedBox(height: 24.0),
 
-            // Sign Up Button
-            OutlinedButton( // <-- Change to OutlinedButton
-              onPressed: _signUp,
-              // No style is needed! It will automatically use our theme.
-              child: const Text('Sign Up'),
-            ),
-          ],
+              // Login Button
+              ElevatedButton(
+                onPressed: _signIn,
+                child: const Text('Login'),
+              ),
+
+              // Spacer
+              const SizedBox(height: 8.0),
+
+              // Sign Up Button
+              OutlinedButton( // <-- Change to OutlinedButton
+                onPressed: _signUp,
+                // No style is needed! It will automatically use our theme.
+                child: const Text('Sign Up'),
+              ),
+            ],
+          ),
         ),
       ),
     );
