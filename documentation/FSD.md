@@ -7,22 +7,23 @@ This document details the features and functionalities of the Cockatiel Companio
 ### Module 1: The Aviary (User & Household Management)
 
 *   **1.1. User Account & The Aviary:**
-    *   The "Aviary" represents the top-level user account or household. It contains all Caregivers, Nests, and Birds.
+    *   The "Aviary" represents the top-level user account/household.
     *   Users can sign up using email/password or OAuth.
+    *   **Aviary Fields:** Vet Contact Details, Emergency Contacts, Household-level notes (e.g., feeding schedule).
 
 *   **1.2. Caregiver Management:**
-    *   The primary user can invite other family members ("Caregivers") to their Aviary.
-    *   All Caregivers in an Aviary can view and manage all Nests and Birds within it.
+    *   The primary user can invite "Caregivers" to their Aviary.
+    *   **Caregiver Labels:** The primary user can assign fun, thematic labels to caregivers (e.g., "Mama Birdie," "The Flock Master").
 
 *   **1.3. Nest Management (Cages):**
     *   A "Nest" represents a physical cage or enclosure.
-    *   Users can create multiple Nests within their Aviary (e.g., "Main Flight Cage," "Sleeping Cage").
-    *   Each bird profile will be assigned to a specific Nest.
+    *   Users can create multiple Nests within their Aviary.
+    *   **Nest Fields:** Name (e.g., "Main Flight Cage"), Photo, Dimensions, Color, Brand/Model, Notes.
 
 *   **1.4. Bird Profile Creation (The Flock):**
     *   The "Flock" is the collection of all `Bird` profiles belonging to an Aviary.
-    *   Users can create multiple bird profiles and assign them to a Nest.
-    *   **Fields:** Name, Photo, Nest ID, Hatch Date, Gotcha Day, Sex, Color Mutation, Notes/Bio.
+    *   Users create bird profiles and assign them to a specific Nest.
+    *   **Fields:** Name, Photo, Nest ID, Hatch Date, Gotcha Day, etc.
 
 ---
 
