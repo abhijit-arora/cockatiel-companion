@@ -21,7 +21,22 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Your Flock'),
+        title: Row(
+          children: [
+            // The logo with a white circular background
+            CircleAvatar(
+              backgroundColor: Colors.white,
+              radius: 20, // Controls the size of the circle
+              child: Padding(
+                padding: const EdgeInsets.all(4.0), // Adds a little space around the logo
+                child: Image.asset('assets/images/logo.png'),
+              ),
+            ),
+            const SizedBox(width: 10), // A little space
+            // The text title
+            const Text('Your Flock'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.task_alt),
