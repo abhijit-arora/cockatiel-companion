@@ -60,11 +60,9 @@ class _AuthScreenState extends State<AuthScreen> {
             const SizedBox(height: 8.0),
 
             // Sign Up Button
-            ElevatedButton(
+            OutlinedButton( // <-- Change to OutlinedButton
               onPressed: _signUp,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade200,
-              ),
+              // No style is needed! It will automatically use our theme.
               child: const Text('Sign Up'),
             ),
           ],
