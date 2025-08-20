@@ -91,12 +91,13 @@ This document details the features and functionalities of the Cockatiel Companio
 
     ---
     #### **Tier 1: Free**
-    *Goal: Provide core utility and attract a large user base.*
+    *Goal: Provide core utility and attract a large user base, supported by non-intrusive ads.*
     *   **User & Nest Management (Module 1):** Manage up to 2 bird profiles. Nest/sharing features are disabled.
     *   **Daily Log (Module 3.1):** Full access to all daily log types.
     *   **Data Storage (Module 3.3):** All data is stored locally on the user's device with manual backup/restore.
     *   **Knowledge Center (Module 4):** Limited access (e.g., 3 free articles per month).
     *   **Community (Module 5):** Full access to community forums and social features.
+    *   **Advertising:** This tier will be supported by advertisements. Ads may include sponsored posts in feeds or occasional splash screens. Subscribing to "FlockWell Plus" will remove all ads.
 
     ---
     #### **Tier 2: FlockWell Plus (Subscription)**

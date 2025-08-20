@@ -27,40 +27,27 @@ The goal of the MVP is to deliver the core value proposition to our target user:
 
 ---
 
-### **Version 1.1: The Community & Commerce Update**
+### **Version 1.1: The Growth & Community Foundation Update**
 
-The goal of this phase is to build user engagement, reduce friction, and test our first monetization channel.
+The goal of this phase is to reduce friction for new users and build the core technical foundations for multi-user and community features.
 
-*   **[ ] Module 5: The Community Aviary**
-    *   [ ] 5.1. Implement the basic Community Forum / Q&A.
-
-*   **[ ] Module 4: The Knowledge Center**
-    *   [ ] 4.3. Launch the Shopping & Gear Hub with affiliate links.
-
-*   **[ ] Core App Improvements**
-    *   [ ] Allow creation of multiple bird profiles under one account.
-    *   [ ] **(New)** Implement Social Sign-In (Google & Apple) for a frictionless login experience.
+*   **[ ] Social Sign-In:** Implement frictionless login with Google & Apple.
+*   **[ ] Aviary & Nest Hierarchy:** Implement the full data model for Aviaries (households) and Nests (cages).
+*   **[ ] Caregiver Invitations:** Build the UI and logic for adding other users to an Aviary. (Plus Feature)
+*   **[ ] Ad Integration:** Integrate an ad provider (e.g., Google AdMob) to display simple ads for free-tier users.
 
 ---
 
-### **Version 1.2: The "Flock" & Premium Foundation Update**
+### **Version 1.2: The Community & Commerce Update**
 
-The goal of this phase is to introduce the multi-user and premium subscription architecture.
+With the user and data models in place, this phase focuses on building engagement and testing monetization.
 
-*   **Module 1: User & Flock Management**
-    *   **[ ] 1.2. Implement the full "Nest" system for shared care. (Plus Feature)**
-
-*   **Module 3: Data & Monetization**
-    *   **[ ] 3.3. Implement cloud data sync for premium users. (Plus Feature)**
-    *   **[ ] 6.1. Introduce the "FlockWell Plus" premium subscription model.**
-
-### **Version 1.3: The Power-User & Efficiency Update**
-
-The goal of this phase is to introduce time-saving features for multi-bird owners.
-
-*   **[ ] Shared Activities:** Implement logging for activities (like "Out of Cage Time") across multiple birds at once.
-*   **[ ] Activity Timer:** Add a start/stop timer for duration-based activities.
-*   **[ ] Batch Metric Entry:** Create a way to log a single metric (like weight) for all birds on one screen.
+*   **[ ] The Community Aviary:** Implement the basic Community Forum / Q&A. (Free Feature)
+*   **[ ] The Shopping & Gear Hub:** Launch the affiliate link-driven "Perch." (Free Feature)
+*   **[ ] Power-User Logging:**
+    *   Implement "Shared Activities" for multi-bird logging.
+    *   Implement "Batch Metric Entry" for efficiency.
+*   **[ ] Premium Subscription:** Launch the "FlockWell Plus" subscription to remove ads and unlock premium features.
 
 ---
 
