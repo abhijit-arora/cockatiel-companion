@@ -63,6 +63,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '143751027251',
     projectId: 'flockwell-d3cb4',
     storageBucket: 'flockwell-d3cb4.firebasestorage.app',
+    iosClientId: '143751027251-asbtj44d51ucp919ang45o8fojcm1f9t.apps.googleusercontent.com',
     iosBundleId: 'com.flockwell.cockatielCompanion',
   );
 
@@ -72,6 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '143751027251',
     projectId: 'flockwell-d3cb4',
     storageBucket: 'flockwell-d3cb4.firebasestorage.app',
+    iosClientId: '143751027251-asbtj44d51ucp919ang45o8fojcm1f9t.apps.googleusercontent.com',
     iosBundleId: 'com.flockwell.cockatielCompanion',
   );
 
@@ -83,4 +85,5 @@ class DefaultFirebaseOptions {
     authDomain: 'flockwell-d3cb4.firebaseapp.com',
     storageBucket: 'flockwell-d3cb4.firebasestorage.app',
   );
+
 }

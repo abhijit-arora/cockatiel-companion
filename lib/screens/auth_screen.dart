@@ -68,21 +68,35 @@ class _AuthScreenState extends State<AuthScreen> {
 
               // Spacer
               const SizedBox(height: 24.0),
-
-              // Login Button
               ElevatedButton(
                 onPressed: _signIn,
                 child: const Text('Login'),
               ),
-
-              // Spacer
               const SizedBox(height: 8.0),
-
-              // Sign Up Button
-              OutlinedButton( // <-- Change to OutlinedButton
+              OutlinedButton(
                 onPressed: _signUp,
-                // No style is needed! It will automatically use our theme.
                 child: const Text('Sign Up'),
+              ),
+              const SizedBox(height: 24),
+              const Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text('OR'),
+                  ),
+                  Expanded(child: Divider()),
+                ],
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                icon: Image.asset('assets/images/google_logo.png', height: 24.0), // We will add this asset
+                label: const Text('Sign in with Google'),
+                onPressed: _signInWithGoogle,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black87,
+                ),
               ),
             ],
           ),
@@ -132,6 +146,30 @@ class _AuthScreenState extends State<AuthScreen> {
       // Handle potential errors, like wrong password or user not found
       print('Failed to sign in: ${e.message}');
       // We can show a dialog to the user here later
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      // 1. Create an instance of the Google provider
+      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      
+      // 2. Use Firebase to trigger the sign-in flow
+      // This will automatically handle the pop-up and user selection.
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithPopup(googleProvider);
+
+      // 3. The user is now signed in to Firebase.
+      // The AuthGate will handle navigation automatically.
+      print('Successfully signed in with Google: ${userCredential.user?.email}');
+
+    } catch (e) {
+      print('Error during Google Sign In: $e');
+      // Guard against context errors if the widget is no longer visible
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to sign in with Google: $e')),
+        );
+      }
     }
   }
 }
