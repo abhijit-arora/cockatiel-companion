@@ -4,22 +4,25 @@ This document details the features and functionalities of the Cockatiel Companio
 
 ---
 
-### Module 1: User & Nest Management
+### Module 1: The Aviary (User & Household Management)
 
-*   **1.1. User Account Creation:**
-    *   Users can sign up using email/password or OAuth (Google, Apple).
-    *   User profile includes a username and an optional profile picture.
+*   **1.1. User Account & The Aviary:**
+    *   The "Aviary" represents the top-level user account or household. It contains all Caregivers, Nests, and Birds.
+    *   Users can sign up using email/password or OAuth.
 
-*   **1.2. The Nest System (Household):**
-    *   A "Nest" represents the user's household. It contains Caregivers and Birds.
-    *   An initial user creates the Nest.
-    *   The primary user can invite other family members ("Caregivers") to the Nest via email or a unique link.
-    *   All Caregivers in a Nest can view and manage the profiles of all the Birds in the Nest's "Flock."
+*   **1.2. Caregiver Management:**
+    *   The primary user can invite other family members ("Caregivers") to their Aviary.
+    *   All Caregivers in an Aviary can view and manage all Nests and Birds within it.
 
-*   **1.3. Bird Profile Creation (The Flock):**
-    *   The "Flock" is the collection of all `Bird` profiles belonging to a Nest.
-    *   Users can create multiple bird profiles within their Nest.
-    *   **Fields:** Name, Photo, Hatch Date, Gotcha Day, Sex, Color Mutation, Notes/Bio.
+*   **1.3. Nest Management (Cages):**
+    *   A "Nest" represents a physical cage or enclosure.
+    *   Users can create multiple Nests within their Aviary (e.g., "Main Flight Cage," "Sleeping Cage").
+    *   Each bird profile will be assigned to a specific Nest.
+
+*   **1.4. Bird Profile Creation (The Flock):**
+    *   The "Flock" is the collection of all `Bird` profiles belonging to an Aviary.
+    *   Users can create multiple bird profiles and assign them to a Nest.
+    *   **Fields:** Name, Photo, Nest ID, Hatch Date, Gotcha Day, Sex, Color Mutation, Notes/Bio.
 
 ---
 

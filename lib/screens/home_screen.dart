@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/screens/profile_screen.dart';
 import 'package:cockatiel_companion/screens/daily_log_screen.dart';
 import 'package:cockatiel_companion/screens/knowledge_center_screen.dart';
+import 'package:cockatiel_companion/screens/care_tasks_screen.dart';
 import 'package:cockatiel_companion/widgets/onboarding_tip_card.dart';
+import 'package:cockatiel_companion/widgets/upcoming_tasks_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,6 +23,15 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Your Flock'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.task_alt),
+            tooltip: 'Care Tasks',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const CareTasksScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.library_books),
             tooltip: 'Knowledge Center',
@@ -88,7 +99,7 @@ class _HomePageState extends State<HomePage> {
               // --- ONBOARDING TIP CARD ---
               if (gotchaDayTimestamp != null)
                 OnboardingTipCard(birdName: mainBirdDocData['name'],gotchaDay: gotchaDayTimestamp),
-
+              const UpcomingTasksCard(),
               // --- BIRD LIST ---
               Expanded(
                 child: ListView.builder(
