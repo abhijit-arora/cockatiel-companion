@@ -175,7 +175,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (nestsSnapshot.docs.isEmpty) {
         // First time saving a bird, let's create the user doc and the nest.
         await userDocRef.set({
-          'ownerEmail': user.email,
+          'guardianEmail': user.email,
           'createdAt': FieldValue.serverTimestamp(),
         });
         nestRef = await nestsCollectionRef.add({

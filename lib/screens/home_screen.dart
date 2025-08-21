@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/screens/aviary_management_screen.dart';
 import 'package:cockatiel_companion/screens/profile_screen.dart';
 import 'package:cockatiel_companion/screens/daily_log_screen.dart';
 import 'package:cockatiel_companion/screens/knowledge_center_screen.dart';
@@ -38,6 +39,15 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.group_work_outlined),
+            tooltip: 'Manage Aviary',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const AviaryManagementScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.task_alt),
             tooltip: 'Care Tasks',
