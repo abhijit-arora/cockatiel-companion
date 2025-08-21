@@ -226,7 +226,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   onPressed: () {
                     if (_selectedDate.day == DateTime.now().day &&
                         _selectedDate.month == DateTime.now().month &&
-                        _selectedDate.year == DateTime.now().year) return;
+                        _selectedDate.year == DateTime.now().year) { return; }
                     setState(() {
                       _selectedDate = _selectedDate.add(const Duration(days: 1));
                       _setupCombinedStream();

@@ -15,7 +15,6 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   final _titleController = TextEditingController();
   final _recurrenceValueController = TextEditingController(text: '7'); // Default to 7
   String _selectedUnit = 'days'; // Default to 'days'
-  DateTime _selectedStartDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +58,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   Expanded(
                     flex: 2,
                     child: DropdownButtonFormField<String>(
-                      value: _selectedUnit,
+                      initialValue: _selectedUnit,
                       items: ['days', 'weeks', 'months']
                           .map((u) => DropdownMenuItem(value: u, child: Text(u)))
                           .toList(),
@@ -76,38 +75,45 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               const SizedBox(height: 32),
               // --- SAVE BUTTON ---
               ElevatedButton(
-                onPressed: () async { // <-- Make the function async
-                  if (_formKey.currentState!.validate()) {
-                    final userId = FirebaseAuth.instance.currentUser?.uid;
-                    if (userId == null) return; // Should not happen
+                onPressed: () async {
+                  // First, validate the form. If it's not valid, do nothing.
+                  if (!_formKey.currentState!.validate()) {
+                    return;
+                  }
 
-                    try {
-                      // Add the new task to the user's care_tasks sub-collection
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userId)
-                          .collection('care_tasks')
-                          .add({
-                        'title': _titleController.text,
-                        'recurrence_unit': _selectedUnit,
-                        'recurrence_value': int.parse(_recurrenceValueController.text),
-                        'lastCompletedDate': null,
-                        // For now, the first due date is today. We can add a date picker later.
-                        'nextDueDate': DateTime.now(),
-                        'birdIds': [], // For now, applies to all birds implicitly
-                        'createdAt': FieldValue.serverTimestamp(),
-                      });
+                  // --- NEW: Capture context-dependent objects BEFORE the async gap ---
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  // --- END OF NEW CODE ---
 
-                      // Go back to the previous screen after saving
-                      if (mounted) Navigator.of(context).pop();
+                  final userId = FirebaseAuth.instance.currentUser?.uid;
+                  if (userId == null) return;
 
-                    } catch (e) {
-                      print('Error saving task: $e');
-                      // Show an error message
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to save task: $e')),
-                      );
-                    }
+                  try {
+                    // THE ASYNC GAP: This is where the "await" happens.
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .collection('care_tasks')
+                        .add({
+                      'title': _titleController.text,
+                      'recurrence_unit': _selectedUnit,
+                      'recurrence_value': int.parse(_recurrenceValueController.text),
+                      'lastCompletedDate': null,
+                      'nextDueDate': DateTime.now(),
+                      'birdIds': [],
+                      'createdAt': FieldValue.serverTimestamp(),
+                    });
+
+                    // --- Use the captured objects AFTER the async gap ---
+                    navigator.pop();
+
+                  } catch (e) {
+                    print('Error saving task: $e');
+                    // Use the captured object
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(content: Text('Failed to save task: $e')),
+                    );
                   }
                 },
                 child: const Text('Save Task'),

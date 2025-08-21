@@ -2,9 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class KnowledgeCenterScreen extends StatelessWidget {
+class KnowledgeCenterScreen extends StatefulWidget {
   const KnowledgeCenterScreen({super.key});
 
+  @override
+  State<KnowledgeCenterScreen> createState() => _KnowledgeCenterScreenState();
+}
+
+class _KnowledgeCenterScreenState extends State<KnowledgeCenterScreen> {
   // Helper function to get the right icon based on resource type
   IconData _getIconForType(String type) {
     switch (type) {
@@ -53,9 +58,11 @@ class KnowledgeCenterScreen extends StatelessWidget {
                       await launchUrl(uri);
                     } else {
                       // Show an error message if the URL can't be launched
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Could not launch $url')),
-                      );
+                      if (mounted) { // <-- ADD THIS CHECK
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not launch $url')),
+                        );
+                      }
                     }
                   }
                 },

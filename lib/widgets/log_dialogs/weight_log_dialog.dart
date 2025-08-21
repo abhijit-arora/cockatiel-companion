@@ -70,10 +70,10 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
 
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedContext,
+                initialValue: _selectedContext,
                 hint: const Text('Select Context (Optional)'),
                 items: ['Before Meal', 'After Meal', 'Unspecified']
-                    .map((label) => DropdownMenuItem(child: Text(label), value: label))
+                    .map((label) => DropdownMenuItem(value: label, child: Text(label)))
                     .toList(),
                 onChanged: (value) {
                   setState(() {

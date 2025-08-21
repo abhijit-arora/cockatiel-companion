@@ -37,10 +37,10 @@ class _DietLogDialogState extends State<DietLogDialog> {
             children: <Widget>[
               // Dropdown for Food Type
               DropdownButtonFormField<String>(
-                value: _selectedFoodType,
+                initialValue: _selectedFoodType,
                 hint: const Text('Select Food Type'),
                 items: ['Pellets', 'Green Leafs', 'Vegetables', 'Fruit', 'Sprouts', 'Treat', 'Other']
-                    .map((label) => DropdownMenuItem(child: Text(label), value: label))
+                    .map((label) => DropdownMenuItem(value: label, child: Text(label)))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
