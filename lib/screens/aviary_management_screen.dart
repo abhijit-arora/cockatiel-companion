@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cockatiel_companion/widgets/aviary_dialogs/invite_caregiver_dialog.dart';
 
-class AviaryManagementScreen extends StatelessWidget {
+class AviaryManagementScreen extends StatefulWidget {
   const AviaryManagementScreen({super.key});
 
+  @override
+  State<AviaryManagementScreen> createState() => _AviaryManagementScreenState();
+}
+
+class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,14 +47,44 @@ class AviaryManagementScreen extends StatelessWidget {
               },
             ),
           ),
-          // We will show a list of invited caregivers here
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('invitations')
+                .where('aviaryOwnerId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                .where('status', isEqualTo: 'pending')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const SizedBox.shrink(); // Show nothing if no pending invites
+              }
+              final invites = snapshot.data!.docs;
+              return Column(
+                children: invites.map((invite) {
+                  final data = invite.data() as Map<String, dynamic>;
+                  return Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.mail_outline, color: Colors.grey),
+                      title: Text(data['inviteeEmail']),
+                      subtitle: const Text('Invitation Pending...'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        onPressed: () {
+                          // TODO: Implement delete/cancel invitation logic
+                        },
+                      ),
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton.icon(
               icon: const Icon(Icons.add),
               label: const Text('Invite a Caregiver'),
               onPressed: () {
-                // TODO: Open the invite caregiver dialog
+                _showInviteDialog();
               },
             ),
           ),
@@ -66,6 +104,42 @@ class AviaryManagementScreen extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
       ),
+    );
+  }
+
+  Future<void> _sendInvite({required String email, required String label}) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance.collection('invitations').add({
+        'aviaryOwnerId': user.uid,
+        'inviteeEmail': email.toLowerCase(), // Store emails consistently
+        'label': label,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // Show a success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invitation sent to $email!')),
+        );
+      }
+    } catch (e) {
+      print('Error sending invitation: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: Could not send invitation.')),
+        );
+      }
+    }
+  }
+
+  void _showInviteDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => InviteCaregiverDialog(onInvite: _sendInvite),
     );
   }
 }
