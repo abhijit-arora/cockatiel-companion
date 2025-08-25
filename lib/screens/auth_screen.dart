@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/services/auth_service.dart';
 
 enum AuthMode { login, signUp }
 
@@ -11,6 +12,7 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  final AuthService _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
   AuthMode _authMode = AuthMode.login;
   final _confirmPasswordController = TextEditingController();
@@ -20,25 +22,24 @@ class _AuthScreenState extends State<AuthScreen> {
   // --- LOGIC FUNCTIONS ---
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
+
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
     try {
       if (_authMode == AuthMode.login) {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
+        await _authService.signInWithEmail(email, password);
       } else {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
+        await _authService.signUpWithEmail(email, password);
       }
+      // On success, the AuthGate will handle navigation automatically.
+      // We no longer need any special logic here.
+
     } on FirebaseAuthException catch (e) {
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text(e.message ?? 'An authentication error occurred.')),
+        SnackBar(content: Text(e.message ?? 'An error occurred.')),
       );
     }
   }
@@ -58,54 +59,52 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _showForgotPasswordDialog() {
+    // This function doesn't change much, but now it will use the service
     final emailController = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Reset Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Enter your email address to receive a password reset link.'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            ElevatedButton(
-              child: const Text('Send Link'),
-              onPressed: () {
-                if (emailController.text.isNotEmpty) {
-                  _sendPasswordResetEmail(emailController.text.trim());
-                  Navigator.of(context).pop();
-                }
-              },
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter your email address to receive a password reset link.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'Email'),
             ),
           ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          ElevatedButton(
+            child: const Text('Send Link'),
+            onPressed: () {
+              if (emailController.text.isNotEmpty) {
+                _sendPasswordResetEmail(emailController.text.trim());
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 
   Future<void> _signInWithGoogle() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
-      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
-      await FirebaseAuth.instance.signInWithPopup(googleProvider);
+      await _authService.signInWithGoogle();
+      // AuthGate handles navigation
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to sign in with Google: $e')),
-        );
-      }
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Failed to sign in with Google: $e')),
+      );
     }
   }
 

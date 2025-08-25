@@ -4,63 +4,46 @@ This document outlines the planned development phases for the application, start
 
 ---
 
-### **Version 1.0: The Minimum Viable Product (MVP)**
+### **Version 1.0: Minimum Viable Product (Completed)**
 
-The goal of the MVP is to deliver the core value proposition to our target user: **a new cockatiel owner who needs guidance and a simple way to track their bird's health.** We will focus on the single-user experience first.
+The goal of the MVP was to deliver the core value proposition: a single-user, cloud-synced mobile companion for a new bird owner to track their pet's health and well-being.
 
-**Core Modules & Features for MVP:**
-
-*   **Module 1: User & Bird Profile**
-    *   **1.1. User Account & The Aviary:**
-        *   The "Aviary" represents the top-level user account or household. It contains all Caregivers, Nests, and Birds.
-        *   Users can sign up using email/password or OAuth.
-        *   **Email Verification:** Users who sign up with an email/password must verify their email address by clicking a link before gaining full access to the app.
-    *   **[x] 1.3a. Create and list bird profiles.** (Completed)
-    *   **[x] 1.3b. View and edit an existing bird profile.**
-
-*   **Module 2: The Owner's Journey**
-    *   **[x] 2.2. The Guided "First 30 Days" Plan.** This is a key feature for our target user.
-
-*   **Module 3: The Care Hub**
-    *   **[x] 3.1. The "Smart" Daily Log. (Completed)**
-    *   **[x] 3.2. Health & Wellness Reminders.**
-
-*   **Module 4: The Knowledge Center**
-    *   **[x] 4.1. Curated Resource Library.** We will start with a foundational set of ~20 high-quality articles covering the most common new-owner questions.
+**Key Features Delivered:**
+*   **Authentication:** A complete and secure system for user sign-up, email/password login, and Google Sign-In.
+*   **Multi-User Foundation:** The full backend architecture for multi-user households ("Aviaries"), shared cages ("Nests"), and invited "Caregivers" has been implemented, including a secure Cloud Function for processing invitations.
+*   **Bird Profile Management:** Users can create, view, list, and edit profiles for their birds.
+*   **The "Smart" Daily Log:** A real-time, dynamic screen for logging and viewing daily data for each bird across multiple categories (Diet, Droppings, Behavior, Weight). The system uses modular, reusable dialogs for data entry.
+*   **Guided Onboarding:** A "First 30 Days" plan that displays a daily tip on the user's home screen based on their first bird's "Gotcha Day".
+*   **Care Task Management:** An in-app system for creating and tracking recurring tasks (e.g., "Clean Cage Weekly"), with "Overdue" and "Upcoming" status visibility.
+*   **Curated Knowledge Center:** A scalable module for displaying a curated list of external articles and videos, which can be opened in the device's browser.
+*   **Branding & Theming:** A full, app-wide visual theme was implemented, including a custom color scheme, logo, and consistent typography.
 
 ---
-
-### Technical Debt & Minor Bugs
+### **Technical Debt & Minor Bugs**
 
 *   **[ ] Daily Log Refresh:** The daily log screen does not always auto-refresh instantly after a new entry is saved. Requires a manual pull-to-refresh or a second action.
-*   **[ ] Improved "Forgot Password" UX:** The app should detect if a user tries to reset a password for a social sign-in account and provide a helpful message.
+*   **[ ] Email Verification Blocked:** The Firebase project is currently blocking email sending actions (verification, password reset). This feature is deferred.
+*   **[ ] "Forgot Password" UX:** The app should detect if a user tries to reset a password for a social sign-in account and provide a helpful message.
 
 ---
+### **Version 1.1: The Polish & Management Update**
 
-### **Version 1.1: The Growth & Community Foundation Update**
-
-The goal of this phase is to reduce friction for new users and build the core technical foundations for multi-user and community features.
+The goal of this phase is to refine the user experience and add core management features on top of our existing foundation.
 
 *   **[ ] Edit/Delete Log Entries:** Add functionality to the Daily Log screen to edit or delete existing entries.
-*   **[ ] Improved Sign-Up Flow:** Refactor the AuthScreen to have a clearer, distinct sign-up process (e.g., a toggle or separate dialog). (Completed)
-*   **[ ] Email Verification:** Implement the email verification flow for new email/password sign-ups.
-*   **[ ] Social Sign-In:** Implement frictionless login with Google & Apple.
-*   **[ ] Aviary & Nest Hierarchy:** Implement the full data model for Aviaries (households) and Nests (cages).
-*   **[ ] Caregiver Invitations:** Build the UI and logic for adding other users to an Aviary. (Plus Feature)
-*   **[ ] Ad Integration:** Integrate an ad provider (e.g., Google AdMob) to display simple ads for free-tier users.
+*   **[ ] Improved Sign-Up Flow:** Refactor the AuthScreen to have a clearer, distinct sign-up process.
+*   **[ ] Nest Management:** Build the UI to create, rename, and manage Nests (cages) within an Aviary.
+*   **[ ] Bird-to-Nest Assignment:** Allow users to assign their birds to the Nests they've created. This includes adding a **Species** dropdown to the bird profile creation screen.
 
 ---
+### **Version 1.2: The Community & Growth Update**
 
-### **Version 1.2: The Community & Commerce Update**
-
-With the user and data models in place, this phase focuses on building engagement and testing monetization.
+With a polished core app, this phase focuses on user engagement and growth.
 
 *   **[ ] The Community Aviary:** Implement the basic Community Forum / Q&A. (Free Feature)
+*   **[ ] Social Sign-In (Apple):** Implement Sign in with Apple to complete our social login options.
+*   **[ ] Ad Integration:** Integrate an ad provider (e.g., Google AdMob) to display simple ads for free-tier users.
 *   **[ ] The Shopping & Gear Hub:** Launch the affiliate link-driven "Perch." (Free Feature)
-*   **[ ] Power-User Logging:**
-    *   Implement "Shared Activities" for multi-bird logging.
-    *   Implement "Batch Metric Entry" for efficiency.
-*   **[ ] Premium Subscription:** Launch the "FlockWell Plus" subscription to remove ads and unlock premium features.
 
 ---
 
@@ -77,8 +60,11 @@ This is a separate web application for managing the app's content and configurat
 
 These are major features to be prioritized after the core app is feature-complete.
 
-*   **[ ] Data Visualization & Trends:** A new section for viewing graphs and filtered lists of log data over time. (Plus Feature)
-*   **[ ] AI-Powered Insights:** Implement all features under FSD section 3.4. (Requires AI Credits)
-*   **[ ] Pre-Flight Checklist:** Implement the pre-adoption module (FSD 2.1). (Free Feature)
-*   **[ ] Social Feed:** Implement the photo & milestone sharing feed (FSD 5.2). (Free Feature)
-*   **[ ] Species Expansion:** Architect the app to begin adding other bird species (Parakeets, Conures, etc.). (Core Feature)
+*   **Premium Features:** Launch the "FlockWell Plus" subscription and "AI Credits" models.
+*   **Power-User Logging:** Implement "Shared Activities" and "Batch Metric Entry".
+*   **Business & Admin Tools:** A separate web app for content management.
+*   **Data Visualization & Trends.** (Plus Feature)
+*   **AI-Powered Insights.** (Requires AI Credits)
+*   **Pre-Flight Checklist.** (Free Feature)
+*   **Social Feed.** (Free Feature)
+*   **Species Expansion.** (Core Feature)

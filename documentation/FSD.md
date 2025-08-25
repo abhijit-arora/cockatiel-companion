@@ -23,8 +23,8 @@ This document details the features and functionalities of the Cockatiel Companio
 
 *   **1.4. Bird Profile Creation (The Flock):**
     *   The "Flock" is the collection of all `Bird` profiles belonging to an Aviary.
-    *   Users create bird profiles and assign them to a specific Nest.
-    *   **Fields:** Name, Photo, Nest ID, Hatch Date, Gotcha Day, etc.
+    *   Users can create multiple bird profiles and assign them to a Nest.
+    *   **Fields:** Name, Photo, **Species (e.g., Cockatiel, Budgerigar)**, Nest ID, Hatch Date, Gotcha Day, Sex, Color Mutation, Notes/Bio.
 
 ---
 

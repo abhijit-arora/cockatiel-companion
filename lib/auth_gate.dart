@@ -1,17 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/services/auth_service.dart';
 
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
+    final authService = AuthService(); // <-- Create an instance
     return StreamBuilder<User?>(
-      // Listen to the Firebase auth state changes stream
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: authService.authStateChanges,
       builder: (context, snapshot) {
         // If the snapshot has data, it means the user is logged in
         if (snapshot.hasData) {
