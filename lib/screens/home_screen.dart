@@ -8,6 +8,7 @@ import 'package:cockatiel_companion/screens/knowledge_center_screen.dart';
 import 'package:cockatiel_companion/screens/care_tasks_screen.dart';
 import 'package:cockatiel_companion/widgets/onboarding_tip_card.dart';
 import 'package:cockatiel_companion/widgets/upcoming_tasks_card.dart';
+import 'package:cockatiel_companion/widgets/pending_invitations_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,6 +18,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  String? _aviaryId;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _determineAviaryId();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,17 +34,15 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Row(
           children: [
-            // The logo with a white circular background
             CircleAvatar(
               backgroundColor: Colors.white,
-              radius: 20, // Controls the size of the circle
+              radius: 20,
               child: Padding(
-                padding: const EdgeInsets.all(4.0), // Adds a little space around the logo
+                padding: const EdgeInsets.all(4.0),
                 child: Image.asset('assets/images/logo.png'),
               ),
             ),
-            const SizedBox(width: 10), // A little space
-            // The text title
+            const SizedBox(width: 10),
             const Text('Your Flock'),
           ],
         ),
@@ -74,108 +82,136 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        // Define the query to fetch the bird profile
-        stream: FirebaseFirestore.instance
-            .collection('birds')
-            .where('ownerId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-            .snapshots(),
-        builder: (context, snapshot) {
-          // --- 1. Handle Loading State ---
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          // --- 2. Handle Error State ---
-          if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong!'));
-          }
-
-          // --- 3. Handle "No Data" State ---
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
-              child: Text('You have no birds yet. Add one!'),
-            );
-          }
-
-          // --- 4. Handle "Has Data" State ---
-          // If we get here, it means we have data!
-          final birdDocs = snapshot.data!.docs;
-
-          // Sort the documents by creation date to get the first bird reliably
-          birdDocs.sort((a, b) {
-            final aData = a.data() as Map<String, dynamic>;
-            final bData = b.data() as Map<String, dynamic>;
-            final Timestamp aTs = aData['createdAt'] ?? Timestamp.now();
-            final Timestamp bTs = bData['createdAt'] ?? Timestamp.now();
-            return aTs.compareTo(bTs); // Ascending order
-          });
-
-          final mainBirdDocData = birdDocs.first.data() as Map<String, dynamic>;
-          Timestamp? gotchaDayTimestamp;
-
-          // Safely get the timestamp from the first bird's data
-          if (mainBirdDocData.containsKey('gotchaDay') && mainBirdDocData['gotchaDay'] is Timestamp) {
-            gotchaDayTimestamp = mainBirdDocData['gotchaDay'] as Timestamp;
-          }
-
-          return Column(
+      body: _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : Column(
             children: [
-              // --- ONBOARDING TIP CARD ---
-              if (gotchaDayTimestamp != null)
-                OnboardingTipCard(birdName: mainBirdDocData['name'],gotchaDay: gotchaDayTimestamp),
-              const UpcomingTasksCard(),
-              // --- BIRD LIST ---
-              Expanded(
-                child: ListView.builder(
-                  itemCount: birdDocs.length,
-                  itemBuilder: (context, index) {
-                    final birdDocument = birdDocs[index];
-                    final birdData = birdDocument.data() as Map<String, dynamic>;
-                    final birdName = birdData['name'] as String;
-                    final birdId = birdDocument.id;
+              // These two cards are always present after loading
+              const PendingInvitationsCard(),
+              if (_aviaryId != null) UpcomingTasksCard(aviaryId: _aviaryId!),
 
-                    return ListTile(
-                      leading: const Icon(Icons.star_border),
-                      title: Text(birdName),
-                      // PRIMARY ACTION: Tapping anywhere on the tile goes to the log
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => DailyLogScreen(
-                              birdId: birdId,
-                              birdName: birdName,
-                            ),
-                          ),
-                        );
-                      },
-                      // SECONDARY ACTION: An explicit button for editing
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {
+              // This StreamBuilder now ONLY handles the bird list or "no birds" text
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('birds')
+                    .where('viewers', arrayContains: FirebaseAuth.instance.currentUser?.uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Something went wrong!'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text('You have no birds yet. Add one to get started!', textAlign: TextAlign.center),
+                      ),
+                    );
+                  }
+
+                  // --- Handle "Has Birds" State ---
+                  final birdDocs = snapshot.data!.docs;
+                  birdDocs.sort((a, b) {
+                    final aData = a.data() as Map<String, dynamic>;
+                    final bData = b.data() as Map<String, dynamic>;
+                    final Timestamp aTs = aData['createdAt'] ?? Timestamp.now();
+                    final Timestamp bTs = bData['createdAt'] ?? Timestamp.now();
+                    return aTs.compareTo(bTs);
+                  });
+
+                  final mainBirdDocData = birdDocs.first.data() as Map<String, dynamic>;
+                  Timestamp? gotchaDayTimestamp;
+                  if (mainBirdDocData.containsKey('gotchaDay') && mainBirdDocData['gotchaDay'] is Timestamp) {
+                    gotchaDayTimestamp = mainBirdDocData['gotchaDay'] as Timestamp;
+                  }
+
+                  return ListView.builder(
+                    itemCount: birdDocs.length + 1, // +1 for the tip card
+                    itemBuilder: (context, index) {
+                      if (index == 0) {
+                        // First item is the tip card
+                        if (gotchaDayTimestamp != null) {
+                          return OnboardingTipCard(
+                            birdName: mainBirdDocData['name'],
+                            gotchaDay: gotchaDayTimestamp,
+                          );
+                        }
+                        return const SizedBox.shrink(); // No tip if no date
+                      }
+                      
+                      // The rest are the bird list tiles
+                      final birdDocument = birdDocs[index - 1]; // -1 to adjust for tip card
+                      final birdData = birdDocument.data() as Map<String, dynamic>;
+                      final birdName = birdData['name'] as String;
+                      final birdId = birdDocument.id;
+
+                      return ListTile(
+                        leading: const Icon(Icons.star_border),
+                        title: Text(birdName),
+                        onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => ProfileScreen(birdId: birdId),
+                              builder: (context) => DailyLogScreen(
+                                birdId: birdId,
+                                birdName: birdName,
+                              ),
                             ),
                           );
                         },
-                      ),
-                    );
-                  },
-                ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => ProfileScreen(birdId: birdId, aviaryId: _aviaryId!),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
-            ],
-          );
-        },
+            ),
+          ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            MaterialPageRoute(builder: (context) => ProfileScreen(aviaryId: _aviaryId!)),
           );
         },
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> _determineAviaryId() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+
+    if (userDoc.exists && userDoc.data()!.containsKey('partOfAviary')) {
+      // This user is a CAREGIVER in someone else's Aviary
+      setState(() {
+        _aviaryId = userDoc.data()!['partOfAviary'];
+        _isLoading = false;
+      });
+    } else {
+      // This user is a GUARDIAN of their own Aviary
+      setState(() {
+        _aviaryId = user.uid;
+        _isLoading = false;
+      });
+    }
   }
 }

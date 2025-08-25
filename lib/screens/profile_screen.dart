@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? birdId;
-  const ProfileScreen({super.key, this.birdId});
+  final String aviaryId;
+  const ProfileScreen({super.key, this.birdId, required this.aviaryId});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -146,36 +147,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
-    // 1. Validate the form first.
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
-    // 2. Get the current user.
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       print('Error: No user is logged in.');
       return;
     }
-    
-    // Capture the navigator before the async gap.
     final navigator = Navigator.of(context);
-
     setState(() { _isLoading = true; });
 
     try {
-      // 3. Get or create the user's Aviary and a default Nest.
-      final userDocRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
-      final nestsCollectionRef = userDocRef.collection('nests');
-      
+      // --- Get or Create the Aviary ---
+      final aviaryDocRef = FirebaseFirestore.instance.collection('aviaries').doc(user.uid);
+      final nestsCollectionRef = aviaryDocRef.collection('nests');
       DocumentReference nestRef;
-      
-      final nestsSnapshot = await nestsCollectionRef.limit(1).get();
+      final aviaryDoc = await aviaryDocRef.get();
 
-      if (nestsSnapshot.docs.isEmpty) {
-        // First time saving a bird, let's create the user doc and the nest.
+      if (!aviaryDoc.exists) {
+        // --- ADD THIS BLOCK BACK ---
+        // ALSO create the user document to track which aviary they are part of.
+        final userDocRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
         await userDocRef.set({
+          'email': user.email,
+          'aviaryId': user.uid, // This user is a Guardian of their own Aviary
+        });
+        // --- END OF ADDED BLOCK ---
+
+        await aviaryDocRef.set({
           'guardianEmail': user.email,
+          'guardianUid': user.uid,
           'createdAt': FieldValue.serverTimestamp(),
         });
         nestRef = await nestsCollectionRef.add({
@@ -183,30 +185,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'createdAt': FieldValue.serverTimestamp(),
         });
       } else {
-        // User and nest already exist, just get the reference to the first nest.
+        final nestsSnapshot = await nestsCollectionRef.limit(1).get();
         nestRef = nestsSnapshot.docs.first.reference;
       }
 
-      // 4. Prepare the bird data.
+      // --- Prepare and Save the Bird Data (Unchanged) ---
       final birdData = {
         'name': _nameController.text.trim(),
         'gotchaDay': _selectedGotchaDate,
-        'ownerId': user.uid,
+        'ownerId': widget.aviaryId,
         'nestId': nestRef.id,
+        'viewers': [widget.aviaryId],
       };
-
-      // 5. Create or Update the bird document.
       if (widget.birdId == null) {
-        // CREATE: Also include the 'createdAt' timestamp.
         await FirebaseFirestore.instance.collection('birds').add({
           ...birdData,
           'createdAt': FieldValue.serverTimestamp(),
         });
-        print('Profile CREATED successfully!');
       } else {
-        // UPDATE: Do NOT include 'createdAt'.
         await FirebaseFirestore.instance.collection('birds').doc(widget.birdId).update(birdData);
-        print('Profile UPDATED successfully!');
       }
       
       navigator.pop();
@@ -214,8 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       print('Error saving profile: $e');
     } finally {
-      // Ensure the loading spinner is always turned off.
-      if(mounted) {
+      if (mounted) {
         setState(() { _isLoading = false; });
       }
     }

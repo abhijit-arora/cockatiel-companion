@@ -5,7 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:cockatiel_companion/screens/care_tasks_screen.dart';
 
 class UpcomingTasksCard extends StatelessWidget {
-  const UpcomingTasksCard({super.key});
+  final String aviaryId;
+
+  const UpcomingTasksCard({super.key, required this.aviaryId});
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +17,8 @@ class UpcomingTasksCard extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       // Query for tasks that are due on or before today
       stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
+          .collection('aviaries')
+          .doc(aviaryId)
           .collection('care_tasks')
           // Only get tasks where the due date is less than or equal to now
           .where('nextDueDate', isLessThanOrEqualTo: Timestamp.now())

@@ -12,8 +12,9 @@ This document details the features and functionalities of the Cockatiel Companio
     *   **Aviary Fields:** Vet Contact Details, Emergency Contacts, Household-level notes (e.g., feeding schedule).
 
 *   **1.2. Caregiver Management:**
-    *   The primary user can invite "Caregivers" to their Aviary.
+    *   The primary user can invite other family members ("Caregivers") to their Aviary.
     *   **Caregiver Labels:** The primary user can assign fun, thematic labels to caregivers (e.g., "Mama Birdie," "The Flock Master").
+    *   **Architectural Rule:** A user account can only belong to one Aviary at a time. To accept an invitation to another Aviary, a user with an existing Aviary must agree to archive their own.
 
 *   **1.3. Nest Management (Cages):**
     *   A "Nest" represents a physical cage or enclosure.

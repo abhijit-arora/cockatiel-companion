@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // For input formatters
 
-typedef OnSaveWeightLog = void Function({
+typedef OnSaveWeightLog = Future<void> Function({
   required double weight,
   required String unit,
   required String context,
@@ -20,8 +20,9 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
   final _formKey = GlobalKey<FormState>();
   final _weightController = TextEditingController();
   final _notesController = TextEditingController();
-  String _selectedUnit = 'g'; // Default to grams
-  String? _selectedContext; // Default blank as requested
+  String _selectedUnit = 'g';
+  String? _selectedContext;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -93,22 +94,32 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
       ),
       actions: [
         TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
-          onPressed: () => Navigator.of(context).pop(),
         ),
         ElevatedButton(
-          child: const Text('Save'),
-          onPressed: () {
+          onPressed: _isLoading ? null : () async {
             if (_formKey.currentState!.validate()) {
-              widget.onSave(
+              final navigator = Navigator.of(context);
+              setState(() { _isLoading = true; });
+
+              await widget.onSave(
                 weight: double.parse(_weightController.text),
                 unit: _selectedUnit,
                 context: _selectedContext ?? 'Unspecified',
                 notes: _notesController.text,
               );
-              Navigator.of(context).pop();
+
+              navigator.pop();
             }
           },
+          child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0),
+              )
+            : const Text('Save'),
         ),
       ],
     );

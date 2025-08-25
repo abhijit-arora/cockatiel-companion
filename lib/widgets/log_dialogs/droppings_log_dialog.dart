@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // Define the callback type
-typedef OnSaveDroppingsLog = void Function({
+typedef OnSaveDroppingsLog = Future<void> Function({
   required String color,
   required String consistency,
   required String notes,
@@ -19,6 +19,7 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
   String? _selectedColor;
   String? _selectedConsistency;
   final _notesController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -79,20 +80,25 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
       ),
       actions: [
         TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
-          onPressed: () => Navigator.of(context).pop(),
         ),
         ElevatedButton(
-          child: const Text('Save'),
-          onPressed: () {
+          onPressed: _isLoading ? null : () async {
             // Simple validation
             if (_selectedColor != null && _selectedConsistency != null) {
-              widget.onSave(
+              // Capture navigator before the async gap
+              final navigator = Navigator.of(context);
+
+              setState(() { _isLoading = true; });
+
+              await widget.onSave(
                 color: _selectedColor!,
                 consistency: _selectedConsistency!,
                 notes: _notesController.text,
               );
-              Navigator.of(context).pop();
+
+              navigator.pop();
             } else {
               // Show a simple snackbar for error
               ScaffoldMessenger.of(context).showSnackBar(
@@ -100,6 +106,13 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
               );
             }
           },
+          child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0),
+              )
+            : const Text('Save'),
         ),
       ],
     );

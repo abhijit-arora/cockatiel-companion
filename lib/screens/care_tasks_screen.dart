@@ -4,94 +4,44 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cockatiel_companion/screens/create_task_screen.dart';
 
-class CareTasksScreen extends StatelessWidget {
+class CareTasksScreen extends StatefulWidget {
   const CareTasksScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+  State<CareTasksScreen> createState() => _CareTasksScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Care Tasks'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_task),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const CreateTaskScreen()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        // Query the care_tasks sub-collection for the current user
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('care_tasks')
-            .orderBy('nextDueDate') // Sort by the nearest due date first
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No care tasks scheduled.'));
-          }
+class _CareTasksScreenState extends State<CareTasksScreen> {
+  String? _aviaryId;
 
-          final tasks = snapshot.data!.docs;
-          final now = DateTime.now();
-
-          return ListView.builder(
-            itemCount: tasks.length,
-            itemBuilder: (context, index) {
-              final task = tasks[index];
-              final data = task.data() as Map<String, dynamic>;
-
-              final String title = data['title'] ?? 'Untitled Task';
-              final Timestamp? nextDueDateTs = data['nextDueDate'];
-              final DateTime? nextDueDate = nextDueDateTs?.toDate();
-              
-              // Determine the status and color
-              String status = 'Upcoming';
-              Color statusColor = Colors.green;
-              if (nextDueDate != null && nextDueDate.isBefore(now)) {
-                status = 'Overdue';
-                statusColor = Colors.red;
-              }
-
-              return ListTile(
-                leading: Icon(Icons.check_circle_outline, color: statusColor),
-                title: Text(title),
-                subtitle: Text(
-                  nextDueDate != null
-                      ? 'Due: ${DateFormat.yMMMMd().format(nextDueDate)} ($status)'
-                      : 'No due date set',
-                ),
-                onTap: () {
-                  _markTaskAsComplete(context, task.id, data);
-                },
-              );
-            },
-          );
-        },
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _determineAviaryId();
   }
 
-  Future<void> _markTaskAsComplete(BuildContext context, String taskId, Map<String, dynamic> taskData) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) return;
+  Future<void> _determineAviaryId() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    if (mounted) {
+      if (userDoc.exists && userDoc.data()!.containsKey('partOfAviary')) {
+        setState(() => _aviaryId = userDoc.data()!['partOfAviary']);
+      } else {
+        setState(() => _aviaryId = user.uid);
+      }
+    }
+  }
+
+  Future<void> _markTaskAsComplete(String taskId, Map<String, dynamic> taskData) async {
+    // This function needs the aviaryId to know which document to update
+    if (_aviaryId == null) return;
 
     final DateTime nextDueDate = (taskData['nextDueDate'] as Timestamp).toDate();
     final DateTime now = DateTime.now();
-    // Check if the task is due in the future (ignoring the time of day)
     final bool isFutureTask = DateTime(nextDueDate.year, nextDueDate.month, nextDueDate.day)
-                                .isAfter(DateTime(now.year, now.month, now.day));
+                                  .isAfter(DateTime(now.year, now.month, now.day));
 
-    // --- NEW LOGIC: CONFIRMATION DIALOG ---
     if (isFutureTask) {
       final bool? confirmed = await showDialog<bool>(
         context: context,
@@ -118,7 +68,6 @@ class CareTasksScreen extends StatelessWidget {
         return;
       }
     }
-    // --- END OF NEW LOGIC ---
 
     // --- The original update logic remains the same ---
     final int recurrenceValue = taskData['recurrence_value'];
@@ -127,26 +76,85 @@ class CareTasksScreen extends StatelessWidget {
 
     // Calculate the next due date based on the *original* due date
     switch (recurrenceUnit) {
-      case 'days':
-        newNextDueDate = nextDueDate.add(Duration(days: recurrenceValue));
-        break;
-      case 'weeks':
-        newNextDueDate = nextDueDate.add(Duration(days: recurrenceValue * 7));
-        break;
-      case 'months':
-        newNextDueDate = nextDueDate.add(Duration(days: recurrenceValue * 30));
-        break;
-      default:
-        return;
+      case 'days': newNextDueDate = nextDueDate.add(Duration(days: recurrenceValue)); break;
+      case 'weeks': newNextDueDate = nextDueDate.add(Duration(days: recurrenceValue * 7)); break;
+      case 'months': newNextDueDate = nextDueDate.add(Duration(days: recurrenceValue * 30)); break;
+      default: return;
     }
 
     // Update the document in Firestore
     await FirebaseFirestore.instance
-        .collection('users').doc(userId)
+        .collection('aviaries').doc(_aviaryId)
         .collection('care_tasks').doc(taskId)
         .update({
       'lastCompletedDate': Timestamp.now(),
       'nextDueDate': Timestamp.fromDate(newNextDueDate),
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Care Tasks'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_task),
+            onPressed: () {
+              if (_aviaryId != null) { // Only allow adding if we have an aviary context
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => CreateTaskScreen(aviaryId: _aviaryId!)),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+      body: _aviaryId == null
+        ? const Center(child: CircularProgressIndicator())
+        : StreamBuilder<QuerySnapshot>(
+            // --- REVISED QUERY ---
+            stream: FirebaseFirestore.instance
+                .collection('aviaries').doc(_aviaryId) // <-- Use 'aviaries' and the aviaryId
+                .collection('care_tasks')
+                .orderBy('nextDueDate')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('No care tasks scheduled.'));
+              }
+              final tasks = snapshot.data!.docs;
+              final now = DateTime.now();
+
+              return ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  final task = tasks[index];
+                  final data = task.data() as Map<String, dynamic>;
+                  final String title = data['title'] ?? 'Untitled Task';
+                  final Timestamp? nextDueDateTs = data['nextDueDate'];
+                  final DateTime? nextDueDate = nextDueDateTs?.toDate();
+                  String status = 'Upcoming';
+                  Color statusColor = Colors.green;
+                  if (nextDueDate != null && nextDueDate.isBefore(now)) {
+                    status = 'Overdue';
+                    statusColor = Colors.red;
+                  }
+                  return ListTile(
+                    leading: Icon(Icons.check_circle_outline, color: statusColor),
+                    title: Text(title),
+                    subtitle: Text(nextDueDate != null ? 'Due: ${DateFormat.yMMMMd().format(nextDueDate)} ($status)' : 'No due date set'),
+                    onTap: () {
+                      _markTaskAsComplete(task.id, data);
+                    },
+                  );
+                },
+              );
+            },
+          ),
+    );
   }
 }

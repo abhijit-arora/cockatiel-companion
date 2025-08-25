@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // Define the callback type
-typedef OnSaveBehaviorLog = void Function({
+typedef OnSaveBehaviorLog = Future<void> Function({
   required List<String> behaviors,
   required String mood,
   required String notes,
@@ -20,6 +20,7 @@ class _BehaviorLogDialogState extends State<BehaviorLogDialog> {
   final Set<String> _selectedBehaviors = {};
   String? _selectedMood;
   final _notesController = TextEditingController();
+  bool _isLoading = false;
 
   final List<String> _commonBehaviors = [
     'Chirping', 'Singing', 'Preening', 'Stretching', 'Foraging', 'Playing', 'Napping'
@@ -81,26 +82,35 @@ class _BehaviorLogDialogState extends State<BehaviorLogDialog> {
       ),
       actions: [
         TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
-          onPressed: () => Navigator.of(context).pop(),
         ),
         ElevatedButton(
-          child: const Text('Save'),
-          onPressed: () {
+          onPressed: _isLoading ? null : () async {
             if (_selectedMood != null) {
-              widget.onSave(
-                // Convert the Set to a List for saving
+              final navigator = Navigator.of(context);
+              setState(() { _isLoading = true; });
+
+              await widget.onSave(
                 behaviors: _selectedBehaviors.toList(),
                 mood: _selectedMood!,
                 notes: _notesController.text,
               );
-              Navigator.of(context).pop();
+              
+              navigator.pop();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Please select an Overall Mood.')),
               );
             }
           },
+          child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0),
+              )
+            : const Text('Save'),
         ),
       ],
     );

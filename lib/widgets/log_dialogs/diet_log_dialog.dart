@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // Define a type for our callback function for clarity
-typedef OnSaveDietLog = void Function({
+typedef OnSaveDietLog = Future<void> Function({
   required String foodType,
   required String description,
   required String consumptionLevel,
@@ -22,8 +22,9 @@ class _DietLogDialogState extends State<DietLogDialog> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _notesController = TextEditingController();
-  String? _selectedFoodType; // Default
-  String? _consumptionLevel; // Default
+  String? _selectedFoodType;
+  String? _consumptionLevel;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -111,22 +112,38 @@ class _DietLogDialogState extends State<DietLogDialog> {
       ),
       actions: <Widget>[
         TextButton(
+          // Disable cancel button while loading
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
-          onPressed: () => Navigator.of(context).pop(),
         ),
         ElevatedButton(
-          child: const Text('Save'),
-          onPressed: () {
+          // Disable button while loading and use async onPressed
+          onPressed: _isLoading ? null : () async {
             if (_formKey.currentState!.validate()) {
-              widget.onSave(
+              // --- NEW: Capture navigator before the async gap ---
+              final navigator = Navigator.of(context);
+
+              setState(() { _isLoading = true; });
+
+              await widget.onSave(
                 foodType: _selectedFoodType!,
                 description: _descriptionController.text,
                 consumptionLevel: _consumptionLevel!,
                 notes: _notesController.text,
               );
-              Navigator.of(context).pop();
+
+              // --- Use the captured navigator after the gap ---
+              navigator.pop();
             }
           },
+          // Show a spinner or text based on loading state
+          child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0),
+              )
+            : const Text('Save'),
         ),
       ],
     );

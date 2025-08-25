@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class CreateTaskScreen extends StatefulWidget {
-  const CreateTaskScreen({super.key});
+  final String aviaryId;
+  const CreateTaskScreen({super.key, required this.aviaryId});
 
   @override
   State<CreateTaskScreen> createState() => _CreateTaskScreenState();
@@ -92,8 +93,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                   try {
                     // THE ASYNC GAP: This is where the "await" happens.
                     await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(userId)
+                        .collection('aviaries')
+                        .doc(widget.aviaryId)
                         .collection('care_tasks')
                         .add({
                       'title': _titleController.text,

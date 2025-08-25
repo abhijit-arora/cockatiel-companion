@@ -105,48 +105,48 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Future<void> _signUp() async {
-    try {
-      // Get the email and password from the controllers
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
-
-      // Use Firebase Auth to create a new user
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+  Future<void> _handleAuthAction(Future<UserCredential> Function() authFunction, String successMessage, String errorMessage) async {
+    // Validate the form fields first
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both email and password.')),
       );
-
-      // Optional: print a success message to the console
-      print('Successfully signed up: ${userCredential.user?.email}');
-
+      return;
+    }
+    
+    try {
+      await authFunction();
+      print(successMessage);
     } on FirebaseAuthException catch (e) {
-      // Handle potential errors, like if the email is already in use
-      print('Failed to sign up: ${e.message}');
-      // We can show a dialog to the user here later
+      print('$errorMessage: ${e.message}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'An unknown error occurred.')),
+        );
+      }
     }
   }
 
-  Future<void> _signIn() async {
-    try {
-      // Get the email and password from the controllers
-      final email = _emailController.text.trim();
-      final password = _passwordController.text.trim();
+  void _signUp() {
+    _handleAuthAction(
+      () => FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      ),
+      'Successfully signed up!',
+      'Failed to sign up',
+    );
+  }
 
-      // Use Firebase Auth to sign in an existing user
-      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      // Optional: print a success message to the console
-      print('Successfully signed in: ${userCredential.user?.email}');
-
-    } on FirebaseAuthException catch (e) {
-      // Handle potential errors, like wrong password or user not found
-      print('Failed to sign in: ${e.message}');
-      // We can show a dialog to the user here later
-    }
+  void _signIn() {
+    _handleAuthAction(
+      () => FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      ),
+      'Successfully signed in!',
+      'Failed to sign in',
+    );
   }
 
   Future<void> _signInWithGoogle() async {

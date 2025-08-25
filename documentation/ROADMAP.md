@@ -27,10 +27,18 @@ The goal of the MVP is to deliver the core value proposition to our target user:
 
 ---
 
+### Technical Debt & Minor Bugs
+
+*   **[ ] Daily Log Refresh:** The daily log screen does not always auto-refresh instantly after a new entry is saved. Requires a manual pull-to-refresh or a second action.
+
+---
+
 ### **Version 1.1: The Growth & Community Foundation Update**
 
 The goal of this phase is to reduce friction for new users and build the core technical foundations for multi-user and community features.
 
+*   **[ ] Edit/Delete Log Entries:** Add functionality to the Daily Log screen to edit or delete existing entries.
+*   **[ ] Improved Sign-Up Flow:** Refactor the AuthScreen to have a clearer, distinct sign-up process (e.g., a toggle or separate dialog).
 *   **[ ] Social Sign-In:** Implement frictionless login with Google & Apple.
 *   **[ ] Aviary & Nest Hierarchy:** Implement the full data model for Aviaries (households) and Nests (cages).
 *   **[ ] Caregiver Invitations:** Build the UI and logic for adding other users to an Aviary. (Plus Feature)
