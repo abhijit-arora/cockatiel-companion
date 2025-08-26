@@ -11,8 +11,13 @@ typedef OnSaveDietLog = Future<void> Function({
 class DietLogDialog extends StatefulWidget {
   // Add the callback function as a required parameter
   final OnSaveDietLog onSave;
+  final Map<String, dynamic>? initialData;
 
-  const DietLogDialog({super.key, required this.onSave});
+  const DietLogDialog({
+    super.key,
+    required this.onSave,
+    this.initialData,
+  });
 
   @override
   State<DietLogDialog> createState() => _DietLogDialogState();
@@ -25,6 +30,17 @@ class _DietLogDialogState extends State<DietLogDialog> {
   String? _selectedFoodType;
   String? _consumptionLevel;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialData != null) {
+      _selectedFoodType = widget.initialData!['foodType'];
+      _descriptionController.text = widget.initialData!['description'];
+      _consumptionLevel = widget.initialData!['consumptionLevel'];
+      _notesController.text = widget.initialData!['notes'];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

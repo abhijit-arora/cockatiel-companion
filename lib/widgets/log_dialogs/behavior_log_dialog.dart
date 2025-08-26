@@ -9,7 +9,13 @@ typedef OnSaveBehaviorLog = Future<void> Function({
 
 class BehaviorLogDialog extends StatefulWidget {
   final OnSaveBehaviorLog onSave;
-  const BehaviorLogDialog({super.key, required this.onSave});
+  final Map<String, dynamic>? initialData;
+
+  const BehaviorLogDialog({
+    super.key,
+    required this.onSave,
+    this.initialData
+  });
 
   @override
   State<BehaviorLogDialog> createState() => _BehaviorLogDialogState();
@@ -26,6 +32,19 @@ class _BehaviorLogDialogState extends State<BehaviorLogDialog> {
     'Chirping', 'Singing', 'Preening', 'Stretching', 'Foraging', 'Playing', 'Napping'
   ];
   final List<String> _moods = ['Happy', 'Calm', 'Playful', 'Anxious', 'Grumpy', 'Quiet'];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialData != null) {
+      // Convert the List<dynamic> from Firestore to a Set<String>
+      final List<dynamic> behaviors = widget.initialData!['behaviors'] ?? [];
+      _selectedBehaviors.addAll(behaviors.map((b) => b.toString()));
+
+      _selectedMood = widget.initialData!['mood'];
+      _notesController.text = widget.initialData!['notes'];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -10,7 +10,13 @@ typedef OnSaveWeightLog = Future<void> Function({
 
 class WeightLogDialog extends StatefulWidget {
   final OnSaveWeightLog onSave;
-  const WeightLogDialog({super.key, required this.onSave});
+  final Map<String, dynamic>? initialData;
+
+  const WeightLogDialog({
+    super.key,
+    required this.onSave,
+    this.initialData
+  });
 
   @override
   State<WeightLogDialog> createState() => _WeightLogDialogState();
@@ -23,6 +29,18 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
   String _selectedUnit = 'g';
   String? _selectedContext;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialData != null) {
+      // Convert the weight (which might be an int or double) to a string for the controller
+      _weightController.text = (widget.initialData!['weight'] ?? 0.0).toString();
+      _selectedUnit = widget.initialData!['unit'] ?? 'g';
+      _selectedContext = widget.initialData!['context'];
+      _notesController.text = widget.initialData!['notes'];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

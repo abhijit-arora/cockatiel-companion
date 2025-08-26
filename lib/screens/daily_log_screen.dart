@@ -27,7 +27,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
 
   // --- UI Builder Helper Functions ---
 
-  ListTile _buildDietListTile(Map<String, dynamic> data) {
+  ListTile _buildDietListTile(Map<String, dynamic> data, String docId) {
     final String foodType = data['foodType'] ?? 'Unknown';
     final String description = data['description'] ?? 'No description';
     final String consumption = data['consumptionLevel'] ?? '-';
@@ -36,12 +36,28 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     return ListTile(
       leading: Icon(Icons.restaurant, color: _getColorForConsumption(consumption)),
       title: Text('$foodType - $description'),
-      subtitle: Text('Consumption: $consumption'),
-      trailing: Text(formattedTime),
+      subtitle: Text('Consumption: $consumption • $formattedTime'), // <-- Time moved here
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min, // Important to keep the row compact
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit_note),
+            onPressed: () {
+              _showEditDietDialog(data, docId);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: () {
+              _deleteLogEntry('diet_entries', docId);
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  ListTile _buildDroppingsListTile(Map<String, dynamic> data) {
+  ListTile _buildDroppingsListTile(Map<String, dynamic> data, String docId) {
     final String color = data['color'] ?? '-';
     final String consistency = data['consistency'] ?? '-';
     final formattedTime = _formatTimestamp(data['timestamp']);
@@ -49,12 +65,28 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     return ListTile(
       leading: const Icon(Icons.monitor_heart, color: Colors.brown),
       title: const Text('Droppings Observation'),
-      subtitle: Text('Color: $color, Consistency: $consistency'),
-      trailing: Text(formattedTime),
+      subtitle: Text('Color: $color, Consistency: $consistency • $formattedTime'), // <-- Time moved here
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min, // Important to keep the row compact
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit_note),
+            onPressed: () {
+              _showEditDroppingsDialog(data, docId);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: () {
+              _deleteLogEntry('droppings_entries', docId);
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  ListTile _buildBehaviorListTile(Map<String, dynamic> data) {
+  ListTile _buildBehaviorListTile(Map<String, dynamic> data, String docId) {
     final List<dynamic> behaviors = data['behaviors'] ?? [];
     final String mood = data['mood'] ?? '-';
     final formattedTime = _formatTimestamp(data['timestamp']);
@@ -62,12 +94,28 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     return ListTile(
       leading: const Icon(Icons.psychology, color: Colors.blue),
       title: Text('Mood: $mood'),
-      subtitle: Text(behaviors.join(', ')),
-      trailing: Text(formattedTime),
+      subtitle: Text('${behaviors.join(', ')} • $formattedTime'), // <-- Time moved here
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min, // Important to keep the row compact
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit_note),
+            onPressed: () {
+              _showEditBehaviorDialog(data, docId);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: () {
+              _deleteLogEntry('behavior_entries', docId);
+            },
+          ),
+        ],
+      ),
     );
   }
   
-  ListTile _buildWeightListTile(Map<String, dynamic> data) {
+  ListTile _buildWeightListTile(Map<String, dynamic> data, String docId) {
     final double weight = (data['weight'] ?? 0.0).toDouble();
     final String unit = data['unit'] ?? 'g';
     final formattedTime = _formatTimestamp(data['timestamp']);
@@ -75,8 +123,24 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     return ListTile(
       leading: const Icon(Icons.scale, color: Colors.teal),
       title: Text('Weight: $weight $unit'),
-      subtitle: Text(data['context'] ?? 'Unspecified'),
-      trailing: Text(formattedTime),
+      subtitle: Text('${data['context'] ?? 'Unspecified'} • $formattedTime'), // <-- Time moved here
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min, // Important to keep the row compact
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit_note),
+            onPressed: () {
+              _showEditWeightDialog(data, docId);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            onPressed: () {
+              _deleteLogEntry('weight_entries', docId);
+            },
+          ),
+        ],
+      ),
     );
   }
   
@@ -125,6 +189,171 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     );
   }
 
+  // --- Update Functions ---
+  
+  Future<void> _updateDietLog({
+    required String docId, // <-- We need the ID of the document to update
+    required String foodType,
+    required String description,
+    required String consumptionLevel,
+    required String notes,
+  }) async {
+    final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    try {
+      await FirebaseFirestore.instance
+          .collection('birds').doc(widget.birdId)
+          .collection('daily_logs').doc(logDateId)
+          .collection('diet_entries').doc(docId) // <-- Use the docId
+          .update({ // <-- Use .update()
+        'foodType': foodType,
+        'description': description,
+        'consumptionLevel': consumptionLevel,
+        'notes': notes,
+      });
+    } catch (e) {
+      print('Error updating diet log: $e');
+    }
+  }
+  
+  Future<void> _updateDroppingsLog({
+    required String docId,
+    required String color,
+    required String consistency,
+    required String notes,
+  }) async {
+    final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    try {
+      await FirebaseFirestore.instance
+          .collection('birds').doc(widget.birdId)
+          .collection('daily_logs').doc(logDateId)
+          .collection('droppings_entries').doc(docId)
+          .update({
+        'color': color,
+        'consistency': consistency,
+        'notes': notes,
+      });
+    } catch (e) {
+      print('Error updating droppings log: $e');
+    }
+  }
+  
+  Future<void> _updateBehaviorLog({
+    required String docId,
+    required List<String> behaviors,
+    required String mood,
+    required String notes,
+  }) async {
+    final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    try {
+      await FirebaseFirestore.instance
+          .collection('birds').doc(widget.birdId)
+          .collection('daily_logs').doc(logDateId)
+          .collection('behavior_entries').doc(docId)
+          .update({
+        'behaviors': behaviors,
+        'mood': mood,
+        'notes': notes,
+      });
+    } catch (e) {
+      print('Error updating behavior log: $e');
+    }
+  }
+  
+  Future<void> _updateWeightLog({
+    required String docId,
+    required double weight,
+    required String unit,
+    required String context,
+    required String notes,
+  }) async {
+    final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    try {
+      await FirebaseFirestore.instance
+          .collection('birds').doc(widget.birdId)
+          .collection('daily_logs').doc(logDateId)
+          .collection('weight_entries').doc(docId)
+          .update({
+        'weight': weight,
+        'unit': unit,
+        'context': context,
+        'notes': notes,
+      });
+    } catch (e) {
+      print('Error updating weight log: $e');
+    }
+  }
+  
+  void _showEditDietDialog(Map<String, dynamic> initialData, String docId) {
+    showDialog(
+      context: context,
+      builder: (context) => DietLogDialog(
+        initialData: initialData,
+        onSave: ({required foodType, required description, required consumptionLevel, required notes}) {
+          // Add "return" to pass the Future back
+          return _updateDietLog(
+            docId: docId,
+            foodType: foodType,
+            description: description,
+            consumptionLevel: consumptionLevel,
+            notes: notes,
+          );
+        },
+      ),
+    );
+  }
+  
+  void _showEditDroppingsDialog(Map<String, dynamic> initialData, String docId) {
+    showDialog(
+      context: context,
+      builder: (context) => DroppingsLogDialog(
+        initialData: initialData,
+        onSave: ({required color, required consistency, required notes}) {
+          return _updateDroppingsLog(
+            docId: docId,
+            color: color,
+            consistency: consistency,
+            notes: notes,
+          );
+        },
+      ),
+    );
+  }
+  
+  void _showEditBehaviorDialog(Map<String, dynamic> initialData, String docId) {
+    showDialog(
+      context: context,
+      builder: (context) => BehaviorLogDialog(
+        initialData: initialData,
+        onSave: ({required behaviors, required mood, required notes}) {
+          return _updateBehaviorLog(
+            docId: docId,
+            behaviors: behaviors,
+            mood: mood,
+            notes: notes,
+          );
+        },
+      ),
+    );
+  }
+  
+  void _showEditWeightDialog(Map<String, dynamic> initialData, String docId) {
+    showDialog(
+      context: context,
+      builder: (context) => WeightLogDialog(
+        initialData: initialData,
+        onSave: ({required weight, required unit, required context, required notes}) {
+          return _updateWeightLog(
+            docId: docId,
+            weight: weight,
+            unit: unit,
+            context: context,
+            notes: notes,
+          );
+        },
+      ),
+    );
+  }
+  
   // --- Firestore Save Functions ---
 
   Future<void> _saveDietLog({ required String foodType, required String description, required String consumptionLevel, required String notes }) async {
@@ -183,6 +412,58 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     }
   }
 
+  Future<void> _deleteLogEntry(String collectionName, String docId) async {
+    // Show a confirmation dialog before deleting
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this log entry? This action cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: const Text('Delete'),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If the user confirmed, proceed with deletion
+    if (confirmed == true) {
+      try {
+        final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
+        await FirebaseFirestore.instance
+            .collection('birds')
+            .doc(widget.birdId)
+            .collection('daily_logs')
+            .doc(logDateId)
+            .collection(collectionName)
+            .doc(docId)
+            .delete();
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Entry deleted.')),
+          );
+        }
+      } catch (e) {
+        print('Error deleting entry: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error: Could not delete entry.')),
+          );
+        }
+      }
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     // Define and create the stream directly in the build method.
@@ -199,10 +480,10 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       dietStream, droppingsStream, behaviorStream, weightStream
     ]).map((results) {
       final allDocs = [
-        ...results[0].docs.map((doc) => {'type': 'diet', ...doc.data() as Map<String, dynamic>}),
-        ...results[1].docs.map((doc) => {'type': 'droppings', ...doc.data() as Map<String, dynamic>}),
-        ...results[2].docs.map((doc) => {'type': 'behavior', ...doc.data() as Map<String, dynamic>}),
-        ...results[3].docs.map((doc) => {'type': 'weight', ...doc.data() as Map<String, dynamic>}),
+        ...results[0].docs.map((doc) => {'type': 'diet', 'id': doc.id, ...doc.data() as Map<String, dynamic>}),
+        ...results[1].docs.map((doc) => {'type': 'droppings', 'id': doc.id, ...doc.data() as Map<String, dynamic>}),
+        ...results[2].docs.map((doc) => {'type': 'behavior', 'id': doc.id, ...doc.data() as Map<String, dynamic>}),
+        ...results[3].docs.map((doc) => {'type': 'weight', 'id': doc.id, ...doc.data() as Map<String, dynamic>}),
       ];
       allDocs.sort((a, b) {
         Timestamp tsA = a['timestamp'] ?? Timestamp.fromMicrosecondsSinceEpoch(0);
@@ -337,14 +618,21 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   return ListView.builder(
                     itemCount: logEntries.length,
                     itemBuilder: (context, index) {
-                      final entry = logEntries[index];
-                      final String type = entry['type'];
-                      switch (type) {
-                        case 'diet': return _buildDietListTile(entry);
-                        case 'droppings': return _buildDroppingsListTile(entry);
-                        case 'behavior': return _buildBehaviorListTile(entry);
-                        case 'weight': return _buildWeightListTile(entry);
-                        default: return const ListTile(title: Text('Unknown log type'));
+                      final entry = logEntries[index]; // Use the logEntries list
+                      final entryType = entry['type'];
+                      final docId = entry['id']; // <-- Get the ID from the map
+
+                      switch (entryType) {
+                        case 'diet':
+                          return _buildDietListTile(entry, docId);
+                        case 'droppings':
+                          return _buildDroppingsListTile(entry, docId);
+                        case 'behavior':
+                          return _buildBehaviorListTile(entry, docId);
+                        case 'weight':
+                          return _buildWeightListTile(entry, docId);
+                        default:
+                          return const ListTile(title: Text('Unknown log type'));
                       }
                     },
                   );

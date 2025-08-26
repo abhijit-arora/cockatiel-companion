@@ -21,7 +21,7 @@ The goal of the MVP was to deliver the core value proposition: a single-user, cl
 ---
 ### **Technical Debt & Minor Bugs**
 
-*   **[ ] Daily Log Refresh:** The daily log screen does not always auto-refresh instantly after a new entry is saved. Requires a manual pull-to-refresh or a second action.
+*   **[ ] Daily Log Auto-Refresh:** The daily log screen does not auto-refresh instantly after a new entry is created or deleted. The `StreamZip` logic needs to be refactored for more responsive UI updates. Manual pull-to-refresh works as a fallback.
 *   **[ ] Email Verification Blocked:** The Firebase project is currently blocking email sending actions (verification, password reset). This feature is deferred.
 *   **[ ] "Forgot Password" UX:** The app should detect if a user tries to reset a password for a social sign-in account and provide a helpful message.
 

@@ -9,7 +9,13 @@ typedef OnSaveDroppingsLog = Future<void> Function({
 
 class DroppingsLogDialog extends StatefulWidget {
   final OnSaveDroppingsLog onSave;
-  const DroppingsLogDialog({super.key, required this.onSave});
+  final Map<String, dynamic>? initialData;
+
+  const DroppingsLogDialog({
+    super.key,
+    required this.onSave,
+    this.initialData, // <-- Add this
+  });
 
   @override
   State<DroppingsLogDialog> createState() => _DroppingsLogDialogState();
@@ -20,6 +26,16 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
   String? _selectedConsistency;
   final _notesController = TextEditingController();
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialData != null) {
+      _selectedColor = widget.initialData!['color'];
+      _selectedConsistency = widget.initialData!['consistency'];
+      _notesController.text = widget.initialData!['notes'];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
