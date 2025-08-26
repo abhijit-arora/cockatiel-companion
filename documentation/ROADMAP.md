@@ -30,8 +30,8 @@ The goal of the MVP was to deliver the core value proposition: a single-user, cl
 
 The goal of this phase is to refine the user experience and add core management features on top of our existing foundation.
 
-*   **[ ] Edit/Delete Log Entries:** Add functionality to the Daily Log screen to edit or delete existing entries.
-*   **[ ] Improved Sign-Up Flow:** Refactor the AuthScreen to have a clearer, distinct sign-up process.
+*   **[x] Edit/Delete Log Entries:** Add functionality to the Daily Log screen to edit or delete existing entries. (Completed)
+*   **[x] Improved Sign-Up Flow:** Refactored the AuthScreen with a dynamic toggle, validation, and a "Forgot Password" flow. (Completed)
 *   **[ ] Nest Management:** Build the UI to create, rename, and manage Nests (cages) within an Aviary.
 *   **[ ] Bird-to-Nest Assignment:** Allow users to assign their birds to the Nests they've created. This includes adding a **Species** dropdown to the bird profile creation screen.
 
