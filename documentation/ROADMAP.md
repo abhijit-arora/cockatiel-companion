@@ -32,6 +32,7 @@ The goal of this phase is to refine the user experience and add core management 
 
 *   **[x] Edit/Delete Log Entries:** Add functionality to the Daily Log screen to edit or delete existing entries. (Completed)
 *   **[x] Improved Sign-Up Flow:** Refactored the AuthScreen with a dynamic toggle, validation, and a "Forgot Password" flow. (Completed)
+*   **[ ] "About FlockWell" Screen:** Create a screen to display the app version, features, and changelog.
 *   **[ ] Nest Management:** Build the UI to create, rename, and manage Nests (cages) within an Aviary.
 *   **[ ] Bird-to-Nest Assignment:** Allow users to assign their birds to the Nests they've created. This includes adding a **Species** dropdown to the bird profile creation screen.
 
