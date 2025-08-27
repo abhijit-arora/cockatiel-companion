@@ -6,6 +6,7 @@ import 'package:cockatiel_companion/screens/profile_screen.dart';
 import 'package:cockatiel_companion/screens/daily_log_screen.dart';
 import 'package:cockatiel_companion/screens/knowledge_center_screen.dart';
 import 'package:cockatiel_companion/screens/care_tasks_screen.dart';
+import 'package:cockatiel_companion/screens/about_screen.dart';
 import 'package:cockatiel_companion/widgets/onboarding_tip_card.dart';
 import 'package:cockatiel_companion/widgets/upcoming_tasks_card.dart';
 import 'package:cockatiel_companion/widgets/pending_invitations_card.dart';
@@ -71,6 +72,15 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const KnowledgeCenterScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline), // <-- Add this new button
+            tooltip: 'About FlockWell',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const AboutScreen()),
               );
             },
           ),

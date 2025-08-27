@@ -33,19 +33,20 @@ The goal of this phase is to refine the user experience and add core management 
 *   **[x] Edit/Delete Log Entries:** Implemented full CRUD functionality for all log types on the Daily Log screen. (Completed)
 *   **[x] Improved Sign-Up Flow:** Refactored the AuthScreen with a dynamic toggle, validation, and a "Forgot Password" flow. (Completed)
 *   **[x] Nest Management:** Built the UI to create, rename, delete, and manage Nests (cages) within an Aviary. (Completed)
-*   **[ ] Bird-to-Nest Assignment (Up Next):** Allow users to assign their birds to the Nests they've created. This includes adding a **Species** dropdown to the bird profile creation screen.
-*   **[ ] "About FlockWell" Screen:** Create a screen to display the app version, features, and changelog.
+*   **[x] Bird-to-Nest Assignment:** Allow users to assign their birds to Nests and add a Species to the bird profile. (Completed)
+*   **[ ] "About FlockWell" Screen (Up Next):** Create a screen to display the app version, features, and changelog.
+*   **[ ] Bulk Bird-to-Nest Movement:** Add a utility to allow users to move multiple birds from one nest to another in a single action.
+*   **[ ] Bird Profile Enhancements:**
+    *   Add an optional "Hatch Date" to the bird profile.
+    *   Display the bird's age and "Gotcha Day" anniversary on the home screen.
+    *   Display the bird's species on the home screen tile.
+    *   Implement notifications for hatch-days and gotcha-day anniversaries.
 
 ---
 ### **Version 1.2: The Community & Growth Update**
 
 With a polished core app, this phase focuses on user engagement and growth.
 
-*   **[ ] Bird Profile Enhancements:
-        *   Add an optional "Hatch Date" to the bird profile.
-        *   Display the bird's age and "Gotcha Day" anniversary on the home screen.
-        *   Display the bird's species on the home screen tile.
-        *   Implement notifications for hatch-days and gotcha-day anniversaries.
 *   **[ ] The Community Aviary:** Implement the basic Community Forum / Q&A. (Free Feature)
 *   **[ ] Social Sign-In (Apple):** Implement Sign in with Apple to complete our social login options.
 *   **[ ] Ad Integration:** Integrate an ad provider (e.g., Google AdMob) to display simple ads for free-tier users.
