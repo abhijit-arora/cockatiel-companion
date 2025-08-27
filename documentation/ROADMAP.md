@@ -41,6 +41,11 @@ The goal of this phase is to refine the user experience and add core management 
 
 With a polished core app, this phase focuses on user engagement and growth.
 
+*   **[ ] Bird Profile Enhancements:
+        *   Add an optional "Hatch Date" to the bird profile.
+        *   Display the bird's age and "Gotcha Day" anniversary on the home screen.
+        *   Display the bird's species on the home screen tile.
+        *   Implement notifications for hatch-days and gotcha-day anniversaries.
 *   **[ ] The Community Aviary:** Implement the basic Community Forum / Q&A. (Free Feature)
 *   **[ ] Social Sign-In (Apple):** Implement Sign in with Apple to complete our social login options.
 *   **[ ] Ad Integration:** Integrate an ad provider (e.g., Google AdMob) to display simple ads for free-tier users.
