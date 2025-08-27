@@ -186,45 +186,111 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
     }
   }
 
-  void _showEditGuardianLabelDialog(String currentLabel) async { // <-- Make async
+  void _showEditGuardianLabelDialog(String currentLabel) async {
     final labelController = TextEditingController(text: currentLabel);
-    // showDialog returns a value when it's popped. We can await it.
     final bool? wasSaved = await showDialog<bool>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Edit Your Label'),
-          content: TextField(
-            controller: labelController,
-            autofocus: true,
-            decoration: const InputDecoration(labelText: 'Enter your new label'),
-          ),
-          actions: [
-            TextButton(
-              // Pop with 'false' to indicate no change was made
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final success = await _updateGuardianLabel(labelController.text);
-                // Pop with the result of the update operation
-                if (mounted) Navigator.of(context).pop(success);
-              },
-              child: const Text('Save'),
-            ),
-          ],
+        bool isSaving = false; // State variable for this dialog
+        return StatefulBuilder( // Use StatefulBuilder to manage the dialog's state
+          builder: (context, dialogSetState) {
+            return AlertDialog(
+              title: const Text('Edit Your Label'),
+              content: TextField(
+                controller: labelController,
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'Enter your new label'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isSaving ? null : () async {
+                    dialogSetState(() => isSaving = true);
+                    final success = await _updateGuardianLabel(labelController.text);
+                    if (mounted) Navigator.of(context).pop(success);
+                  },
+                  child: isSaving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
 
-    // If the dialog was popped with 'true', force a screen rebuild.
+    if (wasSaved == true) {
+      setState(() {});
+    }
+  }
+  
+  void _showEditCaregiverLabelDialog(String caregiverId, String currentLabel) async {
+    final labelController = TextEditingController(text: currentLabel);
+    final bool? wasSaved = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        bool isSaving = false; // State variable for this dialog
+        return StatefulBuilder( // Use StatefulBuilder here as well
+          builder: (context, dialogSetState) {
+            return AlertDialog(
+              title: const Text('Edit Your Label'),
+              content: TextField(
+                controller: labelController,
+                autofocus: true,
+                decoration: const InputDecoration(labelText: 'Enter your new label'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isSaving ? null : () async {
+                    dialogSetState(() => isSaving = true);
+                    if (_aviaryId != null && labelController.text.trim().isNotEmpty) {
+                      await FirebaseFirestore.instance
+                          .collection('aviaries')
+                          .doc(_aviaryId)
+                          .collection('caregivers')
+                          .doc(caregiverId)
+                          .update({'label': labelController.text.trim()});
+                      if (mounted) Navigator.of(context).pop(true);
+                    } else {
+                      if (mounted) Navigator.of(context).pop(false);
+                    }
+                  },
+                  child: isSaving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
     if (wasSaved == true) {
       setState(() {});
     }
   }
   
   Widget _caregiverList(String aviaryId) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return const SizedBox.shrink();
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('aviaries').doc(aviaryId).collection('caregivers').snapshots(),
       builder: (context, caregiverSnapshot) {
@@ -233,11 +299,22 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
         return Column(
           children: caregivers.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
+            final isCurrentUser = doc.id == currentUser.uid;
+
             return Card(
               child: ListTile(
                 leading: const Icon(Icons.person_outline),
                 title: Text(data['label'] ?? 'Caregiver'),
                 subtitle: Text(data['email'] ?? doc.id),
+                trailing: isCurrentUser
+                    ? IconButton(
+                        icon: const Icon(Icons.edit_note),
+                        tooltip: 'Edit your label',
+                        onPressed: () {
+                          _showEditCaregiverLabelDialog(doc.id, data['label'] ?? '');
+                        },
+                      )
+                    : null,
               ),
             );
           }).toList(),
@@ -335,16 +412,14 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                     padding: const EdgeInsets.all(8.0),
                     children: [
                       _header(context, 'Your Nests (Cages)'),
-                      if (isGuardian)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                          // The Column is no longer needed here, just the single button
-                          child: OutlinedButton.icon(
-                            icon: const Icon(Icons.add),
-                            label: const Text('Add a New Nest'),
-                            onPressed: _showAddNestDialog,
-                          ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add a New Nest'),
+                          onPressed: _showAddNestDialog,
                         ),
+                      ),
                       if (nests.isEmpty)
                         const Card(child: ListTile(title: Text('No nests created yet.')))
                       else
@@ -356,24 +431,23 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                               leading: const Icon(Icons.home_work_outlined),
                               title: Text(nestData['name'] ?? 'Unnamed Nest'),
                               subtitle: Text('$birdCount bird(s)'),
-                              trailing: isGuardian
-                                  ? Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.edit_note),
-                                          onPressed: () => _showEditNestDialog(nestDoc.id, nestData['name']),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                          onPressed: () async { // <-- Make the handler async
-                                            await _deleteNest(nestDoc.id, birdCount); // <-- Await the result
-                                            setState(() {}); // <-- Force the rebuild
-                                          },
-                                        ),
-                                      ],
-                                    )
-                                  : null,
+                              // No 'isGuardian' check needed here anymore
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_note),
+                                    onPressed: () => _showEditNestDialog(nestDoc.id, nestData['name']),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                    onPressed: () async { // <-- Make the handler async
+                                      await _deleteNest(nestDoc.id, birdCount); // <-- Await the result
+                                      setState(() {}); // <-- Force the rebuild
+                                    },
+                                  ),
+                                ],
+                              )
                             ),
                           );
                         }),
