@@ -8,12 +8,15 @@ To become the indispensable digital companion for every cockatiel owner, transfo
 
 ## Current Status
 
-The project is currently in the **MVP (Minimum Viable Product) development phase**.
+The project has a **feature-complete MVP** and is currently in the **V1.1 (Polish & Management)** development phase. The `main` branch is stable.
 
 Core features currently implemented on the `main` branch include:
-- Firebase Email/Password Authentication
-- Create, Read, Update Bird Profiles
-- A functional Daily Log system for tracking Diet, Droppings, Behavior, and Weight.
+- **Full Authentication:** Email/Password, Google Sign-In, and a polished UI.
+- **Multi-User Aviary System:** A complete backend for households (Aviaries), cages (Nests), and an invitation system for Caregivers powered by a Cloud Function.
+- **Complete Bird & Nest Management:** Full CRUD (Create, Read, Update, Delete) for bird profiles and nests.
+- **Smart Daily Logging:** A real-time system for logging and viewing daily data (Diet, Droppings, Behavior, Weight) with full CRUD functionality.
+- **User Engagement Features:** A "Guided 30-Day Plan" for new birds and a curated "Knowledge Center."
+- **Task Management:** An in-app system for tracking recurring "Care Tasks."
 
 ## Tech Stack
 

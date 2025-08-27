@@ -7,11 +7,15 @@ $filesToInclude = @(
     "documentation/ROADMAP.md",
     "documentation/FSD.md",
     "pubspec.yaml",
+    "functions/index.js", # Include the Cloud Function code
     "lib/main.dart",
     "lib/auth_gate.dart",
+    "lib/services/auth_service.dart", # Include our new service
     "lib/screens/home_screen.dart",
     "lib/screens/auth_screen.dart",
-    "lib/screens/profile_screen.dart"
+    "lib/screens/profile_screen.dart",
+    "lib/screens/daily_log_screen.dart", # Include this complex screen
+    "lib/screens/aviary_management_screen.dart" # Include this complex screen
 )
 # --- END OF CONFIGURATION ---
 

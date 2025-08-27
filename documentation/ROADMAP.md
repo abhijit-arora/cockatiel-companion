@@ -26,15 +26,15 @@ The goal of the MVP was to deliver the core value proposition: a single-user, cl
 *   **[ ] "Forgot Password" UX:** The app should detect if a user tries to reset a password for a social sign-in account and provide a helpful message.
 
 ---
-### **Version 1.1: The Polish & Management Update**
+### **Version 1.1: The Polish & Management Update (In Progress)**
 
 The goal of this phase is to refine the user experience and add core management features on top of our existing foundation.
 
-*   **[x] Edit/Delete Log Entries:** Add functionality to the Daily Log screen to edit or delete existing entries. (Completed)
+*   **[x] Edit/Delete Log Entries:** Implemented full CRUD functionality for all log types on the Daily Log screen. (Completed)
 *   **[x] Improved Sign-Up Flow:** Refactored the AuthScreen with a dynamic toggle, validation, and a "Forgot Password" flow. (Completed)
+*   **[x] Nest Management:** Built the UI to create, rename, delete, and manage Nests (cages) within an Aviary. (Completed)
+*   **[ ] Bird-to-Nest Assignment (Up Next):** Allow users to assign their birds to the Nests they've created. This includes adding a **Species** dropdown to the bird profile creation screen.
 *   **[ ] "About FlockWell" Screen:** Create a screen to display the app version, features, and changelog.
-*   **[ ] Nest Management:** Build the UI to create, rename, and manage Nests (cages) within an Aviary.
-*   **[ ] Bird-to-Nest Assignment:** Allow users to assign their birds to the Nests they've created. This includes adding a **Species** dropdown to the bird profile creation screen.
 
 ---
 ### **Version 1.2: The Community & Growth Update**
@@ -63,9 +63,9 @@ These are major features to be prioritized after the core app is feature-complet
 
 *   **Premium Features:** Launch the "FlockWell Plus" subscription and "AI Credits" models.
 *   **Power-User Logging:** Implement "Shared Activities" and "Batch Metric Entry".
-*   **Business & Admin Tools:** A separate web app for content management.
-*   **Data Visualization & Trends.** (Plus Feature)
-*   **AI-Powered Insights.** (Requires AI Credits)
-*   **Pre-Flight Checklist.** (Free Feature)
-*   **Social Feed.** (Free Feature)
-*   **Species Expansion.** (Core Feature)
+*   **Data Visualization & Trends:** A new section for viewing graphs and filtered lists of log data over time. (Plus Feature)
+*   **AI-Powered Insights:** Implement all features under FSD section 3.4. (Requires AI Credits)
+*   **Pre-Flight Checklist:** Implement the pre-adoption module (FSD 2.1). (Free Feature)
+*   **Social Feed:** Implement the photo & milestone sharing feed (FSD 5.2). (Free Feature)
+*   **Species Expansion:** Architect the app to begin adding other bird species (Parakeets, Conures, etc.). (Core Feature)
+*   **Business & Admin Tools:** A separate web application for managing the app's content and configuration.

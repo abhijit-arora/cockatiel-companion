@@ -1,6 +1,10 @@
-# Functional Specification Document (FSD) - v0.2
+# Functional Specification Document (FSD)
 
-This document details the features and functionalities of the Cockatiel Companion application.
+- **App Name:** FlockWell (formerly Cockatiel Companion)
+- **Document Version:** 0.3
+- **Last Updated:** 2025-08-25
+
+This document details the features and functionalities of the FlockWell application.
 
 ---
 
