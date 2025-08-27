@@ -18,6 +18,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   final _gotchaDateController = TextEditingController();
   DateTime? _selectedGotchaDate;
+  final _hatchDateController = TextEditingController();
+  DateTime? _selectedHatchDate;
   bool _isLoading = false;
   String? _selectedSpecies;
   final List<String> _speciesOptions = [
@@ -171,6 +173,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
 
+                  const SizedBox(height: 16), // Add some space
+
+                  // --- Hatch Date Field ---
+                  TextField(
+                    controller: _hatchDateController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Hatch Day (Optional)',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.cake_outlined), // A more fitting icon
+                    ),
+                    onTap: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedHatchDate ?? _selectedGotchaDate ?? DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(), // Birds can't be hatched in the future
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          _selectedHatchDate = picked;
+                          _hatchDateController.text = DateFormat.yMMMMd().format(picked);
+                        });
+                      }
+                    },
+                  ),
+
                   const SizedBox(height: 24),
 
                   // --- Save Button ---
@@ -216,6 +245,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final timestamp = data['gotchaDay'] as Timestamp;
           _selectedGotchaDate = timestamp.toDate();
           _gotchaDateController.text = DateFormat.yMMMMd().format(_selectedGotchaDate!);
+        }
+        // Add this block to load the hatch date
+        if (data['hatchDay'] != null) {
+          final timestamp = data['hatchDay'] as Timestamp;
+          _selectedHatchDate = timestamp.toDate();
+          _hatchDateController.text = DateFormat.yMMMMd().format(_selectedHatchDate!);
         }
       }
     } catch (e) {
@@ -353,6 +388,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'name': _nameController.text.trim(),
         'species': _selectedSpecies,
         'gotchaDay': _selectedGotchaDate,
+        'hatchDay': _selectedHatchDate,
         'ownerId': widget.aviaryId,
         'nestId': _selectedNestId,
         'viewers': viewers, // <-- Use the new comprehensive list of viewers
