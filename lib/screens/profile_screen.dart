@@ -334,6 +334,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
 
+      // --- Get all caregivers to add to the viewers list ---
+      final caregiversSnapshot = await FirebaseFirestore.instance
+          .collection('aviaries')
+          .doc(widget.aviaryId)
+          .collection('caregivers')
+          .get();
+      
+      // Create a list of viewer UIDs, starting with the Guardian
+      final List<String> viewers = [widget.aviaryId];
+      // Add all the caregiver UIDs
+      for (var doc in caregiversSnapshot.docs) {
+        viewers.add(doc.id);
+      }
+
       // --- Prepare and Save the Bird Data ---
       final birdData = {
         'name': _nameController.text.trim(),
@@ -341,7 +355,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'gotchaDay': _selectedGotchaDate,
         'ownerId': widget.aviaryId,
         'nestId': _selectedNestId,
-        'viewers': [widget.aviaryId],
+        'viewers': viewers, // <-- Use the new comprehensive list of viewers
       };
 
       if (widget.birdId == null) {

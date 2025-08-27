@@ -166,6 +166,63 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
     }
   }
 
+  Future<bool> _updateGuardianLabel(String newLabel) async {
+    if (_aviaryId == null || newLabel.trim().isEmpty) return false;
+    try {
+      await FirebaseFirestore.instance
+          .collection('aviaries')
+          .doc(_aviaryId)
+          .update({'guardianLabel': newLabel.trim()});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Guardian label updated!')),
+        );
+      }
+      return true; // <-- Return true on success
+    } catch (e) {
+      debugPrint('Error updating guardian label: $e');
+      return false; // <-- Return false on error
+    }
+  }
+
+  void _showEditGuardianLabelDialog(String currentLabel) async { // <-- Make async
+    final labelController = TextEditingController(text: currentLabel);
+    // showDialog returns a value when it's popped. We can await it.
+    final bool? wasSaved = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Your Label'),
+          content: TextField(
+            controller: labelController,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Enter your new label'),
+          ),
+          actions: [
+            TextButton(
+              // Pop with 'false' to indicate no change was made
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final success = await _updateGuardianLabel(labelController.text);
+                // Pop with the result of the update operation
+                if (mounted) Navigator.of(context).pop(success);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If the dialog was popped with 'true', force a screen rebuild.
+    if (wasSaved == true) {
+      setState(() {});
+    }
+  }
+  
   Widget _caregiverList(String aviaryId) {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('aviaries').doc(aviaryId).collection('caregivers').snapshots(),
@@ -323,8 +380,17 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                       Card(
                         child: ListTile(
                           leading: const Icon(Icons.person, color: Colors.amber),
-                          title: Text(guardianEmail),
-                          subtitle: const Text('Guardian'),
+                          title: Text(aviaryData['guardianLabel'] ?? guardianEmail),
+                          subtitle: Text('Guardian • $guardianEmail'),
+                          trailing: isGuardian
+                              ? IconButton(
+                                  icon: const Icon(Icons.edit_note),
+                                  tooltip: 'Edit your label',
+                                  onPressed: () {
+                                    _showEditGuardianLabelDialog(aviaryData['guardianLabel'] ?? '');
+                                  },
+                                )
+                              : null,
                         ),
                       ),
                       _caregiverList(_aviaryId!),
