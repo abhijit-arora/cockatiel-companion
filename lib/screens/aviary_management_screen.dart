@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:async/async.dart';
+import 'package:cockatiel_companion/screens/bulk_move_screen.dart';
 import 'package:cockatiel_companion/widgets/aviary_dialogs/invite_caregiver_dialog.dart';
 import 'package:cockatiel_companion/widgets/aviary_dialogs/add_edit_nest_dialog.dart';
 
@@ -337,6 +338,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                       if (isGuardian)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          // The Column is no longer needed here, just the single button
                           child: OutlinedButton.icon(
                             icon: const Icon(Icons.add),
                             label: const Text('Add a New Nest'),
@@ -375,6 +377,25 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                             ),
                           );
                         }),
+
+                      // Only show the button if there are at least two nests to move between.
+                      if (nests.length >= 2)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.swap_horiz_rounded),
+                            label: const Text('Bulk Move Birds'),
+                            onPressed: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => BulkMoveScreen(aviaryId: _aviaryId!),
+                                ),
+                              );
+                              setState(() {});
+                            },
+                          ),
+                        ),
+
                       const SizedBox(height: 24),
                       _header(context, 'Caregivers'),
                       Card(
