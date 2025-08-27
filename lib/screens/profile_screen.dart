@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cockatiel_companion/widgets/aviary_dialogs/add_edit_nest_dialog.dart';
+import 'package:cockatiel_companion/services/notification_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? birdId;
@@ -394,14 +395,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'viewers': viewers, // <-- Use the new comprehensive list of viewers
       };
 
+      DocumentReference birdRef;
       if (widget.birdId == null) {
-        await FirebaseFirestore.instance.collection('birds').add({
+        birdRef = await FirebaseFirestore.instance.collection('birds').add({
           ...birdData,
           'createdAt': FieldValue.serverTimestamp(),
         });
       } else {
-        await FirebaseFirestore.instance.collection('birds').doc(widget.birdId).update(birdData);
+        birdRef = FirebaseFirestore.instance.collection('birds').doc(widget.birdId);
+        await birdRef.update(birdData);
       }
+
+      // --- NEW: Schedule notifications after saving ---
+      await _scheduleNotifications(birdRef.id, birdData);
       
       navigator.pop();
 
@@ -411,6 +417,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         setState(() { _isLoading = false; });
       }
+    }
+  }
+
+  Future<void> _scheduleNotifications(String birdId, Map<String, dynamic> birdData) async {
+    final notificationService = NotificationService();
+    
+    // Create unique IDs for the notifications. 
+    // Using a hash of the bird's ID and the type of notification.
+    final hatchDayId = birdId.hashCode;
+    final gotchaDayId = (birdId + 'gotcha').hashCode;
+
+    // Schedule Hatch Day notification
+    if (birdData['hatchDay'] != null) {
+      await notificationService.scheduleAnniversaryNotification(
+        id: hatchDayId,
+        title: 'Upcoming Hatch Day! 🎂',
+        body: 'Get ready to celebrate! ${birdData['name']}\'s hatch day is in one week.',
+        eventDate: birdData['hatchDay'],
+      );
+    } else {
+      // If the date was removed, cancel any existing notification.
+      await notificationService.cancelNotification(hatchDayId);
+    }
+
+    // Schedule Gotcha Day notification
+    if (birdData['gotchaDay'] != null) {
+      await notificationService.scheduleAnniversaryNotification(
+        id: gotchaDayId,
+        title: 'Upcoming Gotcha Day! 🎉',
+        body: '${birdData['name']}\'s gotcha day is in one week! Time to celebrate your journey together.',
+        eventDate: birdData['gotchaDay'],
+      );
+    } else {
+      await notificationService.cancelNotification(gotchaDayId);
     }
   }
 }

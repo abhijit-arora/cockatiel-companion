@@ -11,12 +11,25 @@ import 'package:cockatiel_companion/screens/about_screen.dart';
 import 'package:cockatiel_companion/widgets/onboarding_tip_card.dart';
 import 'package:cockatiel_companion/widgets/upcoming_tasks_card.dart';
 import 'package:cockatiel_companion/widgets/pending_invitations_card.dart';
+import 'package:cockatiel_companion/widgets/upcoming_anniversary_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
+}
+
+class UpcomingAnniversary {
+  final String birdName;
+  final String eventName;
+  final int daysRemaining;
+
+  UpcomingAnniversary({
+    required this.birdName,
+    required this.eventName,
+    required this.daysRemaining,
+  });
 }
 
 class _HomePageState extends State<HomePage> {
@@ -104,7 +117,6 @@ class _HomePageState extends State<HomePage> {
               // This StreamBuilder now handles fetching both nests and birds for clustering.
               Expanded(
                 child: StreamBuilder<List<QuerySnapshot>>(
-                  // Use StreamZip to listen to both nests and birds streams simultaneously.
                   stream: StreamZip([
                     FirebaseFirestore.instance.collection('aviaries').doc(_aviaryId).collection('nests').snapshots(),
                     FirebaseFirestore.instance.collection('birds').where('viewers', arrayContains: FirebaseAuth.instance.currentUser?.uid).snapshots(),
@@ -133,20 +145,52 @@ class _HomePageState extends State<HomePage> {
                       );
                     }
 
-                    // --- NEW LOGIC: Group birds by nest ID ---
+                    // --- LOGIC TO FIND UPCOMING ANNIVERSARIES ---
+                    final List<UpcomingAnniversary> upcomingAnniversaries = [];
+                    final today = DateTime.now();
+                    const int notificationWindow = 7;
+
+                    for (final birdDoc in birdDocs) {
+                      final birdData = birdDoc.data() as Map<String, dynamic>;
+                      final birdName = birdData['name'] as String;
+
+                      void checkAnniversary(String eventName, Timestamp? eventTimestamp) {
+                        if (eventTimestamp == null) return;
+                        final eventDate = eventTimestamp.toDate();
+                        // Use a date-only comparison to avoid time-of-day issues
+                        final todayDateOnly = DateTime(today.year, today.month, today.day);
+                        DateTime nextAnniversary = DateTime(today.year, eventDate.month, eventDate.day);
+
+                        if (nextAnniversary.isBefore(todayDateOnly)) {
+                          nextAnniversary = DateTime(today.year + 1, eventDate.month, eventDate.day);
+                        }
+                        
+                        // Use .difference().inDays, which is correct for this
+                        final daysRemaining = nextAnniversary.difference(todayDateOnly).inDays;
+                        
+                        if (daysRemaining >= 0 && daysRemaining <= notificationWindow) {
+                          upcomingAnniversaries.add(UpcomingAnniversary(
+                              birdName: birdName, eventName: eventName, daysRemaining: daysRemaining));
+                        }
+                      }
+                      checkAnniversary('Hatch Day', birdData['hatchDay']);
+                      checkAnniversary('Gotcha Day', birdData['gotchaDay']);
+                    }
+                    // Sort events by days remaining
+                    upcomingAnniversaries.sort((a, b) => a.daysRemaining.compareTo(b.daysRemaining));
+
+
+                    // --- LOGIC TO GROUP BIRDS BY NEST ---
                     final Map<String, List<DocumentSnapshot>> birdsByNest = {};
                     for (final birdDoc in birdDocs) {
                       final birdData = birdDoc.data() as Map<String, dynamic>;
                       final nestId = birdData['nestId'] as String?;
                       if (nestId != null) {
-                        if (birdsByNest[nestId] == null) {
-                          birdsByNest[nestId] = [];
-                        }
-                        birdsByNest[nestId]!.add(birdDoc);
+                        birdsByNest.putIfAbsent(nestId, () => []).add(birdDoc);
                       }
                     }
 
-                    // --- FIND ONBOARDING BIRD (Same logic, new placement) ---
+                    // --- LOGIC TO FIND ONBOARDING BIRD ---
                     DocumentSnapshot? onboardingBirdDoc;
                     for (final doc in birdDocs) {
                       final data = doc.data() as Map<String, dynamic>;
@@ -163,12 +207,14 @@ class _HomePageState extends State<HomePage> {
                       }
                     }
                     final bool hasOnboardingTip = onboardingBirdDoc != null;
+                    
+                    final int anniversaryCount = upcomingAnniversaries.length;
+                    final int tipCount = hasOnboardingTip ? 1 : 0;
 
-                    // --- BUILD THE NEW CLUSTERED LIST ---
                     return ListView.builder(
-                      itemCount: nestsDocs.length + (hasOnboardingTip ? 1 : 0),
+                      itemCount: tipCount + anniversaryCount + nestsDocs.length,
                       itemBuilder: (context, index) {
-                        // --- ONBOARDING TIP (if it exists) ---
+                        // --- SECTION 1: ONBOARDING TIP ---
                         if (hasOnboardingTip && index == 0) {
                           final onboardingData = onboardingBirdDoc!.data() as Map<String, dynamic>;
                           return OnboardingTipCard(
@@ -177,8 +223,19 @@ class _HomePageState extends State<HomePage> {
                           );
                         }
 
-                        // Adjust index to account for the tip card
-                        final nestIndex = hasOnboardingTip ? index - 1 : index;
+                        // --- SECTION 2: ANNIVERSARY CARDS ---
+                        if (index < (tipCount + anniversaryCount)) {
+                          final anniversaryIndex = index - tipCount;
+                          final event = upcomingAnniversaries[anniversaryIndex];
+                          return UpcomingAnniversaryCard(
+                            birdName: event.birdName,
+                            eventName: event.eventName,
+                            daysRemaining: event.daysRemaining,
+                          );
+                        }
+
+                        // --- SECTION 3: NEST CLUSTERS ---
+                        final nestIndex = index - tipCount - anniversaryCount;
                         if (nestIndex >= nestsDocs.length) return const SizedBox.shrink();
 
                         final nestDoc = nestsDocs[nestIndex];
@@ -187,98 +244,96 @@ class _HomePageState extends State<HomePage> {
                         final birdsInThisNest = birdsByNest[nestDoc.id] ?? [];
 
                         if (birdsInThisNest.isEmpty) {
-                          return const SizedBox.shrink(); // Don't show empty nests
+                          return const SizedBox.shrink();
                         }
 
-                        // --- NEST HEADER AND BIRD LIST ---
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
                           elevation: 1,
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                                child: Text(nestName, style: Theme.of(context).textTheme.titleLarge),
-                              ),
-                              const Divider(height: 1),
-                              Column(
-                                children: birdsInThisNest.map((birdDocument) {
-                                  final birdData = birdDocument.data() as Map<String, dynamic>;
-                                  final birdName = birdData['name'] as String;
-                                  final birdId = birdDocument.id;
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                                  child: Text(nestName, style: Theme.of(context).textTheme.titleLarge),
+                                ),
+                                const Divider(height: 1),
+                                Column(
+                                  children: birdsInThisNest.map((birdDocument) {
+                                    final birdData = birdDocument.data() as Map<String, dynamic>;
+                                    final birdName = birdData['name'] as String;
+                                    final birdId = birdDocument.id;
 
-                                  // --- SUBTITLE CALCULATION LOGIC ---
-                                  final String speciesText = birdData['species'] ?? '';
-                                  final List<String> timeParts = [];
+                                    final String speciesText = birdData['species'] ?? '';
+                                    final List<String> timeParts = [];
 
-                                  if (birdData['hatchDay'] != null && birdData['hatchDay'] is Timestamp) {
-                                    final hatchDay = (birdData['hatchDay'] as Timestamp).toDate();
-                                    final now = DateTime.now();
-                                    final ageInDays = now.difference(hatchDay).inDays;
-                                    if (ageInDays >= 365) {
-                                      final years = ageInDays ~/ 365;
-                                      timeParts.add('$years year${years > 1 ? 's' : ''} old');
-                                    } else if (ageInDays >= 30) {
-                                      final months = ageInDays ~/ 30;
-                                      timeParts.add('$months month${months > 1 ? 's' : ''} old');
-                                    } else {
-                                      timeParts.add('$ageInDays day${ageInDays != 1 ? 's' : ''} old');
+                                    if (birdData['hatchDay'] != null && birdData['hatchDay'] is Timestamp) {
+                                      final hatchDay = (birdData['hatchDay'] as Timestamp).toDate();
+                                      final now = DateTime.now();
+                                      final ageInDays = now.difference(hatchDay).inDays;
+                                      if (ageInDays >= 365) {
+                                        final years = ageInDays ~/ 365;
+                                        timeParts.add('$years year${years > 1 ? 's' : ''} old');
+                                      } else if (ageInDays >= 30) {
+                                        final months = ageInDays ~/ 30;
+                                        timeParts.add('$months month${months > 1 ? 's' : ''} old');
+                                      } else {
+                                        timeParts.add('$ageInDays day${ageInDays != 1 ? 's' : ''} old');
+                                      }
                                     }
-                                  }
-                                  if (birdData['gotchaDay'] != null && birdData['gotchaDay'] is Timestamp) {
-                                    final gotchaDay = (birdData['gotchaDay'] as Timestamp).toDate();
-                                    final now = DateTime.now();
-                                    final daysWithYou = now.difference(gotchaDay).inDays;
-                                    if (daysWithYou >= 365) {
-                                      final years = daysWithYou ~/ 365;
-                                      timeParts.add('$years year${years > 1 ? 's' : ''} with you');
-                                    } else if (daysWithYou >= 30) {
-                                      final months = daysWithYou ~/ 30;
-                                      timeParts.add('$months month${months > 1 ? 's' : ''} with you');
-                                    } else {
-                                      timeParts.add(daysWithYou == 0 ? 'New!' : '$daysWithYou day${daysWithYou != 1 ? 's' : ''} with you');
+                                    if (birdData['gotchaDay'] != null && birdData['gotchaDay'] is Timestamp) {
+                                      final gotchaDay = (birdData['gotchaDay'] as Timestamp).toDate();
+                                      final now = DateTime.now();
+                                      final daysWithYou = now.difference(gotchaDay).inDays;
+                                      if (daysWithYou >= 365) {
+                                        final years = daysWithYou ~/ 365;
+                                        timeParts.add('$years year${years > 1 ? 's' : ''} with you');
+                                      } else if (daysWithYou >= 30) {
+                                        final months = daysWithYou ~/ 30;
+                                        timeParts.add('$months month${months > 1 ? 's' : ''} with you');
+                                      } else {
+                                        timeParts.add(daysWithYou == 0 ? 'New!' : '$daysWithYou day${daysWithYou != 1 ? 's' : ''} with you');
+                                      }
                                     }
-                                  }
-                                  final String timeText = timeParts.join(' • ');
+                                    final String timeText = timeParts.join(' • ');
 
-                                  // --- Build the subtitle widget ---
-                                  Widget? subtitleWidget;
-                                  if (speciesText.isNotEmpty || timeText.isNotEmpty) {
-                                    subtitleWidget = Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        if (speciesText.isNotEmpty) Text(speciesText),
-                                        if (timeText.isNotEmpty) Text(timeText),
-                                      ],
-                                    );
-                                  }
-
-                                  return ListTile(
-                                    leading: const Icon(Icons.star_border),
-                                    title: Text(birdName),
-                                    subtitle: subtitleWidget,
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => DailyLogScreen(birdId: birdId, birdName: birdName),
-                                        ),
+                                    // --- Build the subtitle widget ---
+                                    Widget? subtitleWidget;
+                                    if (speciesText.isNotEmpty || timeText.isNotEmpty) {
+                                      subtitleWidget = Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          if (speciesText.isNotEmpty) Text(speciesText),
+                                          if (timeText.isNotEmpty) Text(timeText),
+                                        ],
                                       );
-                                    },
-                                    trailing: IconButton(
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () {
+                                    }
+
+                                    return ListTile(
+                                      leading: const Icon(Icons.star_border),
+                                      title: Text(birdName),
+                                      subtitle: subtitleWidget,
+                                      onTap: () {
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
-                                            builder: (context) => ProfileScreen(birdId: birdId, aviaryId: _aviaryId!),
+                                            builder: (context) => DailyLogScreen(birdId: birdId, birdName: birdName),
                                           ),
                                         );
                                       },
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
+                                      trailing: IconButton(
+                                        icon: const Icon(Icons.edit),
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => ProfileScreen(birdId: birdId, aviaryId: _aviaryId!),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
                           ),
                         );
                       },

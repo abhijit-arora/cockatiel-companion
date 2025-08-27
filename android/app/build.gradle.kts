@@ -10,10 +10,13 @@ plugins {
 
 android {
     namespace = "com.flockwell.cockatiel_companion"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36 // Use the required SDK version
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // --- ADD THIS LINE ---
+        isCoreLibraryDesugaringEnabled = true 
+        // --- KEEP THESE AS THEY WERE ---
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -23,10 +26,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.flockwell.cockatiel_companion"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -35,8 +35,6 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -44,4 +42,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+// --- ADD THIS ENTIRE BLOCK AT THE END OF THE FILE ---
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
