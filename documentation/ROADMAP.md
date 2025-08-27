@@ -26,7 +26,7 @@ The goal of the MVP was to deliver the core value proposition: a single-user, cl
 *   **[ ] "Forgot Password" UX:** The app should detect if a user tries to reset a password for a social sign-in account and provide a helpful message.
 
 ---
-### **Version 1.1: The Polish & Management Update (In Progress)**
+### **Version 1.1: The Polish & Management Update (Completed)**
 
 The goal of this phase is to refine the user experience and add core management features on top of our existing foundation.
 
@@ -34,19 +34,24 @@ The goal of this phase is to refine the user experience and add core management 
 *   **[x] Improved Sign-Up Flow:** Refactored the AuthScreen with a dynamic toggle, validation, and a "Forgot Password" flow. (Completed)
 *   **[x] Nest Management:** Built the UI to create, rename, delete, and manage Nests (cages) within an Aviary. (Completed)
 *   **[x] Bird-to-Nest Assignment:** Allow users to assign their birds to Nests and add a Species to the bird profile. (Completed)
-*   **[ ] "About FlockWell" Screen (Up Next):** Create a screen to display the app version, features, and changelog.
-*   **[ ] Bulk Bird-to-Nest Movement:** Add a utility to allow users to move multiple birds from one nest to another in a single action.
+*   **[x] About FlockWell Screen:** Created a screen to display the app version and a dynamic changelog. (Completed)
+*   **[x] Guardian & Caregiver Polish:** Allowed Guardians to set a custom label and fixed critical caregiver permissions. (Completed)
+
+---
+### **Version 1.2: The Community & Growth Update (Up Next)**
+
+With a polished core app, this phase focuses on user engagement and growth.
+
+*   **[ ] Bulk Bird-to-Nest Movement (Up Next):** Add a utility to allow users to move multiple birds from one nest to another in a single action.
+*   **[ ] Caregiver Permissions & Roles:**
+    *   Allow Caregivers to edit their own labels.
+    *   (Phase 1) Allow all Caregivers to add, edit, and delete Nests by default.
+    *   (Phase 2) Implement a role-based system for the Guardian to manage permissions (e.g., Admin, Member, Read-Only).
 *   **[ ] Bird Profile Enhancements:**
     *   Add an optional "Hatch Date" to the bird profile.
     *   Display the bird's age and "Gotcha Day" anniversary on the home screen.
     *   Display the bird's species on the home screen tile.
     *   Implement notifications for hatch-days and gotcha-day anniversaries.
-
----
-### **Version 1.2: The Community & Growth Update**
-
-With a polished core app, this phase focuses on user engagement and growth.
-
 *   **[ ] The Community Aviary:** Implement the basic Community Forum / Q&A. (Free Feature)
 *   **[ ] Social Sign-In (Apple):** Implement Sign in with Apple to complete our social login options.
 *   **[ ] Ad Integration:** Integrate an ad provider (e.g., Google AdMob) to display simple ads for free-tier users.

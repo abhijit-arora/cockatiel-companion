@@ -12,12 +12,21 @@ class ChangelogEntry {
 
 final List<ChangelogEntry> changelogData = [
   ChangelogEntry(
-    version: 'Version 1.1 (In Progress)',
+    version: 'Version 1.2 (Up Next)', // <-- Add this new section
     changes: [
+      'Bulk Bird-to-Nest Movement.',
+      'Enhanced Caregiver Permissions & Roles.',
+    ],
+  ),
+  ChangelogEntry(
+    version: 'Version 1.1 (Latest Update)', // <-- Change "In Progress" to "Latest Update"
+    changes: [
+      'Added Guardian & Caregiver custom labels and fixed permissions.',
       'Added Species and Nest assignment to bird profiles.',
       'Added ability to manage Nests (cages) in the Aviary.',
       'Improved the user sign-up and login flow.',
       'Enabled editing and deleting of daily log entries.',
+      'Added the "About FlockWell" screen.',
     ],
   ),
   ChangelogEntry(
