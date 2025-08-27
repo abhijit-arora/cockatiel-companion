@@ -43,15 +43,16 @@ The goal of this phase is to refine the user experience and add core management 
 With a polished core app, this phase focuses on user engagement and growth.
 
 *   **[ ] Bulk Bird-to-Nest Movement (Up Next):** Add a utility to allow users to move multiple birds from one nest to another in a single action.
-*   **[ ] Caregiver Permissions & Roles:**
-    *   Allow Caregivers to edit their own labels.
-    *   (Phase 1) Allow all Caregivers to add, edit, and delete Nests by default.
-    *   (Phase 2) Implement a role-based system for the Guardian to manage permissions (e.g., Admin, Member, Read-Only).
-*   **[ ] Bird Profile Enhancements:**
+*   **[ ] Caregiver Permissions & Roles (In Progress):**
+    *   [x] Allow Caregivers to edit their own labels. (Completed)
+    *   [x] (Phase 1) Allow all Caregivers to add, edit, and delete Nests by default. (Completed)
+*   **[ ] Bird Profile Enhancements (Up Next):**
     *   Add an optional "Hatch Date" to the bird profile.
     *   Display the bird's age and "Gotcha Day" anniversary on the home screen.
     *   Display the bird's species on the home screen tile.
     *   Implement notifications for hatch-days and gotcha-day anniversaries.
+*   **[ ] Caregiver Permissions & Roles (Phase 2):**
+    *   Implement a role-based system for the Guardian to manage permissions (e.g., Flock Leader, Flock Member, Nest Sitter).
 *   **[ ] The Community Aviary:** Implement the basic Community Forum / Q&A. (Free Feature)
 *   **[ ] Social Sign-In (Apple):** Implement Sign in with Apple to complete our social login options.
 *   **[ ] Ad Integration:** Integrate an ad provider (e.g., Google AdMob) to display simple ads for free-tier users.
