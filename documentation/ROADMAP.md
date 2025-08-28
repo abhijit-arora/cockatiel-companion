@@ -47,7 +47,13 @@ With a polished core app, this phase focuses on user engagement and growth.
 *   **[x] Bird Profile Enhancements:** Added Hatch Day to profiles and display age, anniversary, species, and nest clusters on the home screen. (Completed)
 *   **[x] In-App Anniversary Reminders:** Implemented a reliable in-app card to display upcoming anniversary countdowns. (Completed as a pivot from native notifications)
 
-*   **[ ] Community Aviary - Phase 1: The Q&A Forum (Up Next):**
+*   **[ ] Foundational Navigation Refactor (Up Next):**
+    *   Implement a primary bottom navigation bar to structure the app's main sections.
+    *   Create a dedicated "Notifications" screen to serve as an in-app inbox.
+    *   Add an unread notifications badge to the bottom navigation bar icon.
+    *   De-clutter the main AppBar.
+
+*   **[ ] Community Aviary - Phase 1: The Q&A Forum:**
     *   Build the core UI for the categorized Q&A hub ("Chirps").
     *   Implement functionality to create, view, and reply to Chirps.
     *   Implement the "Best Answer" and "Helpful" marking systems.
