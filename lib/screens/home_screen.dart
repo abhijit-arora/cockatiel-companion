@@ -35,6 +35,7 @@ class UpcomingAnniversary {
 class _HomePageState extends State<HomePage> {
   String? _aviaryId;
   bool _isLoading = true;
+  final Set<String> _dismissedAnniversaries = {};
 
   @override
   void initState() {
@@ -234,7 +235,14 @@ class _HomePageState extends State<HomePage> {
                       }
                       final bool hasOnboardingTip = onboardingBirdDoc != null;
                       
-                      final int anniversaryCount = upcomingAnniversaries.length;
+                      final List<UpcomingAnniversary> activeAnniversaries = upcomingAnniversaries.where((event) {
+                        // Create a unique ID for each anniversary instance.
+                        final eventId = '${event.birdName}-${event.eventName}';
+                        return !_dismissedAnniversaries.contains(eventId);
+                      }).toList();
+
+                      // --- Update the counts based on the filtered list ---
+                      final int anniversaryCount = activeAnniversaries.length;
                       final int tipCount = hasOnboardingTip ? 1 : 0;
 
                       return ListView.builder(
@@ -252,11 +260,39 @@ class _HomePageState extends State<HomePage> {
                           // --- SECTION 2: ANNIVERSARY CARDS ---
                           if (index < (tipCount + anniversaryCount)) {
                             final anniversaryIndex = index - tipCount;
-                            final event = upcomingAnniversaries[anniversaryIndex];
-                            return UpcomingAnniversaryCard(
-                              birdName: event.birdName,
-                              eventName: event.eventName,
-                              daysRemaining: event.daysRemaining,
+                            final event = activeAnniversaries[anniversaryIndex];
+                            final eventId = '${event.birdName}-${event.eventName}';
+
+                            return Dismissible(
+                              key: Key(eventId), // Unique key is essential!
+                              onDismissed: (direction) {
+                                setState(() {
+                                  _dismissedAnniversaries.add(eventId);
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${event.birdName}\'s reminder dismissed.'),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              background: Container(
+                                color: Colors.green,
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                alignment: Alignment.centerLeft,
+                                child: const Icon(Icons.check, color: Colors.white),
+                              ),
+                              secondaryBackground: Container(
+                                color: Colors.red,
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                alignment: Alignment.centerRight,
+                                child: const Icon(Icons.delete_forever, color: Colors.white),
+                              ),
+                              child: UpcomingAnniversaryCard(
+                                birdName: event.birdName,
+                                eventName: event.eventName,
+                                daysRemaining: event.daysRemaining,
+                              ),
                             );
                           }
 
