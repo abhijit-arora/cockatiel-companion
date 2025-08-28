@@ -162,28 +162,28 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   // --- Dialog Functions ---
 
   Future<void> _showDietLogDialog() async {
-    showDialog(
+    await showDialog(
       context: context,
       builder: (BuildContext context) => DietLogDialog(onSave: _saveDietLog),
     );
   }
 
   Future<void> _showDroppingsLogDialog() async {
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) => DroppingsLogDialog(onSave: _saveDroppingsLog),
     );
   }
 
   Future<void> _showBehaviorLogDialog() async {
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) => BehaviorLogDialog(onSave: _saveBehaviorLog),
     );
   }
 
   Future<void> _showWeightLogDialog() async {
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) => WeightLogDialog(onSave: _saveWeightLog),
     );
@@ -283,8 +283,8 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     }
   }
   
-  void _showEditDietDialog(Map<String, dynamic> initialData, String docId) {
-    showDialog(
+  void _showEditDietDialog(Map<String, dynamic> initialData, String docId) async {
+    await showDialog(
       context: context,
       builder: (context) => DietLogDialog(
         initialData: initialData,
@@ -300,10 +300,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         },
       ),
     );
+    setState(() {});
   }
   
-  void _showEditDroppingsDialog(Map<String, dynamic> initialData, String docId) {
-    showDialog(
+  void _showEditDroppingsDialog(Map<String, dynamic> initialData, String docId) async {
+    await showDialog(
       context: context,
       builder: (context) => DroppingsLogDialog(
         initialData: initialData,
@@ -317,10 +318,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         },
       ),
     );
+    setState(() {});
   }
-  
-  void _showEditBehaviorDialog(Map<String, dynamic> initialData, String docId) {
-    showDialog(
+
+  void _showEditBehaviorDialog(Map<String, dynamic> initialData, String docId) async {
+    await showDialog(
       context: context,
       builder: (context) => BehaviorLogDialog(
         initialData: initialData,
@@ -334,10 +336,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         },
       ),
     );
+    setState(() {});
   }
-  
-  void _showEditWeightDialog(Map<String, dynamic> initialData, String docId) {
-    showDialog(
+
+  void _showEditWeightDialog(Map<String, dynamic> initialData, String docId) async {
+    await showDialog(
       context: context,
       builder: (context) => WeightLogDialog(
         initialData: initialData,
@@ -352,6 +355,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         },
       ),
     );
+    setState(() {});
   }
   
   // --- Firestore Save Functions ---

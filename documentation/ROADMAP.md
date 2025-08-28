@@ -21,7 +21,8 @@ The goal of the MVP was to deliver the core value proposition: a single-user, cl
 ---
 ### **Technical Debt & Minor Bugs**
 
-*   **[ ] Daily Log Auto-Refresh:** The daily log screen does not auto-refresh instantly after a new entry is created or deleted. The `StreamZip` logic needs to be refactored for more responsive UI updates. Manual pull-to-refresh works as a fallback.
+*   **[x] Daily Log Auto-Refresh:** Implemented auto-refresh on both creating and editing log entries. (Completed)
+*   **[x] Home Screen Auto-Refresh:** Implemented pull-to-refresh and auto-refresh on return from profile screen. (Completed)
 *   **[ ] Email Verification Blocked:** The Firebase project is currently blocking email sending actions (verification, password reset). This feature is deferred.
 *   **[ ] "Forgot Password" UX:** The app should detect if a user tries to reset a password for a social sign-in account and provide a helpful message.
 
@@ -38,19 +39,13 @@ The goal of this phase is to refine the user experience and add core management 
 *   **[x] Guardian & Caregiver Polish:** Allowed Guardians to set a custom label and fixed critical caregiver permissions. (Completed)
 
 ---
-### **Version 1.2: The Community & Growth Update (Up Next)**
+### **Version 1.2: The Community & Growth Update (In Progress)**
 
 With a polished core app, this phase focuses on user engagement and growth.
 
-*   **[ ] Bulk Bird-to-Nest Movement (Up Next):** Add a utility to allow users to move multiple birds from one nest to another in a single action.
-*   **[ ] Caregiver Permissions & Roles (In Progress):**
-    *   [x] Allow Caregivers to edit their own labels. (Completed)
-    *   [x] (Phase 1) Allow all Caregivers to add, edit, and delete Nests by default. (Completed)
-*   **[ ] Bird Profile Enhancements (Up Next):**
-    *   Add an optional "Hatch Date" to the bird profile.
-    *   Display the bird's age and "Gotcha Day" anniversary on the home screen.
-    *   Display the bird's species on the home screen tile.
-    *   Implement notifications for hatch-days and gotcha-day anniversaries.
+*   **[x] Bulk Bird-to-Nest Movement:** Add a utility to allow users to move multiple birds from one nest to another in a single action. (Completed)
+*   **[x] Bird Profile Enhancements:** Added Hatch Day to profiles and display age, anniversary, species, and nest clusters on the home screen. (Completed)
+*   **[x] In-App Anniversary Reminders:** Implemented a reliable in-app card to display upcoming anniversary countdowns. (Completed as a pivot from native notifications)
 *   **[ ] Caregiver Permissions & Roles (Phase 2):**
     *   Implement a role-based system for the Guardian to manage permissions (e.g., Flock Leader, Flock Member, Nest Sitter).
 *   **[ ] The Community Aviary:** Implement the basic Community Forum / Q&A. (Free Feature)
