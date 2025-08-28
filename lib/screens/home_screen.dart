@@ -46,7 +46,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // The title no longer needs the inversePrimary color from the theme
+        // as it will match the new app bars on the other screens.
         title: Row(
           children: [
             CircleAvatar(
@@ -62,6 +63,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
+          // Keep the most important action directly visible.
           IconButton(
             icon: const Icon(Icons.group_work_outlined),
             tooltip: 'Manage Aviary',
@@ -71,38 +73,55 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.task_alt),
-            tooltip: 'Care Tasks',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const CareTasksScreen()),
-              );
+          // Use a PopupMenuButton for all other actions.
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'care_tasks':
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const CareTasksScreen()));
+                  break;
+                case 'knowledge_center':
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const KnowledgeCenterScreen()));
+                  break;
+                case 'about':
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AboutScreen()));
+                  break;
+                case 'sign_out':
+                  FirebaseAuth.instance.signOut();
+                  break;
+              }
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.library_books),
-            tooltip: 'Knowledge Center',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const KnowledgeCenterScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.info_outline), // <-- Add this new button
-            tooltip: 'About FlockWell',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const AboutScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
-            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'care_tasks',
+                child: ListTile(
+                  leading: Icon(Icons.task_alt),
+                  title: Text('Care Tasks'),
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'knowledge_center',
+                child: ListTile(
+                  leading: Icon(Icons.library_books),
+                  title: Text('Knowledge Center'),
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'about',
+                child: ListTile(
+                  leading: Icon(Icons.info_outline),
+                  title: Text('About FlockWell'),
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem<String>(
+                value: 'sign_out',
+                child: ListTile(
+                  leading: Icon(Icons.logout),
+                  title: Text('Sign Out'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
