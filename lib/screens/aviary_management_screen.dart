@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:async/async.dart';
@@ -34,6 +35,76 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
     }
   }
 
+  void _showEditAviaryNameDialog(String currentName) async {
+    final nameController = TextEditingController(text: currentName);
+    await showDialog(
+      context: context,
+      builder: (context) {
+        bool isSaving = false;
+        String? errorText; // To display validation errors
+
+        return StatefulBuilder(
+          builder: (context, dialogSetState) {
+            return AlertDialog(
+              title: const Text('Set Public Aviary Name'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: 'e.g., The Blue Angels',
+                      errorText: errorText,
+                      errorMaxLines: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'This name must be unique and is visible to the community.',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isSaving ? null : () async {
+                    dialogSetState(() {
+                      isSaving = true;
+                      errorText = null;
+                    });
+
+                    try {
+                      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('setAviaryName');
+                      await callable.call({'name': nameController.text});
+                      if (mounted) Navigator.of(context).pop();
+                    } on FirebaseFunctionsException catch (e) {
+                      dialogSetState(() {
+                        errorText = e.message;
+                      });
+                    } finally {
+                      dialogSetState(() {
+                        isSaving = false;
+                      });
+                    }
+                  },
+                  child: isSaving
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    setState(() {});
+  }
+  
   // --- HELPERS ---
 
   Future<void> _sendInvite({required String email, required String label}) async {
@@ -472,6 +543,20 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
 
                       const SizedBox(height: 24),
                       _header(context, 'Caregivers'),
+
+                      if (isGuardian)
+                        Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.shield_outlined),
+                            title: Text(aviaryData['aviaryName'] ?? 'Set Your Aviary Name'),
+                            subtitle: const Text('This name is visible to the community'),
+                            trailing: const Icon(Icons.edit_note),
+                            onTap: () {
+                              _showEditAviaryNameDialog(aviaryData['aviaryName'] ?? '');
+                            },
+                          ),
+                        ),
+
                       Card(
                         child: ListTile(
                           leading: const Icon(Icons.person, color: Colors.amber),

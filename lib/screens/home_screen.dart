@@ -423,24 +423,28 @@ class _HomePageState extends State<HomePage> {
   Future<void> _determineAviaryId() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
       return;
     }
 
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
 
-    if (userDoc.exists && userDoc.data()!.containsKey('partOfAviary')) {
-      // This user is a CAREGIVER in someone else's Aviary
-      setState(() {
-        _aviaryId = userDoc.data()!['partOfAviary'];
-        _isLoading = false;
-      });
-    } else {
-      // This user is a GUARDIAN of their own Aviary
-      setState(() {
-        _aviaryId = user.uid;
-        _isLoading = false;
-      });
+    // It's possible the user signs out while the network request is in flight.
+    // So we must check if the widget is still mounted BEFORE calling setState.
+    if (mounted) {
+      if (userDoc.exists && userDoc.data()!.containsKey('partOfAviary')) {
+        // This user is a CAREGIVER in someone else's Aviary
+        setState(() {
+          _aviaryId = userDoc.data()!['partOfAviary'];
+          _isLoading = false;
+        });
+      } else {
+        // This user is a GUARDIAN of their own Aviary
+        setState(() {
+          _aviaryId = user.uid;
+          _isLoading = false;
+        });
+      }
     }
   }
 }

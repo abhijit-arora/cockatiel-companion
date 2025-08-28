@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to allow you to upload photos and videos of your birds.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to allow you to take and upload photos and videos of your birds.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone to record sound for the videos you upload.</string>
 </dict>
 </plist>

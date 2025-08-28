@@ -46,23 +46,25 @@ With a polished core app, this phase focuses on user engagement and growth.
 *   **[x] Bulk Bird-to-Nest Movement:** Add a utility to allow users to move multiple birds from one nest to another in a single action. (Completed)
 *   **[x] Bird Profile Enhancements:** Added Hatch Day to profiles and display age, anniversary, species, and nest clusters on the home screen. (Completed)
 *   **[x] In-App Anniversary Reminders:** Implemented a reliable in-app card to display upcoming anniversary countdowns. (Completed as a pivot from native notifications)
-
 *   **[x] Foundational Navigation Refactor:** Implemented a primary bottom navigation bar, created placeholder screens for Community and Notifications, and de-cluttered the main AppBar. (Completed)
+*   **[x] Interactive Anniversary Cards:** Allow users to swipe-to-dismiss upcoming anniversary reminders from the home screen. (Completed)
 
-*   **[ ] Interactive Anniversary Cards (Up Next):**
-    *   Allow users to swipe-to-dismiss upcoming anniversary reminders from the home screen to give them more control over their dashboard.
+*   **[ ] Community Aviary - Phase 1: Core Q&A Functionality (Up Next):**
+    *   Implement privacy-first user identity (Aviary Names & User Labels).
+    *   Implement the core UI for creating, viewing, and listing text-based "Chirps".
+    *   Implement photo and video uploading for Chirps.
 
-*   **[ ] Community Aviary - Phase 1: The Q&A Forum:**
-    *   Build the core UI for the categorized Q&A hub ("Chirps").
-    *   Implement functionality to create, view, and reply to Chirps.
-    *   Implement the "Best Answer" and "Helpful" marking systems.
+*   **[ ] Community Aviary - Phase 2: Rich Content & Safety:**
+    *   Build the UI to display attached images and videos in the Chirp list.
+    *   Implement automatic NSFW content moderation for all image uploads using the Cloud Vision API.
+    *   Add profile pictures for users and birds, utilizing Firebase Storage.
 
-*   **[ ] Community Aviary - Phase 2: The Flock Feed:**
-    *   Build the UI for the vertical-scrolling social feed.
-    *   Implement functionality to upload and display photos and short-form videos.
+*   **[ ] Community Aviary - Phase 3: The Flock Feed:**
+    *   Build the UI for the vertical-scrolling Flock Feed.
     *   Implement the "Like" and "Comment" systems.
 
-*   **[ ] Community Aviary - Phase 3: Polish & Engagement:**
+*   **[ ] Community Aviary - Phase 4: Polish & Engagement:**
+    *   Implement the "Best Answer" and "Helpful" marking systems for the Q&A Forum.
     *   Implement the AI-powered "Similar Questions" check.
     *   Build the Community Profile pages.
     *   Add Community-related notifications (new replies, likes, etc.).
@@ -95,5 +97,6 @@ These are major features to be prioritized after the core app is feature-complet
 *   **AI-Powered Insights:** Implement all features under FSD section 3.4. (Requires AI Credits)
 *   **Pre-Flight Checklist:** Implement the pre-adoption module (FSD 2.1). (Free Feature)
 *   **Live Community Chat:** Implement a real-time text chat feature. (Deferred due to high complexity and moderation costs).
+*   **In-App Video Editing Tools:** Add advanced features like video trimming and speed adjustments for community uploads. (Deferred).
 *   **Species Expansion:** Architect the app to begin adding other bird species (Parakeets, Conures, etc.). (Core Feature)
 *   **Business & Admin Tools:** A separate web application for managing the app's content and configuration.
