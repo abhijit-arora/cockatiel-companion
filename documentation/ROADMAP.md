@@ -46,9 +46,25 @@ With a polished core app, this phase focuses on user engagement and growth.
 *   **[x] Bulk Bird-to-Nest Movement:** Add a utility to allow users to move multiple birds from one nest to another in a single action. (Completed)
 *   **[x] Bird Profile Enhancements:** Added Hatch Day to profiles and display age, anniversary, species, and nest clusters on the home screen. (Completed)
 *   **[x] In-App Anniversary Reminders:** Implemented a reliable in-app card to display upcoming anniversary countdowns. (Completed as a pivot from native notifications)
+
+*   **[ ] Community Aviary - Phase 1: The Q&A Forum (Up Next):**
+    *   Build the core UI for the categorized Q&A hub ("Chirps").
+    *   Implement functionality to create, view, and reply to Chirps.
+    *   Implement the "Best Answer" and "Helpful" marking systems.
+
+*   **[ ] Community Aviary - Phase 2: The Flock Feed:**
+    *   Build the UI for the vertical-scrolling social feed.
+    *   Implement functionality to upload and display photos and short-form videos.
+    *   Implement the "Like" and "Comment" systems.
+
+*   **[ ] Community Aviary - Phase 3: Polish & Engagement:**
+    *   Implement the AI-powered "Similar Questions" check.
+    *   Build the Community Profile pages.
+    *   Add Community-related notifications (new replies, likes, etc.).
+
 *   **[ ] Caregiver Permissions & Roles (Phase 2):**
     *   Implement a role-based system for the Guardian to manage permissions (e.g., Flock Leader, Flock Member, Nest Sitter).
-*   **[ ] The Community Aviary:** Implement the basic Community Forum / Q&A. (Free Feature)
+
 *   **[ ] Social Sign-In (Apple):** Implement Sign in with Apple to complete our social login options.
 *   **[ ] Ad Integration:** Integrate an ad provider (e.g., Google AdMob) to display simple ads for free-tier users.
 *   **[ ] The Shopping & Gear Hub:** Launch the affiliate link-driven "Perch." (Free Feature)
@@ -73,6 +89,6 @@ These are major features to be prioritized after the core app is feature-complet
 *   **Data Visualization & Trends:** A new section for viewing graphs and filtered lists of log data over time. (Plus Feature)
 *   **AI-Powered Insights:** Implement all features under FSD section 3.4. (Requires AI Credits)
 *   **Pre-Flight Checklist:** Implement the pre-adoption module (FSD 2.1). (Free Feature)
-*   **Social Feed:** Implement the photo & milestone sharing feed (FSD 5.2). (Free Feature)
+*   **Live Community Chat:** Implement a real-time text chat feature. (Deferred due to high complexity and moderation costs).
 *   **Species Expansion:** Architect the app to begin adding other bird species (Parakeets, Conures, etc.). (Core Feature)
 *   **Business & Admin Tools:** A separate web application for managing the app's content and configuration.

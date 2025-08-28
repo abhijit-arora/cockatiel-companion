@@ -1,8 +1,8 @@
 # Functional Specification Document (FSD)
 
 - **App Name:** FlockWell (formerly Cockatiel Companion)
-- **Document Version:** 0.3
-- **Last Updated:** 2025-08-25
+- **Document Version:** 0.4
+- **Last Updated:** 2025-08-27
 
 This document details the features and functionalities of the FlockWell application.
 
@@ -79,13 +79,41 @@ This document details the features and functionalities of the FlockWell applicat
 
 ---
 
-### Module 5: The Community Aviary (Social Hub)
+### Module 5: The Community Aviary (Community & Sharing Hub)
 
-*   **5.1. Community Forum / Q&A:**
-    *   A space for users to ask questions and share answers, organized by topic.
+The Community Aviary is a multifaceted social hub designed to foster a supportive and engaging environment for bird owners. It consists of two primary sections: a structured Q&A Forum for problem-solving and a visual "Flock Feed" for social sharing.
 
-*   **5.2. Photo & Milestone Sharing:**
-    *   A social feed for users to share photos and celebrate milestones.
+*   **5.1. The Two-Tabbed Hub:** The main screen of the module will be organized into two distinct feeds that the user can switch between.
+
+    *   **5.1.1. The Q&A Forum ("Chirps"):** This section is dedicated to structured question-and-answer discussions.
+        *   **Posts as "Chirps":** All posts/questions will be thematically referred to as "Chirps."
+        *   **Categories:** Chirps will be organized into clear categories to ensure focused discussions (e.g., Health & Wellness, Behavior & Training, Nutrition, Gear, General Chat).
+        *   **Upvoting:** Users can upvote a Chirp to indicate "I have this question too," helping to surface common issues without creating duplicate posts.
+        *   **Replies & Best Answer:** Any user can reply to a Chirp. The original poster has the ability to mark one reply as the "Best Answer," which will be highlighted and pinned for future readers.
+        *   **Media Attachments:** Users can attach one optional photo or short-form video (up to 15 seconds) to their Chirp for context.
+
+    *   **5.1.2. The Flock Feed:** This section is a visual, continuous-scrolling feed for social sharing.
+        *   **Content:** The feed will consist exclusively of user-submitted photos and short-form videos (up to 15 seconds) showcasing their birds.
+        *   **Interactions:** Users can "Like" (e.g., with a heart icon) and post comments on any item in the feed.
+
+*   **5.2. Community Engagement & Profiles:**
+
+    *   **5.2.1. Community Profiles:** A simple, non-intrusive profile system will be in place. Tapping on a user's thematic label (e.g., "Papa Birdie") will navigate to a page listing that user's public activity (their Chirps, replies, and Flock Feed posts).
+    *   **5.2.2. Community Notifications:** To drive re-engagement, users will receive in-app (and eventually push) notifications for key interactions, such as:
+        *   "Someone replied to your Chirp."
+        *   "Someone liked your photo in the Flock Feed."
+
+*   **5.3. AI-Powered Duplicate Prevention (Q&A Forum Polish):**
+
+    *   To maintain a clean and organized Q&A forum, an AI-powered check will be implemented.
+    *   When a user finishes typing a title for a new Chirp, a semantic search will be performed in the background to find existing, similar questions.
+    *   If matches are found, the user will be presented with a non-blocking dialog suggesting they view the existing answers before posting a new question.
+
+*   **5.4. Moderation:**
+
+    *   All Chirps, replies, and Flock Feed posts will have a "Report" button.
+    *   This will allow users to flag content that is inappropriate, abusive, or contains dangerously incorrect advice.
+    *   Reported content will be sent to a queue for review by moderators via the Business & Admin Tools panel.
 
 ---
 
