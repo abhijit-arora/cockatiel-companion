@@ -55,29 +55,63 @@ class ChirpList extends StatelessWidget {
             final int upvoteCount = data['upvoteCount'] ?? 0;
             // TODO: We will add date formatting later for a cleaner look.
             final String timestamp = data['createdAt']?.toString() ?? 'No date';
+            final String? mediaUrl = data['mediaUrl']; // <-- Get the media URL
 
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: ListTile(
-                title: Text(title),
-                subtitle: Text('Posted by $authorLabel'),
-                leading: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.arrow_upward_outlined, size: 20),
-                    Text(upvoteCount.toString()),
-                  ],
-                ),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.comment_outlined, size: 20),
-                    Text(replyCount.toString()),
-                  ],
-                ),
+              clipBehavior: Clip.antiAlias, // Ensures the image respects the card's rounded corners
+              child: InkWell( // Use InkWell to make the whole card tappable
                 onTap: () {
                   // TODO: Navigate to the detailed Chirp view screen.
                 },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding( // <-- Wrap ListTile in Padding
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero, // <-- Remove default ListTile padding
+                        title: Text(title),
+                        subtitle: Text('Posted by $authorLabel'),
+                        leading: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.arrow_upward_outlined, size: 20),
+                            Text(upvoteCount.toString()),
+                          ],
+                        ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.comment_outlined, size: 20),
+                            Text(replyCount.toString()),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // --- REVISED MEDIA DISPLAY LOGIC ---
+                    if (mediaUrl != null && mediaUrl.isNotEmpty)
+                      Column( // Use a Column to add a small divider
+                        children: [
+                          const Divider(height: 1),
+                          Image.network(
+                            mediaUrl,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(32.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
               ),
             );
           },
