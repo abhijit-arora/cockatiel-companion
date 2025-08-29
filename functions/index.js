@@ -1,8 +1,12 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {onDocumentCreated} = require("firebase-functions/v2/firestore");
+const {getStorage} = require("firebase-admin/storage");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
 const db = admin.firestore();
+
+const BLOCKED_LABELS = ["Adult", "Violence", "Racy", "Medical", "Spoof"];
 
 exports.acceptInvitation = onCall(async (request) => {
   const {data, auth} = request;
@@ -178,5 +182,113 @@ exports.setAviaryName = onCall(async (request) => {
     // All checks passed. Update the aviary name.
     transaction.update(aviaryRef, {aviaryName: trimmedName});
     return {success: true, message: "Aviary name updated successfully!"};
+  });
+});
+
+exports.moderateImageLabels = onDocumentCreated(
+    "imageLabels/{imageId}", async (event) => {
+      const snap = event.data;
+      if (!snap) {
+        return;
+      }
+      const data = snap.data();
+      const annotations = data.labelAnnotations || [];
+
+      let shouldDelete = false;
+      let foundBlockedLabel = "";
+
+      for (const annotation of annotations) {
+        if (BLOCKED_LABELS.includes(annotation.description)) {
+          shouldDelete = true;
+          foundBlockedLabel = annotation.description;
+          break;
+        }
+      }
+
+      if (shouldDelete) {
+        const filePath = data.filePath;
+        if (!filePath) {
+          return;
+        }
+
+        const chirpsRef = db.collection("community_chirps");
+        const query = chirpsRef.where("mediaUrl", "==", data.gcsUrl);
+
+        try {
+          const querySnapshot = await query.get();
+          if (querySnapshot.empty) {
+            await getStorage().bucket().file(filePath).delete();
+            return;
+          }
+
+          const chirpDoc = querySnapshot.docs[0];
+          const authorId = chirpDoc.data().authorId;
+
+          await Promise.all([
+            getStorage().bucket().file(filePath).delete(),
+            chirpDoc.ref.update({
+              mediaStatus: "REMOVED_BY_MODERATION",
+              moderatedForLabel: foundBlockedLabel,
+            }),
+            db.collection("notifications").add({
+              userId: authorId,
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              type: "MODERATION",
+              title: "Your Image Was Removed",
+              body: `An image in your Chirp "${chirpDoc.data().title}" was ` +
+              `automatically removed because ` +
+              `it was flagged as "${foundBlockedLabel}".`,
+              isRead: false,
+            }),
+            snap.ref.set({
+              moderationStatus: "DELETED",
+              deletedForLabel: foundBlockedLabel,
+            }, {merge: true}),
+          ]);
+        } catch (err) {
+          console.error(`Failed during moderation ` +
+            `cleanup for ${filePath}:`, err);
+        }
+      } else {
+        await snap.ref.set({moderationStatus: "APPROVED"}, {merge: true});
+      }
+    });
+
+exports.toggleChirpFollow = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  const chirpId = data.chirpId;
+  if (!chirpId) {
+    throw new HttpsError("invalid-argument", "Chirp ID is required.");
+  }
+
+  const userId = auth.uid;
+  const chirpRef = db.collection("community_chirps").doc(chirpId);
+  const followerRef = chirpRef.collection("followers").doc(userId);
+
+  return db.runTransaction(async (transaction) => {
+    const followerDoc = await transaction.get(followerRef);
+
+    if (followerDoc.exists) {
+      // --- The user has already followed, so we UNFOLLOW ---
+      transaction.delete(followerRef);
+      transaction.update(chirpRef, {
+        followerCount: admin.firestore.FieldValue.increment(-1),
+      });
+      return {newFollowState: false};
+    } else {
+      // --- The user has NOT yet followed, so we FOLLOW ---
+      transaction.set(followerRef, {
+        followedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      transaction.update(chirpRef, {
+        followerCount: admin.firestore.FieldValue.increment(1),
+      });
+      return {newFollowState: true};
+    }
   });
 });
