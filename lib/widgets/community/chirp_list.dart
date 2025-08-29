@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/screens/chirp_detail_screen.dart';
 
 class ChirpList extends StatelessWidget {
   final String category;
@@ -61,7 +62,11 @@ class ChirpList extends StatelessWidget {
               clipBehavior: Clip.antiAlias, // Ensures the image respects the card's rounded corners
               child: InkWell( // Use InkWell to make the whole card tappable
                 onTap: () {
-                  // TODO: Navigate to the detailed Chirp view screen.
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ChirpDetailScreen(chirpId: chirp.id),
+                    ),
+                  );
                 },
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
