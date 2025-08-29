@@ -54,7 +54,6 @@ class ChirpList extends StatelessWidget {
             final int replyCount = data['replyCount'] ?? 0;
             final int upvoteCount = data['upvoteCount'] ?? 0;
             // TODO: We will add date formatting later for a cleaner look.
-            final String timestamp = data['createdAt']?.toString() ?? 'No date';
             final String? mediaUrl = data['mediaUrl']; // <-- Get the media URL
 
             return Card(

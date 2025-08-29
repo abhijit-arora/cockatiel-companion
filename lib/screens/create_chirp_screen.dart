@@ -176,7 +176,7 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: const InputDecoration(
                   labelText: 'Category*',
                   border: OutlineInputBorder(),

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/services/auth_service.dart';
 import 'package:cockatiel_companion/screens/main_screen.dart';
 import 'screens/auth_screen.dart';
-import 'screens/home_screen.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});

@@ -426,7 +426,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Create unique IDs for the notifications. 
     // Using a hash of the bird's ID and the type of notification.
     final hatchDayId = birdId.hashCode;
-    final gotchaDayId = (birdId + 'gotcha').hashCode;
+    final gotchaDayId = '$birdId-gotcha'.hashCode;
 
     // Schedule Hatch Day notification
     if (birdData['hatchDay'] != null) {
