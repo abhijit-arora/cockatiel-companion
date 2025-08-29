@@ -86,7 +86,15 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
       };
 
       // --- 3. SAVE CHIRP TO FIRESTORE ---
-      await FirebaseFirestore.instance.collection('community_chirps').add(chirpData);
+      final newChirpRef = await FirebaseFirestore.instance.collection('community_chirps').add(chirpData);
+
+      // --- 4. AUTOMATICALLY "+1" THE NEW CHIRP FOR THE AUTHOR ---
+      // Because the user is creating the post, we can write directly to the
+      // database for efficiency instead of making a second cloud function call.
+      final chirpFollowersRef = newChirpRef.collection('followers').doc(user.uid);
+      await chirpFollowersRef.set({'followedAt': FieldValue.serverTimestamp()});
+      // We also need to set the initial follower count to 1 on the main document.
+      await newChirpRef.update({'followerCount': 1});
 
       if (mounted) {
         Navigator.of(context).pop();

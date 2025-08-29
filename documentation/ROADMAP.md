@@ -23,8 +23,10 @@ The goal of the MVP was to deliver the core value proposition: a single-user, cl
 
 *   **[x] Daily Log Auto-Refresh:** Implemented auto-refresh on both creating and editing log entries. (Completed)
 *   **[x] Home Screen Auto-Refresh:** Implemented pull-to-refresh and auto-refresh on return from profile screen. (Completed)
+*   **[ ] Community Interaction Polish:** The "+1 / Tell Me Too" button UI does not provide clear, contrasting visual feedback when toggled. (Deferred)
 *   **[ ] Email Verification Blocked:** The Firebase project is currently blocking email sending actions (verification, password reset). This feature is deferred.
 *   **[ ] "Forgot Password" UX:** The app should detect if a user tries to reset a password for a social sign-in account and provide a helpful message.
+
 
 ---
 ### **Version 1.1: The Polish & Management Update (Completed)**
@@ -54,7 +56,7 @@ With a polished core app, this phase focuses on user engagement and growth.
     *   [x] Implemented the core UI for creating, viewing, listing, replying to, and displaying media for "Chirps".
 
 *   **[ ] Community Aviary - Phase 2: Interaction & Sorting (Up Next):**
-    *   Implement the **"+1 / Tell Me Too"** system for Chirps (questions).
+    *   **[x] Implemented the backend logic and Cloud Function for the "+1 / Tell Me Too" system. (Completed)**
     *   Implement the **"Helpful"** marking system for replies.
     *   Implement the **"Best Answer"** system for the original poster.
     *   Add UI controls to sort the Chirp list by "Most Recent" and "Most Followed" (+1s).

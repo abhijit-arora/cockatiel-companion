@@ -7,15 +7,34 @@ $filesToInclude = @(
     "documentation/ROADMAP.md",
     "documentation/FSD.md",
     "pubspec.yaml",
-    "functions/index.js", # Include the Cloud Function code
+    "functions/index.js",
+
+    # Core App Logic
     "lib/main.dart",
-    "lib/auth_gate.dart",
-    "lib/services/auth_service.dart", # Include our new service
-    "lib/screens/home_screen.dart",
-    "lib/screens/auth_screen.dart",
-    "lib/screens/profile_screen.dart",
-    "lib/screens/daily_log_screen.dart", # Include this complex screen
-    "lib/screens/aviary_management_screen.dart" # Include this complex screen
+    "lib/core/auth_gate.dart",
+    "lib/core/main_screen.dart",
+
+    # Feature: Authentication
+    "lib/features/authentication/screens/auth_screen.dart",
+    "lib/features/authentication/services/auth_service.dart",
+
+    # Feature: Home
+    "lib/features/home/screens/home_screen.dart",
+
+    # Feature: Profile
+    "lib/features/profile/screens/profile_screen.dart",
+
+    # Feature: Daily Log
+    "lib/features/daily_log/screens/daily_log_screen.dart",
+
+    # Feature: Aviary Management
+    "lib/features/aviary/screens/aviary_management_screen.dart",
+    
+    # Feature: Community (Key Files)
+    "lib/features/community/screens/community_screen.dart",
+    "lib/features/community/screens/create_chirp_screen.dart",
+    "lib/features/community/screens/chirp_detail_screen.dart",
+    "lib/features/community/widgets/chirp_list.dart"
 )
 # --- END OF CONFIGURATION ---
 
@@ -31,6 +50,9 @@ $outputFileName = "context_$timestamp.txt"
 $fullOutputPath = Join-Path -Path $scriptsDir -ChildPath $outputFileName
 
 Write-Host "Creating context file at: $fullOutputPath"
+
+# Create or clear the output file before starting
+Clear-Content -Path $fullOutputPath -ErrorAction SilentlyContinue
 
 # Loop through each file and append its content
 foreach ($file in $filesToInclude) {
