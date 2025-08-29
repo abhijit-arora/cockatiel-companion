@@ -88,8 +88,9 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
     *   **5.1.1. The Q&A Forum ("Chirps"):** This section is dedicated to structured question-and-answer discussions.
         *   **Posts as "Chirps":** All posts/questions will be thematically referred to as "Chirps."
         *   **Categories:** Chirps will be organized into clear categories to ensure focused discussions (e.g., Health & Wellness, Behavior & Training, Nutrition, Gear, General Chat).
-        *   **Upvoting:** Users can upvote a Chirp to indicate "I have this question too," helping to surface common issues without creating duplicate posts.
-        *   **Replies & Best Answer:** Any user can reply to a Chirp. The original poster has the ability to mark one reply as the "Best Answer," which will be highlighted and pinned for future readers.
+        *   **"+1 / Tell Me Too":** Instead of a simple upvote, Chirps will have a "+1" or "Tell Me Too" button. This allows users to follow a question they are also interested in, increasing its visibility and notifying them of new replies. The original poster's vote is automatically included.
+        *   **Replies & "Helpful" Marks:** Any user can reply to a Chirp. Other users can mark a reply as "Helpful" to endorse good advice.
+        *   **Best Answer:** The original poster has the ability to mark one reply as the "Best Answer," which will be highlighted and pinned for future readers.
         *   **Media Attachments:** Users can attach one optional photo or short-form video (up to 15 seconds) to their Chirp for context.
 
     *   **5.1.2. The Flock Feed:** This section is a visual, continuous-scrolling feed for social sharing.

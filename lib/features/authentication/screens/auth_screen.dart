@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cockatiel_companion/services/auth_service.dart';
+import 'package:cockatiel_companion/features/authentication/services/auth_service.dart';
 
 enum AuthMode { login, signUp }
 

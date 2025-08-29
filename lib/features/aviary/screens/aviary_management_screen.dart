@@ -3,9 +3,9 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:async/async.dart';
-import 'package:cockatiel_companion/screens/bulk_move_screen.dart';
-import 'package:cockatiel_companion/widgets/aviary_dialogs/invite_caregiver_dialog.dart';
-import 'package:cockatiel_companion/widgets/aviary_dialogs/add_edit_nest_dialog.dart';
+import 'package:cockatiel_companion/features/aviary/screens/bulk_move_screen.dart';
+import 'package:cockatiel_companion/features/aviary/widgets/aviary_dialogs/invite_caregiver_dialog.dart';
+import 'package:cockatiel_companion/features/aviary/widgets/aviary_dialogs/add_edit_nest_dialog.dart';
 
 class AviaryManagementScreen extends StatefulWidget {
   const AviaryManagementScreen({super.key});

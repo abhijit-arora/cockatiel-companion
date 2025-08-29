@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cockatiel_companion/screens/care_tasks_screen.dart';
+import 'package:cockatiel_companion/features/care_tasks/screens/care_tasks_screen.dart';
 
 class UpcomingTasksCard extends StatelessWidget {
   final String aviaryId;

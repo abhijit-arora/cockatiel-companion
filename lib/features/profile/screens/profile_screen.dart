@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cockatiel_companion/widgets/aviary_dialogs/add_edit_nest_dialog.dart';
-import 'package:cockatiel_companion/services/notification_service.dart';
+import 'package:cockatiel_companion/features/aviary/widgets/aviary_dialogs/add_edit_nest_dialog.dart';
+import 'package:cockatiel_companion/features/notifications/services/notification_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? birdId;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cockatiel_companion/widgets/community/chirp_list.dart';
-import 'package:cockatiel_companion/screens/create_chirp_screen.dart';
+import 'package:cockatiel_companion/features/community/widgets/chirp_list.dart';
+import 'package:cockatiel_companion/features/community/screens/create_chirp_screen.dart';
 
 // A list to define our categories. Keeping it here makes it easy to manage.
 const List<String> _categories = [

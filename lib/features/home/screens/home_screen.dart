@@ -2,16 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
-import 'package:cockatiel_companion/screens/aviary_management_screen.dart';
-import 'package:cockatiel_companion/screens/profile_screen.dart';
-import 'package:cockatiel_companion/screens/daily_log_screen.dart';
-import 'package:cockatiel_companion/screens/knowledge_center_screen.dart';
-import 'package:cockatiel_companion/screens/care_tasks_screen.dart';
-import 'package:cockatiel_companion/screens/about_screen.dart';
-import 'package:cockatiel_companion/widgets/onboarding_tip_card.dart';
-import 'package:cockatiel_companion/widgets/upcoming_tasks_card.dart';
-import 'package:cockatiel_companion/widgets/pending_invitations_card.dart';
-import 'package:cockatiel_companion/widgets/upcoming_anniversary_card.dart';
+import 'package:cockatiel_companion/features/aviary/screens/aviary_management_screen.dart';
+import 'package:cockatiel_companion/features/profile/screens/profile_screen.dart';
+import 'package:cockatiel_companion/features/daily_log/screens/daily_log_screen.dart';
+import 'package:cockatiel_companion/features/knowledge_center/screens/knowledge_center_screen.dart';
+import 'package:cockatiel_companion/features/care_tasks/screens/care_tasks_screen.dart';
+import 'package:cockatiel_companion/features/about/screens/about_screen.dart';
+import 'package:cockatiel_companion/features/home/widgets/onboarding_tip_card.dart';
+import 'package:cockatiel_companion/features/home/widgets/upcoming_tasks_card.dart';
+import 'package:cockatiel_companion/features/home/widgets/pending_invitations_card.dart';
+import 'package:cockatiel_companion/features/home/widgets/upcoming_anniversary_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

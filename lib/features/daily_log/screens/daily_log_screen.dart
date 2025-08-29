@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:async/async.dart';
-import 'package:cockatiel_companion/widgets/log_dialogs/diet_log_dialog.dart';
-import 'package:cockatiel_companion/widgets/log_dialogs/droppings_log_dialog.dart';
-import 'package:cockatiel_companion/widgets/log_dialogs/behavior_log_dialog.dart';
-import 'package:cockatiel_companion/widgets/log_dialogs/weight_log_dialog.dart';
+import 'package:cockatiel_companion/features/daily_log/widgets/log_dialogs/diet_log_dialog.dart';
+import 'package:cockatiel_companion/features/daily_log/widgets/log_dialogs/droppings_log_dialog.dart';
+import 'package:cockatiel_companion/features/daily_log/widgets/log_dialogs/behavior_log_dialog.dart';
+import 'package:cockatiel_companion/features/daily_log/widgets/log_dialogs/weight_log_dialog.dart';
 
 class DailyLogScreen extends StatefulWidget {
   final String birdId;

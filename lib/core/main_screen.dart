@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cockatiel_companion/screens/home_screen.dart';
-import 'package:cockatiel_companion/screens/community_screen.dart';
-import 'package:cockatiel_companion/screens/notifications_screen.dart';
+import 'package:cockatiel_companion/features/home/screens/home_screen.dart';
+import 'package:cockatiel_companion/features/community/screens/community_screen.dart';
+import 'package:cockatiel_companion/features/notifications/screens/notifications_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

@@ -1,28 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:cockatiel_companion/screens/chirp_detail_screen.dart';
+import 'package:cockatiel_companion/features/community/screens/chirp_detail_screen.dart';
 
-class ChirpList extends StatelessWidget {
+// 1. CONVERTED TO A STATEFUL WIDGET
+class ChirpList extends StatefulWidget {
   final String category;
-
   const ChirpList({super.key, required this.category});
 
   @override
+  State<ChirpList> createState() => _ChirpListState();
+}
+
+class _ChirpListState extends State<ChirpList> {
+  // 2. ADDED STATE VARIABLE FOR INSTANT UI FEEDBACK
+  final Set<String> _locallyUpvotedChirps = {};
+
+  @override
   Widget build(BuildContext context) {
-    // 1. Build the base query to our new collection.
+    // 3. MOVED BUILD LOGIC INTO THE STATE CLASS
     Query query = FirebaseFirestore.instance
         .collection('community_chirps')
         .orderBy('createdAt', descending: true);
 
-    // 2. If a specific category is selected (not 'All Chirps'), filter by it.
-    if (category != 'All Chirps') {
-      query = query.where('category', isEqualTo: category);
+    if (widget.category != 'All Chirps') {
+      query = query.where('category', isEqualTo: widget.category);
     }
 
     return StreamBuilder<QuerySnapshot>(
       stream: query.snapshots(),
       builder: (context, snapshot) {
-        // 3. Handle loading, error, and empty states.
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -43,7 +49,6 @@ class ChirpList extends StatelessWidget {
 
         final chirps = snapshot.data!.docs;
 
-        // 4. Build the list of Chirps.
         return ListView.builder(
           itemCount: chirps.length,
           itemBuilder: (context, index) {
@@ -54,13 +59,15 @@ class ChirpList extends StatelessWidget {
             final String authorLabel = data['authorLabel'] ?? 'Anonymous';
             final int replyCount = data['replyCount'] ?? 0;
             final int upvoteCount = data['upvoteCount'] ?? 0;
-            // TODO: We will add date formatting later for a cleaner look.
-            final String? mediaUrl = data['mediaUrl']; // <-- Get the media URL
+            final String? mediaUrl = data['mediaUrl'];
+
+            // 4. CHECK IF THE CHIRP HAS BEEN LOCALLY UPVOTED
+            final bool isUpvoted = _locallyUpvotedChirps.contains(chirp.id);
 
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              clipBehavior: Clip.antiAlias, // Ensures the image respects the card's rounded corners
-              child: InkWell( // Use InkWell to make the whole card tappable
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -71,16 +78,36 @@ class ChirpList extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding( // <-- Wrap ListTile in Padding
+                    Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                       child: ListTile(
-                        contentPadding: EdgeInsets.zero, // <-- Remove default ListTile padding
+                        contentPadding: EdgeInsets.zero,
                         title: Text(title),
                         subtitle: Text('Posted by $authorLabel'),
+                        // 5. REVISED LEADING WIDGET WITH INTERACTION
                         leading: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.arrow_upward_outlined, size: 20),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_upward_outlined),
+                              // Change color based on upvoted state
+                              color: isUpvoted ? Theme.of(context).colorScheme.primary : null,
+                              iconSize: 20,
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                // TODO: Call Cloud Function to handle upvote
+                                setState(() {
+                                  // Toggle the upvote state for instant feedback
+                                  if (isUpvoted) {
+                                    _locallyUpvotedChirps.remove(chirp.id);
+                                  } else {
+                                    _locallyUpvotedChirps.add(chirp.id);
+                                  }
+                                });
+                                debugPrint('Upvoting chirp: ${chirp.id}');
+                              },
+                            ),
                             Text(upvoteCount.toString()),
                           ],
                         ),
@@ -93,9 +120,8 @@ class ChirpList extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // --- REVISED MEDIA DISPLAY LOGIC ---
                     if (mediaUrl != null && mediaUrl.isNotEmpty)
-                      Column( // Use a Column to add a small divider
+                      Column(
                         children: [
                           const Divider(height: 1),
                           Image.network(

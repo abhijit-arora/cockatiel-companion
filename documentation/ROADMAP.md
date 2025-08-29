@@ -49,20 +49,21 @@ With a polished core app, this phase focuses on user engagement and growth.
 *   **[x] Foundational Navigation Refactor:** Implemented a primary bottom navigation bar, created placeholder screens for Community and Notifications, and de-cluttered the main AppBar. (Completed)
 *   **[x] Interactive Anniversary Cards:** Allow users to swipe-to-dismiss upcoming anniversary reminders from the home screen. (Completed)
 
-*   **[ ] Community Aviary - Phase 1: Core Q&A Functionality (Completed):**
+*   **[x] Community Aviary - Phase 1: Core Q&A & Image Support:** (Completed)
     *   [x] Implemented privacy-first user identity (Aviary Names & User Labels).
-    *   [x] Implemented the core UI for creating, viewing, and listing "Chirps".
-    *   [x] Implemented photo uploading for Chirps.
+    *   [x] Implemented the core UI for creating, viewing, listing, replying to, and displaying media for "Chirps".
 
-*   **[ ] Community Aviary - Phase 2: Rich Content & Safety (Up Next):**
+*   **[ ] Community Aviary - Phase 2: Interaction & Sorting (Up Next):**
+    *   Implement the **"+1 / Tell Me Too"** system for Chirps (questions).
+    *   Implement the **"Helpful"** marking system for replies.
+    *   Implement the **"Best Answer"** system for the original poster.
+    *   Add UI controls to sort the Chirp list by "Most Recent" and "Most Followed" (+1s).
+    *   Add a filter for "Unread" Chirps.
+
+*   **[ ] Community Aviary - Phase 3: Rich Content & Safety:**
     *   Implement **video** and **GIF** uploading for Chirps, including a duration check.
-    *   Build the UI to display videos and GIFs in the Chirp detail screen.
     *   Implement automatic NSFW content moderation for all image uploads using the Cloud Vision API.
-
-*   **[ ] Community Aviary - Phase 3: Interaction & Polish:**
-    *   Implement the "Upvote," "Best Answer," and "Helpful" marking systems for the Q&A Forum.
-    *   Implement the AI-powered "Similar Questions" check.
-    *   Add profile pictures for users and birds.
+    *   Add profile pictures for users and birds, utilizing Firebase Storage.
 
 *   **[ ] Community Aviary - Phase 4: The Flock Feed:**
     *   Build the UI for the vertical-scrolling Flock Feed.
