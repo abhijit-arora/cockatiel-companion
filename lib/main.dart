@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'package:cockatiel_companion/features/notifications/services/notification_service.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FlockWell',
+      title: AppStrings.appName,
       theme: ThemeData(
         useMaterial3: true,
 

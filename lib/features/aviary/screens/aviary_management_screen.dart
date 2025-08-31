@@ -1,3 +1,4 @@
+// lib/features/aviary/screens/aviary_management_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,6 +7,7 @@ import 'package:async/async.dart';
 import 'package:cockatiel_companion/features/aviary/screens/bulk_move_screen.dart';
 import 'package:cockatiel_companion/features/aviary/widgets/aviary_dialogs/invite_caregiver_dialog.dart';
 import 'package:cockatiel_companion/features/aviary/widgets/aviary_dialogs/add_edit_nest_dialog.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class AviaryManagementScreen extends StatefulWidget {
   const AviaryManagementScreen({super.key});
@@ -27,26 +29,28 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    if (!mounted) return;
-    if (userDoc.exists && userDoc.data()!.containsKey('partOfAviary')) {
-      setState(() => _aviaryId = userDoc.data()!['partOfAviary'] as String?);
-    } else {
-      setState(() => _aviaryId = user.uid);
+    if (mounted) {
+      if (userDoc.exists && userDoc.data()!.containsKey('partOfAviary')) {
+        setState(() => _aviaryId = userDoc.data()!['partOfAviary'] as String?);
+      } else {
+        setState(() => _aviaryId = user.uid);
+      }
     }
   }
 
   void _showEditAviaryNameDialog(String currentName) async {
     final nameController = TextEditingController(text: currentName);
+    // --- The BuildContext is used inside the builder, which is synchronous, so no capture needed here. ---
     await showDialog(
       context: context,
       builder: (context) {
         bool isSaving = false;
-        String? errorText; // To display validation errors
+        String? errorText; 
 
         return StatefulBuilder(
           builder: (context, dialogSetState) {
             return AlertDialog(
-              title: const Text('Set Public Aviary Name'),
+              title: const Text(ScreenTitles.setPublicHouseholdName),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -54,14 +58,14 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                     controller: nameController,
                     autofocus: true,
                     decoration: InputDecoration(
-                      labelText: 'e.g., The Blue Angels',
+                      labelText: AppStrings.householdNameExample,
                       errorText: errorText,
                       errorMaxLines: 2,
                     ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'This name must be unique and is visible to the community.',
+                    AppStrings.householdNameUniquenessNotice,
                     style: TextStyle(fontSize: 12),
                   ),
                 ],
@@ -69,10 +73,12 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
+                  child: const Text(ButtonLabels.cancel),
                 ),
                 ElevatedButton(
                   onPressed: isSaving ? null : () async {
+                    // --- Capture navigator inside the async callback ---
+                    final navigator = Navigator.of(context);
                     dialogSetState(() {
                       isSaving = true;
                       errorText = null;
@@ -81,7 +87,8 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                     try {
                       final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('setAviaryName');
                       await callable.call({'name': nameController.text});
-                      if (mounted) Navigator.of(context).pop();
+                      // Use the captured navigator
+                      if (mounted) navigator.pop();
                     } on FirebaseFunctionsException catch (e) {
                       dialogSetState(() {
                         errorText = e.message;
@@ -94,7 +101,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                   },
                   child: isSaving
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Save'),
+                      : const Text(ButtonLabels.save),
                 ),
               ],
             );
@@ -105,11 +112,11 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
     setState(() {});
   }
   
-  // --- HELPERS ---
-
   Future<void> _sendInvite({required String email, required String label}) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || _aviaryId == null) return;
+    // --- Capture scaffoldMessenger before the async gap ---
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       await FirebaseFirestore.instance.collection('invitations').add({
         'aviaryOwnerId': _aviaryId,
@@ -119,14 +126,14 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invitation sent to $email!')),
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('${AppStrings.invitationSent} $email!')),
       );
     } catch (e) {
       debugPrint('Error sending invitation: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Could not send invitation.')),
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.invitationError)),
       );
     }
   }
@@ -168,15 +175,14 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
         .update({'name': newName});
   }
 
-  void _showEditNestDialog(String nestId, String currentName) async { // <-- Make async
-    await showDialog( // <-- await the result
+  void _showEditNestDialog(String nestId, String currentName) async {
+    await showDialog(
       context: context,
       builder: (context) => AddEditNestDialog(
         initialName: currentName,
         onSave: (newName) => _updateNest(nestId, newName),
       ),
     );
-    // After the dialog is closed, force a rebuild.
     setState(() {});
   }
 
@@ -190,39 +196,41 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
 
   Future<void> _deleteNest(String nestId, int birdCount) async {
     if (_aviaryId == null) return;
+    // --- Capture scaffoldMessenger before the async gap ---
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-
     final nestsSnapshot = await FirebaseFirestore.instance
-        .collection('aviaries')
-        .doc(_aviaryId)
-        .collection('nests')
-        .get();
+      .collection('aviaries')
+      .doc(_aviaryId)
+      .collection('nests')
+      .get();
+
+    if (!mounted) return;
 
     if (nestsSnapshot.docs.length <= 1) {
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('You cannot delete your last nest.')),
+        const SnackBar(content: Text(AppStrings.cannotDeleteLastEnclosure)),
       );
       return;
     }
 
     if (birdCount > 0) {
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('You cannot delete a nest that has birds in it.')),
+        const SnackBar(content: Text(AppStrings.cannotDeleteEnclosureWithPets)),
       );
       return;
     }
 
     final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Deletion'),
-        content: const Text('Are you sure you want to delete this nest?'),
+      context: context, // Now it's safe to use the original context
+      builder: (bContext) => AlertDialog(
+        title: const Text(ScreenTitles.confirmDeletion),
+        content: const Text(AppStrings.confirmEnclosureDeletion),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(bContext).pop(false), child: const Text(ButtonLabels.cancel)),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            onPressed: () => Navigator.of(bContext).pop(true),
+            child: const Text(ButtonLabels.delete),
           ),
         ],
       ),
@@ -240,48 +248,52 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
 
   Future<bool> _updateGuardianLabel(String newLabel) async {
     if (_aviaryId == null || newLabel.trim().isEmpty) return false;
+    // --- Capture scaffoldMessenger before the async gap ---
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       await FirebaseFirestore.instance
           .collection('aviaries')
           .doc(_aviaryId)
           .update({'guardianLabel': newLabel.trim()});
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Guardian label updated!')),
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text(AppStrings.primaryOwnerLabelUpdated)),
         );
       }
-      return true; // <-- Return true on success
+      return true;
     } catch (e) {
       debugPrint('Error updating guardian label: $e');
-      return false; // <-- Return false on error
+      return false;
     }
   }
 
   void _showEditGuardianLabelDialog(String currentLabel) async {
     final labelController = TextEditingController(text: currentLabel);
-    final bool? wasSaved = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (context) {
-        bool isSaving = false; // State variable for this dialog
-        return StatefulBuilder( // Use StatefulBuilder to manage the dialog's state
+        bool isSaving = false;
+        return StatefulBuilder(
           builder: (context, dialogSetState) {
             return AlertDialog(
-              title: const Text('Edit Your Label'),
+              title: const Text(ScreenTitles.editYourLabel),
               content: TextField(
                 controller: labelController,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Enter your new label'),
+                decoration: const InputDecoration(labelText: Labels.enterNewLabel),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
+                  child: const Text(ButtonLabels.cancel),
                 ),
                 ElevatedButton(
                   onPressed: isSaving ? null : () async {
+                    // --- Capture navigator inside the async callback ---
+                    final navigator = Navigator.of(context);
                     dialogSetState(() => isSaving = true);
                     final success = await _updateGuardianLabel(labelController.text);
-                    if (mounted) Navigator.of(context).pop(success);
+                    if (mounted) navigator.pop(success);
                   },
                   child: isSaving
                       ? const SizedBox(
@@ -289,7 +301,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('Save'),
+                      : const Text(ButtonLabels.save),
                 ),
               ],
             );
@@ -298,33 +310,35 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
       },
     );
 
-    if (wasSaved == true) {
+    if (mounted) {
       setState(() {});
     }
   }
   
   void _showEditCaregiverLabelDialog(String caregiverId, String currentLabel) async {
     final labelController = TextEditingController(text: currentLabel);
-    final bool? wasSaved = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (context) {
-        bool isSaving = false; // State variable for this dialog
-        return StatefulBuilder( // Use StatefulBuilder here as well
+        bool isSaving = false;
+        return StatefulBuilder(
           builder: (context, dialogSetState) {
             return AlertDialog(
-              title: const Text('Edit Your Label'),
+              title: const Text(ScreenTitles.editYourLabel),
               content: TextField(
                 controller: labelController,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Enter your new label'),
+                decoration: const InputDecoration(labelText: Labels.enterNewLabel),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
+                  child: const Text(ButtonLabels.cancel),
                 ),
                 ElevatedButton(
                   onPressed: isSaving ? null : () async {
+                    // --- Capture navigator inside the async callback ---
+                    final navigator = Navigator.of(context);
                     dialogSetState(() => isSaving = true);
                     if (_aviaryId != null && labelController.text.trim().isNotEmpty) {
                       await FirebaseFirestore.instance
@@ -333,9 +347,9 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                           .collection('caregivers')
                           .doc(caregiverId)
                           .update({'label': labelController.text.trim()});
-                      if (mounted) Navigator.of(context).pop(true);
+                      if (mounted) navigator.pop(true);
                     } else {
-                      if (mounted) Navigator.of(context).pop(false);
+                      if (mounted) navigator.pop(false);
                     }
                   },
                   child: isSaving
@@ -344,7 +358,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('Save'),
+                      : const Text(ButtonLabels.save),
                 ),
               ],
             );
@@ -353,11 +367,11 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
       },
     );
 
-    if (wasSaved == true) {
+    if (mounted) {
       setState(() {});
     }
   }
-  
+
   Widget _caregiverList(String aviaryId) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return const SizedBox.shrink();
@@ -375,12 +389,12 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
             return Card(
               child: ListTile(
                 leading: const Icon(Icons.person_outline),
-                title: Text(data['label'] ?? 'Caregiver'),
+                title: Text(data['label'] ?? AppStrings.secondaryUser),
                 subtitle: Text(data['email'] ?? doc.id),
                 trailing: isCurrentUser
                     ? IconButton(
                         icon: const Icon(Icons.edit_note),
-                        tooltip: 'Edit your label',
+                        tooltip: Labels.editYourLabelTooltip,
                         onPressed: () {
                           _showEditCaregiverLabelDialog(doc.id, data['label'] ?? '');
                         },
@@ -402,7 +416,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
           .where('status', isEqualTo: 'pending')
           .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return const SizedBox.shrink(); // caregivers won't have access
+        if (snapshot.hasError) return const SizedBox.shrink();
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const SizedBox.shrink();
         }
@@ -414,7 +428,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
               child: ListTile(
                 leading: const Icon(Icons.mail_outline),
                 title: Text(data['inviteeEmail']),
-                subtitle: const Text('Invitation Pending...'),
+                subtitle: const Text(AppStrings.invitationPending),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                   onPressed: (){
@@ -435,7 +449,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage Your Aviary')),
+      appBar: AppBar(title: const Text(ScreenTitles.manageHousehold)),
       body: _aviaryId == null
           ? const Center(child: CircularProgressIndicator())
           : Builder(builder: (context) {
@@ -463,36 +477,36 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                   }
                   if (snapshot.hasError) {
                     debugPrint('AviaryManagement error: ${snapshot.error}');
-                    return const Center(child: Text('Error loading data.'));
+                    return const Center(child: Text(AppStrings.errorLoadingData));
                   }
                   if (!snapshot.hasData) {
-                    return const Center(child: Text('No data found.'));
+                    return const Center(child: Text(AppStrings.noDataFound));
                   }
 
                   final aviaryDoc = snapshot.data![0] as DocumentSnapshot;
                   if (!aviaryDoc.exists) {
-                    return const Center(child: Text('Aviary not found.'));
+                    return const Center(child: Text(AppStrings.householdNotFound));
                   }
 
                   final nests = (snapshot.data![1] as QuerySnapshot).docs;
                   final birds = (snapshot.data![2] as QuerySnapshot).docs;
                   final aviaryData = aviaryDoc.data()! as Map<String, dynamic>;
-                  final guardianEmail = aviaryData['guardianEmail'] ?? 'Guardian';
+                  final guardianEmail = aviaryData['guardianEmail'] ?? AppStrings.primaryOwner;
 
                   return ListView(
                     padding: const EdgeInsets.all(8.0),
                     children: [
-                      _header(context, 'Your Nests (Cages)'),
+                      _header(context, Labels.yourEnclosures),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                         child: OutlinedButton.icon(
                           icon: const Icon(Icons.add),
-                          label: const Text('Add a New Nest'),
+                          label: const Text(ButtonLabels.addNewEnclosure),
                           onPressed: _showAddNestDialog,
                         ),
                       ),
                       if (nests.isEmpty)
-                        const Card(child: ListTile(title: Text('No nests created yet.')))
+                        const Card(child: ListTile(title: Text(AppStrings.noEnclosuresCreated)))
                       else
                         ...nests.map((nestDoc) {
                           final nestData = nestDoc.data() as Map<String, dynamic>;
@@ -500,9 +514,8 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                           return Card(
                             child: ListTile(
                               leading: const Icon(Icons.home_work_outlined),
-                              title: Text(nestData['name'] ?? 'Unnamed Nest'),
-                              subtitle: Text('$birdCount bird(s)'),
-                              // No 'isGuardian' check needed here anymore
+                              title: Text(nestData['name'] ?? AppStrings.unnamedEnclosure),
+                              subtitle: Text('$birdCount ${AppStrings.petCountSuffix}'),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -512,9 +525,9 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                    onPressed: () async { // <-- Make the handler async
-                                      await _deleteNest(nestDoc.id, birdCount); // <-- Await the result
-                                      setState(() {}); // <-- Force the rebuild
+                                    onPressed: () async {
+                                      await _deleteNest(nestDoc.id, birdCount);
+                                      if(mounted) setState(() {});
                                     },
                                   ),
                                 ],
@@ -522,34 +535,35 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                             ),
                           );
                         }),
-
-                      // Only show the button if there are at least two nests to move between.
+                      
                       if (nests.length >= 2)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
                           child: OutlinedButton.icon(
                             icon: const Icon(Icons.swap_horiz_rounded),
-                            label: const Text('Bulk Move Birds'),
+                            label: const Text(ButtonLabels.bulkMovePets),
                             onPressed: () async {
-                              await Navigator.of(context).push(
+                              // --- Capture navigator before the async gap ---
+                              final navigator = Navigator.of(context);
+                              await navigator.push(
                                 MaterialPageRoute(
                                   builder: (context) => BulkMoveScreen(aviaryId: _aviaryId!),
                                 ),
                               );
-                              setState(() {});
+                              if(mounted) setState(() {});
                             },
                           ),
                         ),
 
                       const SizedBox(height: 24),
-                      _header(context, 'Caregivers'),
+                      _header(context, Labels.secondaryUsers),
 
                       if (isGuardian)
                         Card(
                           child: ListTile(
                             leading: const Icon(Icons.shield_outlined),
-                            title: Text(aviaryData['aviaryName'] ?? 'Set Your Aviary Name'),
-                            subtitle: const Text('This name is visible to the community'),
+                            title: Text(aviaryData['aviaryName'] ?? Labels.setYourHouseholdName),
+                            subtitle: const Text(AppStrings.householdNameSubtitle),
                             trailing: const Icon(Icons.edit_note),
                             onTap: () {
                               _showEditAviaryNameDialog(aviaryData['aviaryName'] ?? '');
@@ -561,11 +575,11 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                         child: ListTile(
                           leading: const Icon(Icons.person, color: Colors.amber),
                           title: Text(aviaryData['guardianLabel'] ?? guardianEmail),
-                          subtitle: Text('Guardian • $guardianEmail'),
+                          subtitle: Text('${AppStrings.primaryOwner} • $guardianEmail'),
                           trailing: isGuardian
                               ? IconButton(
                                   icon: const Icon(Icons.edit_note),
-                                  tooltip: 'Edit your label',
+                                  tooltip: Labels.editYourLabelTooltip,
                                   onPressed: () {
                                     _showEditGuardianLabelDialog(aviaryData['guardianLabel'] ?? '');
                                   },
@@ -580,7 +594,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                         Center(
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.add),
-                            label: const Text('Invite a Caregiver'),
+                            label: Text('${ButtonLabels.invite} a ${AppStrings.secondaryUser}'),
                             onPressed: _showInviteDialog,
                           ),
                         ),

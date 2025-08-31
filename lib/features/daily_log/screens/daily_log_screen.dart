@@ -1,3 +1,4 @@
+// lib/features/daily_log/screens/daily_log_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +8,7 @@ import 'package:cockatiel_companion/features/daily_log/widgets/log_dialogs/diet_
 import 'package:cockatiel_companion/features/daily_log/widgets/log_dialogs/droppings_log_dialog.dart';
 import 'package:cockatiel_companion/features/daily_log/widgets/log_dialogs/behavior_log_dialog.dart';
 import 'package:cockatiel_companion/features/daily_log/widgets/log_dialogs/weight_log_dialog.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class DailyLogScreen extends StatefulWidget {
   final String birdId;
@@ -28,17 +30,17 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   // --- UI Builder Helper Functions ---
 
   ListTile _buildDietListTile(Map<String, dynamic> data, String docId) {
-    final String foodType = data['foodType'] ?? 'Unknown';
-    final String description = data['description'] ?? 'No description';
+    final String foodType = data['foodType'] ?? AppStrings.unknown;
+    final String description = data['description'] ?? AppStrings.noDescription;
     final String consumption = data['consumptionLevel'] ?? '-';
     final formattedTime = _formatTimestamp(data['timestamp']);
 
     return ListTile(
       leading: Icon(Icons.restaurant, color: _getColorForConsumption(consumption)),
       title: Text('$foodType - $description'),
-      subtitle: Text('Consumption: $consumption • $formattedTime'), // <-- Time moved here
+      subtitle: Text('${Labels.consumption} $consumption • $formattedTime'),
       trailing: Row(
-        mainAxisSize: MainAxisSize.min, // Important to keep the row compact
+        mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
             icon: const Icon(Icons.edit_note),
@@ -64,10 +66,10 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
 
     return ListTile(
       leading: const Icon(Icons.monitor_heart, color: Colors.brown),
-      title: const Text('Droppings Observation'),
-      subtitle: Text('Color: $color, Consistency: $consistency • $formattedTime'), // <-- Time moved here
+      title: Text(AppStrings.droppingsObservation),
+      subtitle: Text('${Labels.color} $color, ${Labels.consistency} $consistency • $formattedTime'),
       trailing: Row(
-        mainAxisSize: MainAxisSize.min, // Important to keep the row compact
+        mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
             icon: const Icon(Icons.edit_note),
@@ -93,10 +95,10 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
 
     return ListTile(
       leading: const Icon(Icons.psychology, color: Colors.blue),
-      title: Text('Mood: $mood'),
-      subtitle: Text('${behaviors.join(', ')} • $formattedTime'), // <-- Time moved here
+      title: Text('${Labels.mood} $mood'),
+      subtitle: Text('${behaviors.join(', ')} • $formattedTime'),
       trailing: Row(
-        mainAxisSize: MainAxisSize.min, // Important to keep the row compact
+        mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
             icon: const Icon(Icons.edit_note),
@@ -122,10 +124,10 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
 
     return ListTile(
       leading: const Icon(Icons.scale, color: Colors.teal),
-      title: Text('Weight: $weight $unit'),
-      subtitle: Text('${data['context'] ?? 'Unspecified'} • $formattedTime'), // <-- Time moved here
+      title: Text('${Labels.weight} $weight $unit'),
+      subtitle: Text('${data['context'] ?? AppStrings.unspecifiedContext} • $formattedTime'),
       trailing: Row(
-        mainAxisSize: MainAxisSize.min, // Important to keep the row compact
+        mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
             icon: const Icon(Icons.edit_note),
@@ -151,12 +153,14 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   }
 
   Color _getColorForConsumption(String consumptionLevel) {
-    switch (consumptionLevel) {
-      case 'Ate Well': return Colors.green;
-      case 'Ate Some': return Colors.orange;
-      case 'Untouched': return Colors.red;
-      default: return Colors.grey;
+    if (consumptionLevel == DropdownOptions.dietConsumptionLevels[0]) { // Ate Well
+      return Colors.green;
+    } else if (consumptionLevel == DropdownOptions.dietConsumptionLevels[1]) { // Ate Some
+      return Colors.orange;
+    } else if (consumptionLevel == DropdownOptions.dietConsumptionLevels[2]) { // Untouched
+      return Colors.red;
     }
+    return Colors.grey;
   }
 
   // --- Dialog Functions ---
@@ -417,29 +421,27 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   }
 
   Future<void> _deleteLogEntry(String collectionName, String docId) async {
-    // Show a confirmation dialog before deleting
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this log entry? This action cannot be undone.'),
+          title: const Text(ScreenTitles.confirmDeletion),
+          content: const Text(AppStrings.confirmLogDeletionMessage),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(false),
+              child: const Text(ButtonLabels.cancel),
             ),
             TextButton(
-              child: const Text('Delete'),
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () => Navigator.of(context).pop(true),
+              child: const Text(ButtonLabels.delete),
             ),
           ],
         );
       },
     );
 
-    // If the user confirmed, proceed with deletion
     if (confirmed == true) {
       try {
         final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
@@ -454,14 +456,14 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Entry deleted.')),
+            const SnackBar(content: Text(AppStrings.entryDeleted)),
           );
         }
       } catch (e) {
-        print('Error deleting entry: $e');
+        debugPrint('Error deleting entry: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: Could not delete entry.')),
+            const SnackBar(content: Text(AppStrings.deleteError)),
           );
         }
       }
@@ -470,8 +472,6 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   
   @override
   Widget build(BuildContext context) {
-    // Define and create the stream directly in the build method.
-    // This ensures it rebuilds with the new date every time setState is called.
     final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
     final dailyLogRef = FirebaseFirestore.instance.collection('birds').doc(widget.birdId).collection('daily_logs').doc(logDateId);
 
@@ -499,18 +499,15 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.birdName}\'s Daily Log'),
+        title: Text('${widget.birdName}${ScreenTitles.dailyLogSuffix}'),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // This triggers a rebuild, which re-creates the stream with fresh data.
           setState(() {});
-          // Add a small delay for better UX
           await Future.delayed(const Duration(milliseconds: 500));
         },
         child: Column(
           children: [
-            // --- Date Selector Row ---
             Container(
               padding: const EdgeInsets.all(8.0),
               color: Theme.of(context).primaryColorLight,
@@ -558,43 +555,42 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
               ),
             ),
 
-            // --- ACTION LIST ---
             ListView(
               shrinkWrap: true,
               padding: const EdgeInsets.all(8.0),
               children: [
                 ListTile(
                   leading: const Icon(Icons.restaurant_menu),
-                  title: const Text('Diet'),
-                  subtitle: const Text('Tap to log food intake'),
-                  onTap: () async { // <-- Make async
-                    await _showDietLogDialog(); // Wait for the dialog to close
-                    setState(() {}); // Then force a rebuild
+                  title: const Text(Labels.diet),
+                  subtitle: Text(AppStrings.logDietSubtitle), 
+                  onTap: () async {
+                    await _showDietLogDialog();
+                    setState(() {});
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.monitor_heart),
-                  title: const Text('Droppings'),
-                  subtitle: const Text('Tap to log health observations'),
-                  onTap: () async { // <-- Make async
+                  title: const Text(Labels.droppings),
+                  subtitle: Text(AppStrings.logDroppingsSubtitle),
+                  onTap: () async {
                     await _showDroppingsLogDialog();
                     setState(() {});
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.psychology),
-                  title: const Text('Behavior & Mood'),
-                  subtitle: const Text('Tap to log behavior'),
-                  onTap: () async { // <-- Make async
+                  title: const Text(Labels.behaviorAndMood),
+                  subtitle: Text(AppStrings.logBehaviorSubtitle),
+                  onTap: () async {
                     await _showBehaviorLogDialog();
                     setState(() {});
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.scale),
-                  title: const Text('Weight'),
-                  subtitle: const Text('Tap to log weight'),
-                  onTap: () async { // <-- Make async
+                  title: const Text(Labels.weight),
+                  subtitle: Text(AppStrings.logWeightSubtitle),
+                  onTap: () async {
                     await _showWeightLogDialog();
                     setState(() {});
                   },
@@ -604,27 +600,26 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
             
             const Divider(),
 
-            // --- DISPLAY LIST ---
             Expanded(
               child: StreamBuilder<List<Map<String, dynamic>>>(
-                stream: combinedLogStream, // Call a function to build the stream
+                stream: combinedLogStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(child: Text('${AppStrings.errorPrefix} ${snapshot.error}'));
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No entries logged for this day.'));
+                    return const Center(child: Text(AppStrings.noLogEntries));
                   }
                   final logEntries = snapshot.data!;
                   return ListView.builder(
                     itemCount: logEntries.length,
                     itemBuilder: (context, index) {
-                      final entry = logEntries[index]; // Use the logEntries list
+                      final entry = logEntries[index];
                       final entryType = entry['type'];
-                      final docId = entry['id']; // <-- Get the ID from the map
+                      final docId = entry['id'];
 
                       switch (entryType) {
                         case 'diet':
@@ -636,7 +631,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                         case 'weight':
                           return _buildWeightListTile(entry, docId);
                         default:
-                          return const ListTile(title: Text('Unknown log type'));
+                          return const ListTile(title: Text(AppStrings.unknownLogType));
                       }
                     },
                   );

@@ -1,6 +1,8 @@
+// lib/features/aviary/screens/bulk_move_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class BulkMoveScreen extends StatefulWidget {
   final String aviaryId;
@@ -41,7 +43,7 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
       final nestItems = nestsSnapshot.docs.map((doc) {
         return DropdownMenuItem<String>(
           value: doc.id,
-          child: Text(doc.data()['name'] ?? 'Unnamed Nest'),
+          child: Text(doc.data()['name'] ?? AppStrings.unnamedEnclosure),
         );
       }).toList();
 
@@ -52,7 +54,7 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
         });
       }
     } catch (e) {
-      print('Error fetching nests: $e');
+      debugPrint('Error fetching nests: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -66,14 +68,12 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        throw Exception("No user logged in");
+        throw Exception(AppStrings.noUserLoggedIn);
       }
 
       final birdsSnapshot = await FirebaseFirestore.instance
           .collection('birds')
-          // This first clause is still good for scoping to the correct Aviary.
           .where('ownerId', isEqualTo: widget.aviaryId)
-          // This new clause is ESSENTIAL for security rules to pass.
           .where('viewers', arrayContains: user.uid)
           .where('nestId', isEqualTo: nestId)
           .get();
@@ -81,14 +81,11 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
       if (mounted) {
         setState(() {
           _sourceBirds = birdsSnapshot.docs;
-          // No need to set loading to false here, it's done in the finally block
         });
       }
     } catch (e) {
-      print('Error fetching birds: $e');
-      // Handle error state if necessary
+      debugPrint('Error fetching birds: $e');
     } finally {
-      // This will run whether the try succeeds or fails.
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -103,7 +100,6 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     setState(() => _isLoading = true);
 
-    // Filter the map to get a list of just the bird IDs that were checked.
     final List<String> selectedBirdIds = _selectedBirds.entries
         .where((entry) => entry.value == true)
         .map((entry) => entry.key)
@@ -111,38 +107,33 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
 
     if (_destinationNestId == null || selectedBirdIds.isEmpty) {
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('No destination or no birds selected.')),
+        const SnackBar(content: Text(AppStrings.noDestinationOrPetsSelected)),
       );
       setState(() => _isLoading = false);
       return;
     }
 
     try {
-      // Get a reference to the Firestore database.
       final firestore = FirebaseFirestore.instance;
-      // Create a new batch.
       final batch = firestore.batch();
 
-      // For each selected bird ID, add an update operation to the batch.
       for (final birdId in selectedBirdIds) {
         final birdRef = firestore.collection('birds').doc(birdId);
         batch.update(birdRef, {'nestId': _destinationNestId});
       }
 
-      // Commit the batch. This sends all the updates to the server at once.
       await batch.commit();
 
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('${selectedBirdIds.length} bird(s) moved successfully!')),
+        SnackBar(content: Text('${selectedBirdIds.length} ${AppStrings.petsMovedSuccessfully}')),
       );
       
-      // Pop the screen to return to the Aviary Management screen.
       navigator.pop();
 
     } catch (e) {
-      print('Error moving birds: $e');
+      debugPrint('Error moving birds: $e');
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('An error occurred. Could not move birds.')),
+        const SnackBar(content: Text(AppStrings.movePetsError)),
       );
     } finally {
       if (mounted) {
@@ -155,7 +146,7 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bulk Move Birds'),
+        title: const Text(ScreenTitles.bulkMovePets),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -168,15 +159,15 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
                   DropdownButtonFormField<String>(
                     initialValue: _sourceNestId,
                     decoration: const InputDecoration(
-                      labelText: 'Move Birds FROM',
+                      labelText: Labels.movePetsFrom,
                       border: OutlineInputBorder(),
                     ),
                     items: _nestOptions,
                     onChanged: (value) {
                       setState(() {
                         _sourceNestId = value;
-                        _destinationNestId = null; // Clear destination
-                        _selectedBirds.clear(); // Clear selections
+                        _destinationNestId = null;
+                        _selectedBirds.clear();
                       });
                       if (value != null) {
                         _fetchBirdsForSourceNest(value);
@@ -193,10 +184,9 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
                   DropdownButtonFormField<String>(
                     initialValue: _destinationNestId,
                     decoration: const InputDecoration(
-                      labelText: 'Move Birds TO',
+                      labelText: Labels.movePetsTo,
                       border: OutlineInputBorder(),
                     ),
-                    // Filter out the source nest from the options
                     items: _nestOptions.where((item) => item.value != _sourceNestId).toList(),
                     onChanged: (value) {
                       setState(() => _destinationNestId = value);
@@ -206,22 +196,21 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
                   const Divider(height: 32),
 
                   // --- BIRD SELECTION LIST ---
-                  Text('Select birds to move:', style: Theme.of(context).textTheme.titleMedium),
+                  Text(Labels.selectPetsToMove, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 8),
                   Expanded(
                     child: _sourceNestId == null
-                        ? const Center(child: Text('Please select a source nest.'))
-                        // If loading, show indicator. If not loading and no birds, show message.
+                        ? const Center(child: Text(AppStrings.selectSourceEnclosure))
                         : _isLoading
                             ? const Center(child: CircularProgressIndicator())
                             : _sourceBirds.isEmpty
-                                ? const Center(child: Text('No birds found in this nest.'))
+                                ? const Center(child: Text(AppStrings.noPetsInEnclosure))
                                 : ListView.builder(
                                     itemCount: _sourceBirds.length,
                             itemBuilder: (context, index) {
                               final bird = _sourceBirds[index];
                               final birdId = bird.id;
-                              final birdName = (bird.data() as Map<String, dynamic>)['name'] ?? 'Unnamed Bird';
+                              final birdName = (bird.data() as Map<String, dynamic>)['name'] ?? AppStrings.unnamedPet;
                               
                               return CheckboxListTile(
                                 title: Text(birdName),
@@ -239,9 +228,9 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
                   // --- ACTION BUTTON ---
                   ElevatedButton.icon(
                     icon: const Icon(Icons.move_up_rounded),
-                    label: const Text('Move Selected Birds'),
+                    label: const Text(ButtonLabels.moveSelectedPets),
                     onPressed: (_sourceNestId == null || _destinationNestId == null || _selectedBirds.values.every((v) => !v))
-                        ? null // Disable button if conditions aren't met
+                        ? null
                         : _moveBirds,
                   ),
                 ],

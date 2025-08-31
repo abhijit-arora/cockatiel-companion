@@ -1,5 +1,7 @@
+// lib/features/about/screens/about_screen.dart
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 // --- Data Structure for Changelog ---
 // Keeping this separate from the UI makes it easy to update.
@@ -65,7 +67,7 @@ class _AboutScreenState extends State<AboutScreen> {
   Future<void> _loadVersion() async {
     final packageInfo = await PackageInfo.fromPlatform();
     setState(() {
-      _version = 'Version ${packageInfo.version}';
+      _version = '${Labels.version} ${packageInfo.version}';
     });
   }
 
@@ -73,7 +75,7 @@ class _AboutScreenState extends State<AboutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('About FlockWell'),
+        title: const Text(ScreenTitles.aboutApp),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
@@ -87,12 +89,12 @@ class _AboutScreenState extends State<AboutScreen> {
                   backgroundColor: Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Image.asset('assets/images/logo.png'),
+                    child: Image.asset(AssetPaths.logo),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'FlockWell',
+                  AppStrings.appName,
                   style: Theme.of(context).textTheme.displayLarge,
                 ),
                 const SizedBox(height: 8),
@@ -102,7 +104,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Your AI-assisted companion for raising happy and healthy birds.',
+                  AppStrings.appTagline,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
@@ -114,7 +116,7 @@ class _AboutScreenState extends State<AboutScreen> {
 
           // --- Changelog Section ---
           Text(
-            'What\'s New',
+            Labels.whatsNew,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
@@ -135,11 +137,11 @@ class _AboutScreenState extends State<AboutScreen> {
                       leading: const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
                       title: Text(change),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

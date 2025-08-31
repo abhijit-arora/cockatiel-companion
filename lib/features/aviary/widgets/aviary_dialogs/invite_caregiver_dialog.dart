@@ -1,4 +1,6 @@
+// lib/features/aviary/widgets/aviary_dialogs/invite_caregiver_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 typedef OnInviteCaregiver = void Function({
   required String email,
@@ -20,8 +22,11 @@ class _InviteCaregiverDialogState extends State<InviteCaregiverDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // We construct the title text using our generic constants.
+    final titleText = '${ButtonLabels.invite} a ${AppStrings.secondaryUser}';
+
     return AlertDialog(
-      title: const Text('Invite a Caregiver'),
+      title: Text(titleText),
       content: Form(
         key: _formKey,
         child: Column(
@@ -31,11 +36,11 @@ class _InviteCaregiverDialogState extends State<InviteCaregiverDialog> {
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
-                labelText: 'Caregiver\'s Email*',
+                labelText: Labels.secondaryUserEmail,
               ),
               validator: (value) {
                 if (value == null || !value.contains('@')) {
-                  return 'Please enter a valid email.';
+                  return AppStrings.emailValidation;
                 }
                 return null;
               },
@@ -44,21 +49,21 @@ class _InviteCaregiverDialogState extends State<InviteCaregiverDialog> {
             TextFormField(
               controller: _labelController,
               decoration: const InputDecoration(
-                labelText: 'Their Label*',
-                hintText: 'e.g., Mama Birdie, The Flock Master',
+                labelText: Labels.theirLabel,
+                hintText: AppStrings.secondaryUserLabelHint,
               ),
-              validator: (value) => value!.isEmpty ? 'Please enter a label.' : null,
+              validator: (value) => value!.isEmpty ? AppStrings.labelValidation : null,
             ),
           ],
         ),
       ),
       actions: [
         TextButton(
-          child: const Text('Cancel'),
+          child: const Text(ButtonLabels.cancel),
           onPressed: () => Navigator.of(context).pop(),
         ),
         ElevatedButton(
-          child: const Text('Send Invite'),
+          child: const Text(ButtonLabels.sendInvite),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               widget.onInvite(

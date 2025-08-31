@@ -1,4 +1,6 @@
+// lib/features/home/widgets/upcoming_anniversary_card.dart
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class UpcomingAnniversaryCard extends StatelessWidget {
   final String birdName;
@@ -18,13 +20,13 @@ class UpcomingAnniversaryCard extends StatelessWidget {
     IconData iconData;
 
     if (daysRemaining == 0) {
-      countdownText = "It's today! Happy ${eventName.toLowerCase()}!";
+      countdownText = "${AppStrings.anniversaryTodayPrefix} ${eventName.toLowerCase()}${AppStrings.anniversaryTodaySuffix}";
       iconData = Icons.cake;
     } else if (daysRemaining == 1) {
-      countdownText = '1 day to go until their ${eventName.toLowerCase()}!';
+      countdownText = '1 ${AppStrings.anniversarySingularPrefix} ${eventName.toLowerCase()}${AppStrings.anniversarySuffix}';
       iconData = Icons.celebration;
     } else {
-      countdownText = '$daysRemaining days to go until their ${eventName.toLowerCase()}!';
+      countdownText = '$daysRemaining ${AppStrings.anniversaryPluralPrefix} ${eventName.toLowerCase()}${AppStrings.anniversarySuffix}';
       iconData = Icons.calendar_today;
     }
 
@@ -36,7 +38,7 @@ class UpcomingAnniversaryCard extends StatelessWidget {
           iconData,
           color: Theme.of(context).colorScheme.onTertiaryContainer,
         ),
-        title: Text('Upcoming: $birdName\'s $eventName'),
+        title: Text('${Labels.upcoming} $birdName\'s $eventName'),
         subtitle: Text(countdownText),
       ),
     );

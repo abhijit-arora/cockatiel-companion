@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 import 'package:cockatiel_companion/features/home/screens/home_screen.dart';
 import 'package:cockatiel_companion/features/community/screens/community_screen.dart';
 import 'package:cockatiel_companion/features/notifications/screens/notifications_screen.dart';
@@ -36,15 +37,15 @@ class _MainScreenState extends State<MainScreen> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Your Flock',
+            label: ScreenTitles.homePage,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.forum_outlined),
-            label: 'Community',
+            label: ScreenTitles.community,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications_none),
-            label: 'Notifications',
+            label: ScreenTitles.notifications,
           ),
         ],
         currentIndex: _selectedIndex,

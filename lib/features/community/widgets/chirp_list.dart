@@ -1,3 +1,4 @@
+// lib/features/community/widgets/chirp_list.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -26,13 +27,15 @@ class _ChirpListState extends State<ChirpList> {
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return const Center(child: Text('Please log in to see the community.'));
+    if (currentUser == null) return const Center(child: Text(AppStrings.loginToViewCommunity));
 
     Query query = FirebaseFirestore.instance
         .collection('community_chirps')
         .orderBy('createdAt', descending: true);
-
-    if (widget.category != 'All Chirps') {
+    
+    // The "All Chirps" string is now sourced from constants.
+    final String allPostsCategory = DropdownOptions.communityCategoriesWithAll[0];
+    if (widget.category != allPostsCategory) {
       query = query.where('category', isEqualTo: widget.category);
     }
 
@@ -43,14 +46,14 @@ class _ChirpListState extends State<ChirpList> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return const Center(child: Text('Something went wrong.'));
+          return const Center(child: Text(AppStrings.somethingWentWrong));
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                'No chirps in this category yet. Be the first to post!',
+                AppStrings.noPostsInCategory,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -65,8 +68,8 @@ class _ChirpListState extends State<ChirpList> {
             final chirp = chirps[index];
             final data = chirp.data() as Map<String, dynamic>;
 
-            final String title = data['title'] ?? 'No Title';
-            final String authorLabel = data['authorLabel'] ?? 'Anonymous';
+            final String title = data['title'] ?? AppStrings.noTitle;
+            final String authorLabel = data['authorLabel'] ?? AppStrings.anonymous;
             final int replyCount = data['replyCount'] ?? 0;
             final int followerCount = data['followerCount'] ?? 0;
             final String? mediaUrl = data['mediaUrl'];
@@ -92,7 +95,7 @@ class _ChirpListState extends State<ChirpList> {
                         children: [
                           Text(title, style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 4),
-                          Text('Posted by $authorLabel', style: Theme.of(context).textTheme.bodySmall),
+                          Text('${Labels.postedBy} $authorLabel', style: Theme.of(context).textTheme.bodySmall),
                         ],
                       ),
                     ),
@@ -130,7 +133,7 @@ class _ChirpListState extends State<ChirpList> {
                                   isFollowed ? Icons.check : Icons.add,
                                   size: 16,
                                 ),
-                                label: Text(isFollowed ? '${AppStrings.following} ($followerCount)' : '${AppStrings.tellMeToo} ($followerCount)'),
+                                label: Text(isFollowed ? '${AppStrings.followingPost} ($followerCount)' : '${AppStrings.followPost} ($followerCount)'),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: isFollowed 
                                       ? Theme.of(context).colorScheme.primary 

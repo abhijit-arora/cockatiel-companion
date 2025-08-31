@@ -1,17 +1,10 @@
+// lib/features/community/screens/create_chirp_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
-// We reuse the category list from the main community screen.
-const List<String> _categories = [
-  'Health & Wellness',
-  'Behavior & Training',
-  'Nutrition & Diet',
-  'Cage, Toys & Gear',
-  'General Chat',
-];
+import 'package:cockatiel_companion/core/constants.dart';
 
 class CreateChirpScreen extends StatefulWidget {
   final String? initialCategory;
@@ -30,10 +23,12 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
   XFile? _mediaFile;
   bool _isSubmitting = false;
 
+  // The category list is now sourced from constants.
+  final List<String> _categories = DropdownOptions.communityCategories;
+
   @override
   void initState() {
     super.initState();
-    // If an initial category was passed, set it as the default.
     if (widget.initialCategory != null && _categories.contains(widget.initialCategory)) {
       _selectedCategory = widget.initialCategory;
     }
@@ -49,7 +44,7 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to post.')),
+        const SnackBar(content: Text(AppStrings.mustBeLoggedInToPost)),
       );
       setState(() => _isSubmitting = false);
       return;
@@ -57,21 +52,13 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
 
     try {
       String? mediaUrl;
-
-      // --- 1. UPLOAD MEDIA IF IT EXISTS ---
       if (_mediaFile != null) {
-        // Create a unique file path.
         final filePath = 'community_media/${user.uid}/${DateTime.now().millisecondsSinceEpoch}-${_mediaFile!.name}';
         final storageRef = FirebaseStorage.instance.ref().child(filePath);
-
-        // Upload the file.
         final uploadTask = await storageRef.putData(await _mediaFile!.readAsBytes());
-
-        // Get the public download URL.
         mediaUrl = await uploadTask.ref.getDownloadURL();
       }
 
-      // --- 2. PREPARE CHIRP DATA ---
       final authorLabel = await _getAuthorLabel(user);
       final chirpData = {
         'title': _titleController.text.trim(),
@@ -82,18 +69,13 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
         'createdAt': FieldValue.serverTimestamp(),
         'replyCount': 0,
         'upvoteCount': 0,
-        'mediaUrl': mediaUrl, // Can be null if no media was attached
+        'mediaUrl': mediaUrl,
       };
 
-      // --- 3. SAVE CHIRP TO FIRESTORE ---
       final newChirpRef = await FirebaseFirestore.instance.collection('community_chirps').add(chirpData);
 
-      // --- 4. AUTOMATICALLY "+1" THE NEW CHIRP FOR THE AUTHOR ---
-      // Because the user is creating the post, we can write directly to the
-      // database for efficiency instead of making a second cloud function call.
       final chirpFollowersRef = newChirpRef.collection('followers').doc(user.uid);
       await chirpFollowersRef.set({'followedAt': FieldValue.serverTimestamp()});
-      // We also need to set the initial follower count to 1 on the main document.
       await newChirpRef.update({'followerCount': 1});
 
       if (mounted) {
@@ -103,7 +85,7 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
       debugPrint('Error submitting chirp: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An error occurred: ${e.toString()}')),
+          SnackBar(content: Text('${AppStrings.genericError}: ${e.toString()}')),
         );
         setState(() => _isSubmitting = false);
       }
@@ -111,7 +93,6 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
   }
 
   Future<String> _getAuthorLabel(User user) async {
-    // Determine the user's aviary ID
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     String aviaryId;
     bool isGuardian = true;
@@ -123,14 +104,11 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
       aviaryId = user.uid;
     }
 
-    // Fetch the Aviary document to get the aviaryName
     final aviaryDoc = await FirebaseFirestore.instance.collection('aviaries').doc(aviaryId).get();
-    final aviaryName = aviaryDoc.data()?['aviaryName'] ?? 'An Aviary';
-
-    // Fetch the user's specific label
+    final aviaryName = aviaryDoc.data()?['aviaryName'] ?? AppStrings.defaultHouseholdName;
     String userLabel;
     if (isGuardian) {
-      userLabel = aviaryDoc.data()?['guardianLabel'] ?? user.email ?? 'Guardian';
+      userLabel = aviaryDoc.data()?['guardianLabel'] ?? user.email ?? AppStrings.primaryOwner;
     } else {
       final caregiverDoc = await FirebaseFirestore.instance
           .collection('aviaries')
@@ -138,14 +116,13 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
           .collection('caregivers')
           .doc(user.uid)
           .get();
-      userLabel = caregiverDoc.data()?['label'] ?? user.email ?? 'Caregiver';
+      userLabel = caregiverDoc.data()?['label'] ?? user.email ?? AppStrings.secondaryUser;
     }
 
     return '$userLabel of $aviaryName';
   }
 
   Future<void> _pickMedia(ImageSource source) async {
-    // For now, we allow both images and videos. We will add the duration check later.
     final XFile? pickedFile = await _picker.pickMedia();
 
     if (pickedFile != null) {
@@ -159,7 +136,7 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Post a New Chirp'),
+        title: const Text(ScreenTitles.createPost),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
@@ -171,7 +148,7 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Post'),
+                  : const Text(ButtonLabels.post),
             ),
           )
         ],
@@ -186,7 +163,7 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
               DropdownButtonFormField<String>(
                 initialValue: _selectedCategory,
                 decoration: const InputDecoration(
-                  labelText: 'Category*',
+                  labelText: Labels.category,
                   border: OutlineInputBorder(),
                 ),
                 items: _categories.map((String category) {
@@ -200,23 +177,23 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
                     _selectedCategory = newValue;
                   });
                 },
-                validator: (value) => value == null ? 'Please select a category' : null,
+                validator: (value) => value == null ? AppStrings.categoryValidation : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
-                  labelText: 'Title / Question*',
+                  labelText: Labels.postTitle,
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                    (value == null || value.trim().isEmpty) ? 'Please enter a title' : null,
+                    (value == null || value.trim().isEmpty) ? AppStrings.titleValidation : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _bodyController,
                 decoration: const InputDecoration(
-                  labelText: 'Body (Optional)',
+                  labelText: Labels.postBody,
                   border: OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
@@ -235,25 +212,24 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Attach Media (Optional)', style: Theme.of(context).textTheme.titleMedium),
+                    Text(Labels.attachMedia, style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     if (_mediaFile != null)
-                      // Display a preview of the selected media
-                      Text('Selected: ${_mediaFile!.name}')
+                      Text('${AppStrings.selectedFile} ${_mediaFile!.name}')
                     else
-                      const Text('No file selected.'),
+                      const Text(AppStrings.noFileSelected),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton.icon(
                           icon: const Icon(Icons.photo_library),
-                          label: const Text('Gallery'),
+                          label: const Text(ButtonLabels.gallery),
                           onPressed: () => _pickMedia(ImageSource.gallery),
                         ),
                         ElevatedButton.icon(
                           icon: const Icon(Icons.camera_alt),
-                          label: const Text('Camera'),
+                          label: const Text(ButtonLabels.camera),
                           onPressed: () => _pickMedia(ImageSource.camera),
                         ),
                       ],

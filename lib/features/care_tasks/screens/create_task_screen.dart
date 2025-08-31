@@ -1,7 +1,9 @@
+// lib/features/care_tasks/screens/create_task_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class CreateTaskScreen extends StatefulWidget {
   final String aviaryId;
@@ -14,14 +16,14 @@ class CreateTaskScreen extends StatefulWidget {
 class _CreateTaskScreenState extends State<CreateTaskScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _recurrenceValueController = TextEditingController(text: '7'); // Default to 7
-  String _selectedUnit = 'days'; // Default to 'days'
+  final _recurrenceValueController = TextEditingController(text: '7');
+  String _selectedUnit = DropdownOptions.recurrenceUnits[0]; // Default to 'days'
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create New Care Task'),
+        title: const Text(ScreenTitles.createNewCareTask),
       ),
       body: Form(
         key: _formKey,
@@ -33,34 +35,32 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
-                  labelText: 'Task Title*',
-                  hintText: 'e.g., Weekly Cage Deep Clean',
+                  labelText: Labels.taskTitle,
+                  hintText: AppStrings.taskTitleHint,
                 ),
-                validator: (value) => value!.isEmpty ? 'Please enter a title' : null,
+                validator: (value) => value!.isEmpty ? AppStrings.titleValidation : null,
               ),
 
               const SizedBox(height: 24),
-              const Text('This task repeats every...'),
+              const Text(AppStrings.recurrencePrompt),
               Row(
                 children: [
-                  // --- RECURRENCE VALUE INPUT ---
                   Expanded(
                     flex: 1,
                     child: TextFormField(
                       controller: _recurrenceValueController,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: const InputDecoration(labelText: 'Number*'),
-                      validator: (value) => value!.isEmpty ? 'Enter a number' : null,
+                      decoration: const InputDecoration(labelText: Labels.recurrenceNumber),
+                      validator: (value) => value!.isEmpty ? AppStrings.numberValidation : null,
                     ),
                   ),
                   const SizedBox(width: 16),
-                  // --- RECURRENCE UNIT SELECTOR ---
                   Expanded(
                     flex: 2,
                     child: DropdownButtonFormField<String>(
                       initialValue: _selectedUnit,
-                      items: ['days', 'weeks', 'months']
+                      items: DropdownOptions.recurrenceUnits
                           .map((u) => DropdownMenuItem(value: u, child: Text(u)))
                           .toList(),
                       onChanged: (value) => setState(() => _selectedUnit = value!),
@@ -70,28 +70,21 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               ),
 
               const SizedBox(height: 24),
-              // We will implement the bird selector later
-              const Text('Applies to: All Birds (for now)'),
+              const Text(Labels.appliesTo),
 
               const SizedBox(height: 32),
-              // --- SAVE BUTTON ---
               ElevatedButton(
                 onPressed: () async {
-                  // First, validate the form. If it's not valid, do nothing.
                   if (!_formKey.currentState!.validate()) {
                     return;
                   }
 
-                  // --- NEW: Capture context-dependent objects BEFORE the async gap ---
                   final navigator = Navigator.of(context);
                   final scaffoldMessenger = ScaffoldMessenger.of(context);
-                  // --- END OF NEW CODE ---
-
                   final userId = FirebaseAuth.instance.currentUser?.uid;
                   if (userId == null) return;
 
                   try {
-                    // THE ASYNC GAP: This is where the "await" happens.
                     await FirebaseFirestore.instance
                         .collection('aviaries')
                         .doc(widget.aviaryId)
@@ -105,19 +98,17 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                       'birdIds': [],
                       'createdAt': FieldValue.serverTimestamp(),
                     });
-
-                    // --- Use the captured objects AFTER the async gap ---
+                    
                     navigator.pop();
 
                   } catch (e) {
-                    print('Error saving task: $e');
-                    // Use the captured object
+                    debugPrint('Error saving task: $e');
                     scaffoldMessenger.showSnackBar(
-                      SnackBar(content: Text('Failed to save task: $e')),
+                      SnackBar(content: Text('${AppStrings.failedToSaveTask}: $e')),
                     );
                   }
                 },
-                child: const Text('Save Task'),
+                child: const Text(ButtonLabels.saveTask),
               ),
             ],
           ),

@@ -1,6 +1,7 @@
+// lib/features/daily_log/widgets/log_dialogs/droppings_log_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
-// Define the callback type
 typedef OnSaveDroppingsLog = Future<void> Function({
   required String color,
   required String consistency,
@@ -14,7 +15,7 @@ class DroppingsLogDialog extends StatefulWidget {
   const DroppingsLogDialog({
     super.key,
     required this.onSave,
-    this.initialData, // <-- Add this
+    this.initialData,
   });
 
   @override
@@ -40,16 +41,16 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Log Droppings Observation'),
+      title: const Text(ScreenTitles.logDroppingsObservation),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Color*'),
+            const Text(Labels.colorRequired),
             Wrap(
               spacing: 8.0,
-              children: ['Normal', 'Green', 'Yellow', 'Black', 'Red'].map((color) {
+              children: DropdownOptions.droppingsColors.map((color) {
                 return ChoiceChip(
                   label: Text(color),
                   selected: _selectedColor == color,
@@ -61,10 +62,10 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
             ),
             
             const SizedBox(height: 16),
-            const Text('Consistency*'),
+            const Text(Labels.consistencyRequired),
             Wrap(
               spacing: 8.0,
-              children: ['Solid', 'Loose', 'Watery'].map((consistency) {
+              children: DropdownOptions.droppingsConsistencies.map((consistency) {
                 return ChoiceChip(
                   label: Text(consistency),
                   selected: _selectedConsistency == consistency,
@@ -76,10 +77,9 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
             ),
 
             const SizedBox(height: 16),
-            // Placeholder for Image upload
             OutlinedButton.icon(
               icon: const Icon(Icons.camera_alt),
-              label: const Text('Add Photo (Optional)'),
+              label: const Text(ButtonLabels.addPhotoOptional),
               onPressed: () {
                 // TODO: Implement image picking and upload logic
               },
@@ -88,7 +88,7 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
             const SizedBox(height: 8),
             TextField(
               controller: _notesController,
-              decoration: const InputDecoration(labelText: 'Notes (Optional)'),
+              decoration: const InputDecoration(labelText: Labels.notesOptional),
               maxLines: 2,
             ),
           ],
@@ -97,15 +97,12 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const Text(ButtonLabels.cancel),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : () async {
-            // Simple validation
             if (_selectedColor != null && _selectedConsistency != null) {
-              // Capture navigator before the async gap
               final navigator = Navigator.of(context);
-
               setState(() { _isLoading = true; });
 
               await widget.onSave(
@@ -116,9 +113,8 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
 
               navigator.pop();
             } else {
-              // Show a simple snackbar for error
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please select Color and Consistency.')),
+                const SnackBar(content: Text(AppStrings.droppingsValidation)),
               );
             }
           },
@@ -128,7 +124,7 @@ class _DroppingsLogDialogState extends State<DroppingsLogDialog> {
                 width: 20,
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0),
               )
-            : const Text('Save'),
+            : const Text(ButtonLabels.save),
         ),
       ],
     );

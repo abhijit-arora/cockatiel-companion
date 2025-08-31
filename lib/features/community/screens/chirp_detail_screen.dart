@@ -1,7 +1,9 @@
+// lib/features/community/screens/chirp_detail_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class ChirpDetailScreen extends StatefulWidget {
   final String chirpId;
@@ -25,7 +27,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      // Handle user not logged in
       setState(() => _isReplying = false);
       return;
     }
@@ -33,27 +34,23 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
     try {
       final chirpRef = FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId);
 
-      // We need the user's current author label
-      // NOTE: This duplicates logic from CreateChirpScreen. In a future refactor,
-      // we could move this into a dedicated UserService.
+      // NOTE: This logic is duplicated and will be refactored into a UserService later.
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       String aviaryId = userDoc.exists && userDoc.data()!.containsKey('partOfAviary')
           ? userDoc.data()!['partOfAviary']
           : user.uid;
       final aviaryDoc = await FirebaseFirestore.instance.collection('aviaries').doc(aviaryId).get();
-      final aviaryName = aviaryDoc.data()?['aviaryName'] ?? 'An Aviary';
+      final aviaryName = aviaryDoc.data()?['aviaryName'] ?? AppStrings.defaultHouseholdName;
       final isGuardian = !(userDoc.exists && userDoc.data()!.containsKey('partOfAviary'));
       String userLabel;
       if (isGuardian) {
-        userLabel = aviaryDoc.data()?['guardianLabel'] ?? user.email ?? 'Guardian';
+        userLabel = aviaryDoc.data()?['guardianLabel'] ?? user.email ?? AppStrings.primaryOwner;
       } else {
         final caregiverDoc = await FirebaseFirestore.instance.collection('aviaries').doc(aviaryId).collection('caregivers').doc(user.uid).get();
-        userLabel = caregiverDoc.data()?['label'] ?? user.email ?? 'Caregiver';
+        userLabel = caregiverDoc.data()?['label'] ?? user.email ?? AppStrings.secondaryUser;
       }
       final authorLabel = '$userLabel of $aviaryName';
 
-
-      // Add the reply to the subcollection
       await chirpRef.collection('replies').add({
         'body': _replyController.text.trim(),
         'authorId': user.uid,
@@ -62,7 +59,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
         'helpfulCount': 0,
       });
 
-      // Use a transaction to safely increment the reply count
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.update(chirpRef, {
           'replyCount': FieldValue.increment(1),
@@ -85,14 +81,13 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chirp'),
+        title: const Text(ScreenTitles.postDetail),
       ),
       body: Column(
         children: [
           Expanded(
             child: CustomScrollView(
               slivers: [
-                // --- SLIVER 1: THE MAIN CHIRP CONTENT ---
                 SliverToBoxAdapter(
                   child: StreamBuilder<DocumentSnapshot>(
                     stream: FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId).snapshots(),
@@ -101,13 +96,13 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                         return const Padding(padding: EdgeInsets.all(32.0), child: Center(child: CircularProgressIndicator()));
                       }
                       if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
-                        return const Center(child: Text('Chirp not found.'));
+                        return const Center(child: Text(AppStrings.postNotFound));
                       }
 
                       final data = snapshot.data!.data() as Map<String, dynamic>;
-                      final String title = data['title'] ?? 'No Title';
+                      final String title = data['title'] ?? AppStrings.noTitle;
                       final String body = data['body'] ?? '';
-                      final String authorLabel = data['authorLabel'] ?? 'Anonymous';
+                      final String authorLabel = data['authorLabel'] ?? AppStrings.anonymous;
                       final String? mediaUrl = data['mediaUrl'];
                       final Timestamp? timestamp = data['createdAt'];
 
@@ -118,12 +113,11 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                           children: [
                             Text(title, style: Theme.of(context).textTheme.headlineSmall),
                             const SizedBox(height: 8),
-                            Text('Posted by $authorLabel'),
+                            Text('${Labels.postedBy} $authorLabel'),
                             if (timestamp != null)
                               Text(DateFormat.yMMMd().add_jm().format(timestamp.toDate()), style: Theme.of(context).textTheme.bodySmall),
                             const SizedBox(height: 16),
-
-                            // --- RE-ORDERED MEDIA AND BODY ---
+                            
                             if (mediaUrl != null && mediaUrl.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -134,12 +128,12 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                               ),
                             if (body.isNotEmpty) 
                               Padding(
-                                padding: const EdgeInsets.only(bottom: 16.0), // Add padding for spacing
+                                padding: const EdgeInsets.only(bottom: 16.0),
                                 child: Text(body, style: Theme.of(context).textTheme.bodyLarge),
                               ),
                             
-                            const Divider(height: 24), // Adjusted spacing
-                            Text('Replies', style: Theme.of(context).textTheme.titleLarge),
+                            const Divider(height: 24),
+                            Text(Labels.replies, style: Theme.of(context).textTheme.titleLarge),
                           ],
                         ),
                       );
@@ -147,7 +141,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                   ),
                 ),
 
-                // --- SLIVER 2: THE REPLIES LIST ---
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId).collection('replies').orderBy('createdAt').snapshots(),
                   builder: (context, snapshot) {
@@ -157,7 +150,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                       return const SliverToBoxAdapter(child: Center(child: Padding(
                         padding: EdgeInsets.all(16.0),
-                        child: Text('Be the first to reply!'),
+                        child: Text(AppStrings.beFirstToReply),
                       )));
                     }
 
@@ -170,7 +163,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                             child: ListTile(
                               title: Text(data['body'] ?? ''),
-                              subtitle: Text('by ${data['authorLabel'] ?? 'Anonymous'}'),
+                              subtitle: Text('${Labels.by} ${data['authorLabel'] ?? AppStrings.anonymous}'),
                             ),
                           );
                         },
@@ -183,7 +176,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
             ),
           ),
 
-          // --- REPLY INPUT FIELD ---
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -193,7 +185,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                   child: TextField(
                     controller: _replyController,
                     decoration: const InputDecoration(
-                      hintText: 'Add a reply...',
+                      hintText: AppStrings.addReplyHint,
                       border: OutlineInputBorder(),
                     ),
                     textCapitalization: TextCapitalization.sentences,

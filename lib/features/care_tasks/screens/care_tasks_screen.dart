@@ -1,8 +1,10 @@
+// lib/features/care_tasks/screens/care_tasks_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cockatiel_companion/features/care_tasks/screens/create_task_screen.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class CareTasksScreen extends StatefulWidget {
   const CareTasksScreen({super.key});
@@ -34,7 +36,6 @@ class _CareTasksScreenState extends State<CareTasksScreen> {
   }
 
   Future<void> _markTaskAsComplete(String taskId, Map<String, dynamic> taskData) async {
-    // This function needs the aviaryId to know which document to update
     if (_aviaryId == null) return;
 
     final DateTime nextDueDate = (taskData['nextDueDate'] as Timestamp).toDate();
@@ -47,34 +48,31 @@ class _CareTasksScreenState extends State<CareTasksScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('Confirm Completion'),
-            content: const Text('This task is not due yet. Are you sure you want to mark it as complete ahead of schedule?'),
+            title: const Text(ScreenTitles.confirmCompletion),
+            content: const Text(AppStrings.confirmEarlyCompletion),
             actions: <Widget>[
               TextButton(
-                child: const Text('Cancel'),
-                onPressed: () => Navigator.of(context).pop(false), // Return false
+                child: const Text(ButtonLabels.cancel),
+                onPressed: () => Navigator.of(context).pop(false),
               ),
               TextButton(
-                child: const Text('Confirm'),
-                onPressed: () => Navigator.of(context).pop(true), // Return true
+                child: const Text(ButtonLabels.confirm),
+                onPressed: () => Navigator.of(context).pop(true),
               ),
             ],
           );
         },
       );
 
-      // If the user did not confirm, stop the function here.
       if (confirmed != true) {
         return;
       }
     }
 
-    // --- The original update logic remains the same ---
     final int recurrenceValue = taskData['recurrence_value'];
     final String recurrenceUnit = taskData['recurrence_unit'];
     DateTime newNextDueDate;
 
-    // Calculate the next due date based on the *original* due date
     switch (recurrenceUnit) {
       case 'days': newNextDueDate = nextDueDate.add(Duration(days: recurrenceValue)); break;
       case 'weeks': newNextDueDate = nextDueDate.add(Duration(days: recurrenceValue * 7)); break;
@@ -82,7 +80,6 @@ class _CareTasksScreenState extends State<CareTasksScreen> {
       default: return;
     }
 
-    // Update the document in Firestore
     await FirebaseFirestore.instance
         .collection('aviaries').doc(_aviaryId)
         .collection('care_tasks').doc(taskId)
@@ -96,12 +93,12 @@ class _CareTasksScreenState extends State<CareTasksScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Care Tasks'),
+        title: const Text(ScreenTitles.careTasks),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_task),
             onPressed: () {
-              if (_aviaryId != null) { // Only allow adding if we have an aviary context
+              if (_aviaryId != null) {
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => CreateTaskScreen(aviaryId: _aviaryId!)),
                 );
@@ -113,9 +110,8 @@ class _CareTasksScreenState extends State<CareTasksScreen> {
       body: _aviaryId == null
         ? const Center(child: CircularProgressIndicator())
         : StreamBuilder<QuerySnapshot>(
-            // --- REVISED QUERY ---
             stream: FirebaseFirestore.instance
-                .collection('aviaries').doc(_aviaryId) // <-- Use 'aviaries' and the aviaryId
+                .collection('aviaries').doc(_aviaryId)
                 .collection('care_tasks')
                 .orderBy('nextDueDate')
                 .snapshots(),
@@ -124,7 +120,7 @@ class _CareTasksScreenState extends State<CareTasksScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const Center(child: Text('No care tasks scheduled.'));
+                return const Center(child: Text(AppStrings.noCareTasks));
               }
               final tasks = snapshot.data!.docs;
               final now = DateTime.now();
@@ -134,19 +130,19 @@ class _CareTasksScreenState extends State<CareTasksScreen> {
                 itemBuilder: (context, index) {
                   final task = tasks[index];
                   final data = task.data() as Map<String, dynamic>;
-                  final String title = data['title'] ?? 'Untitled Task';
+                  final String title = data['title'] ?? AppStrings.untitledTask;
                   final Timestamp? nextDueDateTs = data['nextDueDate'];
                   final DateTime? nextDueDate = nextDueDateTs?.toDate();
-                  String status = 'Upcoming';
+                  String status = AppStrings.taskStatusUpcoming;
                   Color statusColor = Colors.green;
                   if (nextDueDate != null && nextDueDate.isBefore(now)) {
-                    status = 'Overdue';
+                    status = AppStrings.taskStatusOverdue;
                     statusColor = Colors.red;
                   }
                   return ListTile(
                     leading: Icon(Icons.check_circle_outline, color: statusColor),
                     title: Text(title),
-                    subtitle: Text(nextDueDate != null ? 'Due: ${DateFormat.yMMMMd().format(nextDueDate)} ($status)' : 'No due date set'),
+                    subtitle: Text(nextDueDate != null ? '${Labels.due} ${DateFormat.yMMMMd().format(nextDueDate)} ($status)' : AppStrings.noDueDate),
                     onTap: () {
                       _markTaskAsComplete(task.id, data);
                     },

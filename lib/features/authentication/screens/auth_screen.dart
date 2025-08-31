@@ -1,6 +1,8 @@
+// lib/features/authentication/screens/auth_screen.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/features/authentication/services/auth_service.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 enum AuthMode { login, signUp }
 
@@ -35,11 +37,9 @@ class _AuthScreenState extends State<AuthScreen> {
         await _authService.signUpWithEmail(email, password);
       }
       // On success, the AuthGate will handle navigation automatically.
-      // We no longer need any special logic here.
-
     } on FirebaseAuthException catch (e) {
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text(e.message ?? 'An error occurred.')),
+        SnackBar(content: Text(e.message ?? AppStrings.genericError)),
       );
     }
   }
@@ -49,41 +49,40 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('Password reset email sent! Please check your inbox.')),
+        const SnackBar(content: Text(AppStrings.passwordResetSuccess)),
       );
     } on FirebaseAuthException catch (e) {
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text(e.message ?? 'An error occurred.')),
+        SnackBar(content: Text(e.message ?? AppStrings.genericError)),
       );
     }
   }
 
   void _showForgotPasswordDialog() {
-    // This function doesn't change much, but now it will use the service
     final emailController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset Password'),
+        title: const Text(ScreenTitles.resetPassword),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Enter your email address to receive a password reset link.'),
+            const Text(AppStrings.resetPasswordInstructions),
             const SizedBox(height: 16),
             TextField(
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: const InputDecoration(labelText: Labels.email),
             ),
           ],
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel'),
+            child: const Text(ButtonLabels.cancel),
             onPressed: () => Navigator.of(context).pop(),
           ),
           ElevatedButton(
-            child: const Text('Send Link'),
+            child: const Text(ButtonLabels.sendLink),
             onPressed: () {
               if (emailController.text.isNotEmpty) {
                 _sendPasswordResetEmail(emailController.text.trim());
@@ -103,7 +102,7 @@ class _AuthScreenState extends State<AuthScreen> {
       // AuthGate handles navigation
     } catch (e) {
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('Failed to sign in with Google: $e')),
+        SnackBar(content: Text('${AppStrings.failedToSignInWithGoogle}: $e')),
       );
     }
   }
@@ -114,7 +113,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_authMode == AuthMode.login ? 'Login' : 'Sign Up'),
+        title: Text(_authMode == AuthMode.login ? ScreenTitles.login : ScreenTitles.signUp),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -125,10 +124,10 @@ class _AuthScreenState extends State<AuthScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 60),
-                Image.asset('assets/images/logo.png', height: 150),
+                Image.asset(AssetPaths.logo, height: 150),
                 const SizedBox(height: 16),
                 Text(
-                  'FlockWell',
+                  AppStrings.appName,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
@@ -138,25 +137,25 @@ class _AuthScreenState extends State<AuthScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
-                  validator: (value) => (value == null || !value.contains('@')) ? 'Please enter a valid email' : null,
+                  decoration: const InputDecoration(labelText: Labels.email, border: OutlineInputBorder()),
+                  validator: (value) => (value == null || !value.contains('@')) ? AppStrings.emailValidation : null,
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password', border: OutlineInputBorder()),
-                  validator: (value) => (value == null || value.length < 6) ? 'Password must be at least 6 characters' : null,
+                  decoration: const InputDecoration(labelText: Labels.password, border: OutlineInputBorder()),
+                  validator: (value) => (value == null || value.length < 6) ? AppStrings.passwordLengthValidation : null,
                 ),
                 if (_authMode == AuthMode.signUp) ...[
                   const SizedBox(height: 16.0),
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Confirm Password', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(labelText: Labels.confirmPassword, border: OutlineInputBorder()),
                     validator: (value) {
                       if (value != _passwordController.text) {
-                        return 'Passwords do not match';
+                        return AppStrings.passwordMismatchValidation;
                       }
                       return null;
                     },
@@ -167,13 +166,13 @@ class _AuthScreenState extends State<AuthScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _showForgotPasswordDialog,
-                      child: const Text('Forgot Password?'),
+                      child: const Text(Labels.forgotPassword),
                     ),
                   ),
                 const SizedBox(height: 24.0),
                 ElevatedButton(
                   onPressed: _submit,
-                  child: Text(_authMode == AuthMode.login ? 'Login' : 'Create Account'),
+                  child: Text(_authMode == AuthMode.login ? ButtonLabels.login : ButtonLabels.createAccount),
                 ),
                 const SizedBox(height: 8.0),
                 TextButton(
@@ -183,8 +182,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     });
                   },
                   child: Text(_authMode == AuthMode.login
-                      ? 'Don\'t have an account? Sign Up'
-                      : 'Already have an account? Login'),
+                      ? AppStrings.dontHaveAccount
+                      : AppStrings.alreadyHaveAccount),
                 ),
                 const SizedBox(height: 24),
                 const Row(
@@ -192,15 +191,15 @@ class _AuthScreenState extends State<AuthScreen> {
                     Expanded(child: Divider()),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text('OR'),
+                      child: Text(AppStrings.orSeparator),
                     ),
                     Expanded(child: Divider()),
                   ],
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  icon: Image.asset('assets/images/google_logo.png', height: 24.0),
-                  label: const Text('Sign in with Google'),
+                  icon: Image.asset(AssetPaths.googleLogo, height: 24.0),
+                  label: const Text(ButtonLabels.signInWithGoogle),
                   onPressed: _signInWithGoogle,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,

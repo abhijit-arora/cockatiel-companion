@@ -1,3 +1,4 @@
+// lib/features/home/screens/home_screen.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:async/async.dart';
@@ -12,6 +13,7 @@ import 'package:cockatiel_companion/features/home/widgets/onboarding_tip_card.da
 import 'package:cockatiel_companion/features/home/widgets/upcoming_tasks_card.dart';
 import 'package:cockatiel_companion/features/home/widgets/pending_invitations_card.dart';
 import 'package:cockatiel_companion/features/home/widgets/upcoming_anniversary_card.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -47,8 +49,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // The title no longer needs the inversePrimary color from the theme
-        // as it will match the new app bars on the other screens.
         title: Row(
           children: [
             CircleAvatar(
@@ -56,25 +56,23 @@ class _HomePageState extends State<HomePage> {
               radius: 20,
               child: Padding(
                 padding: const EdgeInsets.all(4.0),
-                child: Image.asset('assets/images/logo.png'),
+                child: Image.asset(AssetPaths.logo),
               ),
             ),
             const SizedBox(width: 10),
-            const Text('Your Flock'),
+            const Text(ScreenTitles.homePage),
           ],
         ),
         actions: [
-          // Keep the most important action directly visible.
           IconButton(
             icon: const Icon(Icons.group_work_outlined),
-            tooltip: 'Manage Aviary',
+            tooltip: Labels.manageHouseholdTooltip,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const AviaryManagementScreen()),
               );
             },
           ),
-          // Use a PopupMenuButton for all other actions.
           PopupMenuButton<String>(
             onSelected: (value) {
               switch (value) {
@@ -97,21 +95,21 @@ class _HomePageState extends State<HomePage> {
                 value: 'care_tasks',
                 child: ListTile(
                   leading: Icon(Icons.task_alt),
-                  title: Text('Care Tasks'),
+                  title: Text(ScreenTitles.careTasks),
                 ),
               ),
               const PopupMenuItem<String>(
                 value: 'knowledge_center',
                 child: ListTile(
                   leading: Icon(Icons.library_books),
-                  title: Text('Knowledge Center'),
+                  title: Text(ScreenTitles.knowledgeCenter),
                 ),
               ),
               const PopupMenuItem<String>(
                 value: 'about',
                 child: ListTile(
                   leading: Icon(Icons.info_outline),
-                  title: Text('About FlockWell'),
+                  title: Text(ScreenTitles.aboutApp),
                 ),
               ),
               const PopupMenuDivider(),
@@ -119,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                 value: 'sign_out',
                 child: ListTile(
                   leading: Icon(Icons.logout),
-                  title: Text('Sign Out'),
+                  title: Text(Labels.signOut),
                 ),
               ),
             ],
@@ -130,18 +128,14 @@ class _HomePageState extends State<HomePage> {
         ? const Center(child: CircularProgressIndicator())
         : RefreshIndicator(
             onRefresh: () async {
-              // This triggers a rebuild, which re-creates the stream with fresh data.
               setState(() {});
-              // Add a small delay for better UX so the indicator is visible briefly.
               await Future.delayed(const Duration(milliseconds: 500));
             },
             child: Column(
               children: [
-                // These two cards are always present after loading
                 const PendingInvitationsCard(),
                 if (_aviaryId != null) UpcomingTasksCard(aviaryId: _aviaryId!),
                 
-                // This StreamBuilder now handles fetching both nests and birds for clustering.
                 Expanded(
                   child: StreamBuilder<List<QuerySnapshot>>(
                     stream: StreamZip([
@@ -154,10 +148,10 @@ class _HomePageState extends State<HomePage> {
                       }
                       if (snapshot.hasError) {
                         debugPrint('Error loading home screen data: ${snapshot.error}');
-                        return const Center(child: Text('Something went wrong!'));
+                        return const Center(child: Text(AppStrings.somethingWentWrong));
                       }
                       if (!snapshot.hasData || snapshot.data!.length < 2) {
-                        return const Center(child: Text('Loading data...'));
+                        return const Center(child: Text(AppStrings.loadingData));
                       }
 
                       final nestsDocs = snapshot.data![0].docs;
@@ -167,12 +161,11 @@ class _HomePageState extends State<HomePage> {
                         return const Center(
                           child: Padding(
                             padding: EdgeInsets.all(16.0),
-                            child: Text('You have no birds yet. Add one to get started!', textAlign: TextAlign.center),
+                            child: Text(AppStrings.noPetsYet, textAlign: TextAlign.center),
                           ),
                         );
                       }
 
-                      // --- LOGIC TO FIND UPCOMING ANNIVERSARIES ---
                       final List<UpcomingAnniversary> upcomingAnniversaries = [];
                       final today = DateTime.now();
                       const int notificationWindow = 7;
@@ -184,7 +177,6 @@ class _HomePageState extends State<HomePage> {
                         void checkAnniversary(String eventName, Timestamp? eventTimestamp) {
                           if (eventTimestamp == null) return;
                           final eventDate = eventTimestamp.toDate();
-                          // Use a date-only comparison to avoid time-of-day issues
                           final todayDateOnly = DateTime(today.year, today.month, today.day);
                           DateTime nextAnniversary = DateTime(today.year, eventDate.month, eventDate.day);
 
@@ -192,7 +184,6 @@ class _HomePageState extends State<HomePage> {
                             nextAnniversary = DateTime(today.year + 1, eventDate.month, eventDate.day);
                           }
                           
-                          // Use .difference().inDays, which is correct for this
                           final daysRemaining = nextAnniversary.difference(todayDateOnly).inDays;
                           
                           if (daysRemaining >= 0 && daysRemaining <= notificationWindow) {
@@ -200,14 +191,11 @@ class _HomePageState extends State<HomePage> {
                                 birdName: birdName, eventName: eventName, daysRemaining: daysRemaining));
                           }
                         }
-                        checkAnniversary('Hatch Day', birdData['hatchDay']);
-                        checkAnniversary('Gotcha Day', birdData['gotchaDay']);
+                        checkAnniversary(AppStrings.birthDay, birdData['hatchDay']);
+                        checkAnniversary(AppStrings.adoptionDay, birdData['gotchaDay']);
                       }
-                      // Sort events by days remaining
                       upcomingAnniversaries.sort((a, b) => a.daysRemaining.compareTo(b.daysRemaining));
 
-
-                      // --- LOGIC TO GROUP BIRDS BY NEST ---
                       final Map<String, List<DocumentSnapshot>> birdsByNest = {};
                       for (final birdDoc in birdDocs) {
                         final birdData = birdDoc.data() as Map<String, dynamic>;
@@ -217,7 +205,6 @@ class _HomePageState extends State<HomePage> {
                         }
                       }
 
-                      // --- LOGIC TO FIND ONBOARDING BIRD ---
                       DocumentSnapshot? onboardingBirdDoc;
                       for (final doc in birdDocs) {
                         final data = doc.data() as Map<String, dynamic>;
@@ -236,19 +223,16 @@ class _HomePageState extends State<HomePage> {
                       final bool hasOnboardingTip = onboardingBirdDoc != null;
                       
                       final List<UpcomingAnniversary> activeAnniversaries = upcomingAnniversaries.where((event) {
-                        // Create a unique ID for each anniversary instance.
                         final eventId = '${event.birdName}-${event.eventName}';
                         return !_dismissedAnniversaries.contains(eventId);
                       }).toList();
 
-                      // --- Update the counts based on the filtered list ---
                       final int anniversaryCount = activeAnniversaries.length;
                       final int tipCount = hasOnboardingTip ? 1 : 0;
 
                       return ListView.builder(
                         itemCount: tipCount + anniversaryCount + nestsDocs.length,
                         itemBuilder: (context, index) {
-                          // --- SECTION 1: ONBOARDING TIP ---
                           if (hasOnboardingTip && index == 0) {
                             final onboardingData = onboardingBirdDoc!.data() as Map<String, dynamic>;
                             return OnboardingTipCard(
@@ -257,21 +241,20 @@ class _HomePageState extends State<HomePage> {
                             );
                           }
 
-                          // --- SECTION 2: ANNIVERSARY CARDS ---
                           if (index < (tipCount + anniversaryCount)) {
                             final anniversaryIndex = index - tipCount;
                             final event = activeAnniversaries[anniversaryIndex];
                             final eventId = '${event.birdName}-${event.eventName}';
 
                             return Dismissible(
-                              key: Key(eventId), // Unique key is essential!
+                              key: Key(eventId),
                               onDismissed: (direction) {
                                 setState(() {
                                   _dismissedAnniversaries.add(eventId);
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('${event.birdName}\'s reminder dismissed.'),
+                                    content: Text('${event.birdName}${AppStrings.reminderDismissedSuffix}'),
                                     duration: const Duration(seconds: 2),
                                   ),
                                 );
@@ -296,13 +279,12 @@ class _HomePageState extends State<HomePage> {
                             );
                           }
 
-                          // --- SECTION 3: NEST CLUSTERS ---
                           final nestIndex = index - tipCount - anniversaryCount;
                           if (nestIndex >= nestsDocs.length) return const SizedBox.shrink();
 
                           final nestDoc = nestsDocs[nestIndex];
                           final nestData = nestDoc.data() as Map<String, dynamic>;
-                          final nestName = nestData['name'] ?? 'Unnamed Nest';
+                          final nestName = nestData['name'] ?? AppStrings.unnamedEnclosure;
                           final birdsInThisNest = birdsByNest[nestDoc.id] ?? [];
 
                           if (birdsInThisNest.isEmpty) {
@@ -335,12 +317,12 @@ class _HomePageState extends State<HomePage> {
                                         final ageInDays = now.difference(hatchDay).inDays;
                                         if (ageInDays >= 365) {
                                           final years = ageInDays ~/ 365;
-                                          timeParts.add('$years year${years > 1 ? 's' : ''} old');
+                                          timeParts.add('$years ${years > 1 ? AppStrings.yearsOld : AppStrings.yearOld}');
                                         } else if (ageInDays >= 30) {
                                           final months = ageInDays ~/ 30;
-                                          timeParts.add('$months month${months > 1 ? 's' : ''} old');
+                                          timeParts.add('$months ${months > 1 ? AppStrings.monthsOld : AppStrings.monthOld}');
                                         } else {
-                                          timeParts.add('$ageInDays day${ageInDays != 1 ? 's' : ''} old');
+                                          timeParts.add('$ageInDays ${ageInDays != 1 ? AppStrings.daysOld : AppStrings.dayOld}');
                                         }
                                       }
                                       if (birdData['gotchaDay'] != null && birdData['gotchaDay'] is Timestamp) {
@@ -349,17 +331,16 @@ class _HomePageState extends State<HomePage> {
                                         final daysWithYou = now.difference(gotchaDay).inDays;
                                         if (daysWithYou >= 365) {
                                           final years = daysWithYou ~/ 365;
-                                          timeParts.add('$years year${years > 1 ? 's' : ''} with you');
+                                          timeParts.add('$years ${years > 1 ? AppStrings.yearsWithYou : AppStrings.yearWithYou}');
                                         } else if (daysWithYou >= 30) {
                                           final months = daysWithYou ~/ 30;
-                                          timeParts.add('$months month${months > 1 ? 's' : ''} with you');
+                                          timeParts.add('$months ${months > 1 ? AppStrings.monthsWithYou : AppStrings.monthWithYou}');
                                         } else {
-                                          timeParts.add(daysWithYou == 0 ? 'New!' : '$daysWithYou day${daysWithYou != 1 ? 's' : ''} with you');
+                                          timeParts.add(daysWithYou == 0 ? AppStrings.newPet : '$daysWithYou ${daysWithYou != 1 ? AppStrings.daysWithYou : AppStrings.dayWithYou}');
                                         }
                                       }
                                       final String timeText = timeParts.join(' • ');
 
-                                      // --- Build the subtitle widget ---
                                       Widget? subtitleWidget;
                                       if (speciesText.isNotEmpty || timeText.isNotEmpty) {
                                         subtitleWidget = Column(
@@ -384,14 +365,12 @@ class _HomePageState extends State<HomePage> {
                                         },
                                         trailing: IconButton(
                                           icon: const Icon(Icons.edit),
-                                          onPressed: () async { // <-- Make async
-                                            // Await the result of the ProfileScreen
+                                          onPressed: () async {
                                             await Navigator.of(context).push(
                                               MaterialPageRoute(
                                                 builder: (context) => ProfileScreen(birdId: birdId, aviaryId: _aviaryId!),
                                               ),
                                             );
-                                            // When we return, force a rebuild.
                                             setState(() {});
                                           },
                                         ),
@@ -429,17 +408,13 @@ class _HomePageState extends State<HomePage> {
 
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
 
-    // It's possible the user signs out while the network request is in flight.
-    // So we must check if the widget is still mounted BEFORE calling setState.
     if (mounted) {
       if (userDoc.exists && userDoc.data()!.containsKey('partOfAviary')) {
-        // This user is a CAREGIVER in someone else's Aviary
         setState(() {
           _aviaryId = userDoc.data()!['partOfAviary'];
           _isLoading = false;
         });
       } else {
-        // This user is a GUARDIAN of their own Aviary
         setState(() {
           _aviaryId = user.uid;
           _isLoading = false;

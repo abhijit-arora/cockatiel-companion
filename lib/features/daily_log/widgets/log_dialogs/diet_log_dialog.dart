@@ -1,6 +1,7 @@
+// lib/features/daily_log/widgets/log_dialogs/diet_log_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
-// Define a type for our callback function for clarity
 typedef OnSaveDietLog = Future<void> Function({
   required String foodType,
   required String description,
@@ -9,7 +10,6 @@ typedef OnSaveDietLog = Future<void> Function({
 });
 
 class DietLogDialog extends StatefulWidget {
-  // Add the callback function as a required parameter
   final OnSaveDietLog onSave;
   final Map<String, dynamic>? initialData;
 
@@ -45,18 +45,18 @@ class _DietLogDialogState extends State<DietLogDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Log Food Offered'),
+      title: const Text(ScreenTitles.logFoodOffered),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // Dropdown for Food Type
               DropdownButtonFormField<String>(
                 initialValue: _selectedFoodType,
-                hint: const Text('Select Food Type'),
-                items: ['Pellets', 'Green Leafs', 'Vegetables', 'Fruit', 'Sprouts', 'Treat', 'Other']
+                hint: const Text(AppStrings.selectFoodTypeHint),
+                items: DropdownOptions.dietFoodTypes
                     .map((label) => DropdownMenuItem(value: label, child: Text(label)))
                     .toList(),
                 onChanged: (value) {
@@ -64,17 +64,16 @@ class _DietLogDialogState extends State<DietLogDialog> {
                     _selectedFoodType = value!;
                   });
                 },
-                decoration: const InputDecoration(labelText: 'Food Type'),
-                validator: (value) => value == null ? 'Please select a food type.' : null,
+                decoration: const InputDecoration(labelText: Labels.foodType),
+                validator: (value) => value == null ? AppStrings.foodTypeValidation : null,
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description (e.g., Fresh chop)'),
+                decoration: const InputDecoration(labelText: Labels.description),
               ),
               const SizedBox(height: 16),
-              const Text('Consumption Level*'), // Add asterisk for mandatory
-              // Use a FormField to handle validation for the ChoiceChips
+              const Text(Labels.consumptionLevel),
               FormField<String>(
                 builder: (FormFieldState<String> state) {
                   return Column(
@@ -82,23 +81,25 @@ class _DietLogDialogState extends State<DietLogDialog> {
                     children: [
                       Wrap(
                         spacing: 8.0,
-                        children: ['Untouched', 'Ate Some', 'Ate Well'].map((level) {
+                        // Note: The order in the constant is 'Ate Well', 'Ate Some', 'Untouched'.
+                        // Reversing it for the desired UI layout.
+                        children: DropdownOptions.dietConsumptionLevels.reversed.map((level) {
                           return ChoiceChip(
                             label: Text(level),
                             selected: _consumptionLevel == level,
-                            selectedColor: Theme.of(context).primaryColorLight, // <-- Better visual
+                            selectedColor: Theme.of(context).primaryColorLight,
                             onSelected: (selected) {
                               if (selected) {
                                 setState(() {
                                   _consumptionLevel = level;
-                                  state.didChange(level); // Notify the FormField
+                                  state.didChange(level);
                                 });
                               }
                             },
                           );
                         }).toList(),
                       ),
-                      if (state.hasError) // <-- Show error text if invalid
+                      if (state.hasError)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: Text(
@@ -111,7 +112,7 @@ class _DietLogDialogState extends State<DietLogDialog> {
                 },
                 validator: (value) {
                   if (_consumptionLevel == null) {
-                    return 'Please select a consumption level.';
+                    return AppStrings.consumptionLevelValidation;
                   }
                   return null;
                 },
@@ -119,7 +120,7 @@ class _DietLogDialogState extends State<DietLogDialog> {
               const SizedBox(height: 8),
               TextField(
                 controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notes (Optional)'),
+                decoration: const InputDecoration(labelText: Labels.notesOptional),
                 maxLines: 2,
               ),
             ],
@@ -128,17 +129,13 @@ class _DietLogDialogState extends State<DietLogDialog> {
       ),
       actions: <Widget>[
         TextButton(
-          // Disable cancel button while loading
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const Text(ButtonLabels.cancel),
         ),
         ElevatedButton(
-          // Disable button while loading and use async onPressed
           onPressed: _isLoading ? null : () async {
             if (_formKey.currentState!.validate()) {
-              // --- NEW: Capture navigator before the async gap ---
               final navigator = Navigator.of(context);
-
               setState(() { _isLoading = true; });
 
               await widget.onSave(
@@ -148,18 +145,16 @@ class _DietLogDialogState extends State<DietLogDialog> {
                 notes: _notesController.text,
               );
 
-              // --- Use the captured navigator after the gap ---
               navigator.pop();
             }
           },
-          // Show a spinner or text based on loading state
           child: _isLoading
             ? const SizedBox(
                 height: 20,
                 width: 20,
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0),
               )
-            : const Text('Save'),
+            : const Text(ButtonLabels.save),
         ),
       ],
     );

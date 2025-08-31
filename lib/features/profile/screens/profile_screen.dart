@@ -1,9 +1,11 @@
+// lib/features/profile/screens/profile_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cockatiel_companion/features/aviary/widgets/aviary_dialogs/add_edit_nest_dialog.dart';
 import 'package:cockatiel_companion/features/notifications/services/notification_service.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? birdId;
@@ -23,23 +25,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   DateTime? _selectedHatchDate;
   bool _isLoading = false;
   String? _selectedSpecies;
-  final List<String> _speciesOptions = [
-    'Cockatiel',
-    'Budgerigar',
-    'Parrotlet',
-    'Lovebird',
-    'Conure',
-    'Other',
-  ];
   String? _selectedNestId;
-    List<DropdownMenuItem<String>> _nestOptions = [];
-    bool _isNestsLoading = true;
+  List<DropdownMenuItem<String>> _nestOptions = [];
+  bool _isNestsLoading = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.birdId == null ? 'Add to Your Flock' : 'Edit Profile'),
+        title: Text(widget.birdId == null ? ScreenTitles.addPet : ScreenTitles.editPet),
       ),
       body: _isLoading
         ? const Center(child: CircularProgressIndicator())
@@ -50,7 +44,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // --- Image Placeholder ---
                   CircleAvatar(
                     radius: 60,
                     child: const Icon(Icons.photo_camera, size: 50),
@@ -60,21 +53,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onPressed: () {
                       // TODO: Implement image picking logic
                     },
-                    child: const Text('Add Photo'),
+                    child: const Text(ButtonLabels.addPhotoOptional),
                   ),
 
                   const SizedBox(height: 24),
 
-                  // --- Name Field ---
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
-                      labelText: 'Name*',
+                      labelText: Labels.nameRequired,
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your bird\'s name.';
+                        return AppStrings.petNameValidation;
                       }
                       return null;
                     },
@@ -82,16 +74,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 16),
 
-                  // --- Nest Dropdown Field ---
                   if (_isNestsLoading)
                     const Center(child: CircularProgressIndicator())
                   else
-                    Column( // Wrap dropdown in a Column
+                    Column(
                       children: [
                         DropdownButtonFormField<String>(
                           initialValue: _selectedNestId,
                           decoration: const InputDecoration(
-                            labelText: 'Nest*',
+                            labelText: Labels.enclosureRequired,
                             border: OutlineInputBorder(),
                           ),
                           items: _nestOptions,
@@ -102,17 +93,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please select a nest for your bird.';
+                              return AppStrings.enclosureValidation;
                             }
                             return null;
                           },
                         ),
-                        // Add the button below the dropdown
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(
                             icon: const Icon(Icons.add, size: 18),
-                            label: const Text('Create New Nest'),
+                            label: const Text(Labels.createNewEnclosure),
                             onPressed: _showAddNestDialog,
                           ),
                         ),
@@ -121,14 +111,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 16),
 
-                  // --- Species Dropdown Field ---
                   DropdownButtonFormField<String>(
                     initialValue: _selectedSpecies,
                     decoration: const InputDecoration(
-                      labelText: 'Species*',
+                      labelText: Labels.speciesRequired,
                       border: OutlineInputBorder(),
                     ),
-                    items: _speciesOptions.map((String species) {
+                    items: DropdownOptions.petSpecies.map((String species) {
                       return DropdownMenuItem<String>(
                         value: species,
                         child: Text(species),
@@ -141,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please select your bird\'s species.';
+                        return AppStrings.speciesValidation;
                       }
                       return null;
                     },
@@ -149,12 +138,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 16),
 
-                  // --- Gotcha Day Field ---
                   TextField(
                     controller: _gotchaDateController,
                     readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: 'Gotcha Day (Date you got your bird)',
+                      labelText: Labels.adoptionDay,
                       border: OutlineInputBorder(),
                       suffixIcon: Icon(Icons.calendar_today),
                     ),
@@ -174,23 +162,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
 
-                  const SizedBox(height: 16), // Add some space
+                  const SizedBox(height: 16),
 
-                  // --- Hatch Date Field ---
                   TextField(
                     controller: _hatchDateController,
                     readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: 'Hatch Day (Optional)',
+                      labelText: Labels.birthDayOptional,
                       border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.cake_outlined), // A more fitting icon
+                      suffixIcon: Icon(Icons.cake_outlined),
                     ),
                     onTap: () async {
                       final DateTime? picked = await showDatePicker(
                         context: context,
                         initialDate: _selectedHatchDate ?? _selectedGotchaDate ?? DateTime.now(),
                         firstDate: DateTime(2000),
-                        lastDate: DateTime.now(), // Birds can't be hatched in the future
+                        lastDate: DateTime.now(),
                       );
                       if (picked != null) {
                         setState(() {
@@ -203,10 +190,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 24),
 
-                  // --- Save Button ---
                   ElevatedButton(
                     onPressed: _saveProfile,
-                    child: const Text('Save Profile'),
+                    child: const Text(ButtonLabels.saveProfile),
                   ),
                 ],
           ),
@@ -218,9 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // In both "Add" and "Edit" mode, we need the list of nests.
     _fetchNests().then((_) {
-      // After nests are fetched, if we are in "Edit Mode", fetch the bird's data.
       if (widget.birdId != null) {
         _fetchBirdData();
       }
@@ -228,26 +212,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _fetchBirdData() async {
-    // Set loading state to true
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() { _isLoading = true; });
 
     try {
       final doc = await FirebaseFirestore.instance.collection('birds').doc(widget.birdId).get();
       if (doc.exists) {
         final data = doc.data()!;
-        // Set the text of our controller with the fetched name
         _nameController.text = data['name'];
         _selectedSpecies = data['species'];
         _selectedNestId = data['nestId'];
         if (data['gotchaDay'] != null) {
-          // Convert the Firestore Timestamp back to a DateTime
           final timestamp = data['gotchaDay'] as Timestamp;
           _selectedGotchaDate = timestamp.toDate();
           _gotchaDateController.text = DateFormat.yMMMMd().format(_selectedGotchaDate!);
         }
-        // Add this block to load the hatch date
         if (data['hatchDay'] != null) {
           final timestamp = data['hatchDay'] as Timestamp;
           _selectedHatchDate = timestamp.toDate();
@@ -255,13 +233,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       }
     } catch (e) {
-      print('Error fetching bird data: $e');
-      // Handle errors later
+      debugPrint('Error fetching bird data: $e');
     } finally {
-      // Set loading state to false once done
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() { _isLoading = false; });
     }
   }
 
@@ -274,19 +248,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .collection('nests')
           .add({'name': name, 'createdAt': FieldValue.serverTimestamp()});
 
-      // After creating the nest, refresh the list and select the new one.
       await _fetchNests();
       setState(() {
         _selectedNestId = newNestRef.id;
       });
 
       scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text('"$name" has been created!')),
+        SnackBar(content: Text('"$name" ${AppStrings.enclosureCreated}')),
       );
     } catch (e) {
-      print('Error adding nest: $e');
+      debugPrint('Error adding nest: $e');
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('Error: Could not create the nest.')),
+        const SnackBar(content: Text(AppStrings.createEnclosureError)),
       );
     }
   }
@@ -294,7 +267,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showAddNestDialog() {
     showDialog(
       context: context,
-      // We are reusing the existing dialog here.
       builder: (context) => AddEditNestDialog(onSave: _addNest),
     );
   }
@@ -311,20 +283,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final nestItems = nestsSnapshot.docs.map((doc) {
         return DropdownMenuItem<String>(
           value: doc.id,
-          child: Text(doc.data()['name'] ?? 'Unnamed Nest'),
+          child: Text(doc.data()['name'] ?? AppStrings.unnamedEnclosure),
         );
       }).toList();
 
       setState(() {
         _nestOptions = nestItems;
-        // If there is no nest currently selected, and there's only one option, select it automatically.
         if (_selectedNestId == null && nestItems.length == 1) {
             _selectedNestId = nestItems.first.value;
         }
       });
     } catch (e) {
-      print('Error fetching nests: $e');
-      // Optionally show an error message to the user
+      debugPrint('Error fetching nests: $e');
     } finally {
       setState(() { _isNestsLoading = false; });
     }
@@ -336,7 +306,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      print('Error: No user is logged in.');
+      debugPrint('Error: No user is logged in.');
       return;
     }
     final navigator = Navigator.of(context);
@@ -344,9 +314,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() { _isLoading = true; });
 
     try {
-      // If no nest is selected (e.g., for a new user), create one.
       if (_selectedNestId == null) {
-        // First, ensure the Aviary document exists.
         final aviaryDocRef = FirebaseFirestore.instance.collection('aviaries').doc(widget.aviaryId);
         final aviaryDoc = await aviaryDocRef.get();
         if (!aviaryDoc.exists) {
@@ -359,32 +327,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             });
         }
         
-        // Now, create the default nest and assign its ID.
         final newNestRef = await aviaryDocRef.collection('nests').add({
             'name': 'My First Nest',
             'createdAt': FieldValue.serverTimestamp(),
         });
         _selectedNestId = newNestRef.id;
         scaffoldMessenger.showSnackBar(
-            const SnackBar(content: Text('Your first nest has been created!')),
+            const SnackBar(content: Text(AppStrings.firstEnclosureCreated)),
         );
       }
 
-      // --- Get all caregivers to add to the viewers list ---
       final caregiversSnapshot = await FirebaseFirestore.instance
           .collection('aviaries')
           .doc(widget.aviaryId)
           .collection('caregivers')
           .get();
       
-      // Create a list of viewer UIDs, starting with the Guardian
       final List<String> viewers = [widget.aviaryId];
-      // Add all the caregiver UIDs
       for (var doc in caregiversSnapshot.docs) {
         viewers.add(doc.id);
       }
 
-      // --- Prepare and Save the Bird Data ---
       final birdData = {
         'name': _nameController.text.trim(),
         'species': _selectedSpecies,
@@ -392,7 +355,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'hatchDay': _selectedHatchDate,
         'ownerId': widget.aviaryId,
         'nestId': _selectedNestId,
-        'viewers': viewers, // <-- Use the new comprehensive list of viewers
+        'viewers': viewers,
       };
 
       DocumentReference birdRef;
@@ -406,13 +369,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await birdRef.update(birdData);
       }
 
-      // --- NEW: Schedule notifications after saving ---
       await _scheduleNotifications(birdRef.id, birdData);
       
       navigator.pop();
 
     } catch (e) {
-      print('Error saving profile: $e');
+      debugPrint('Error saving profile: $e');
     } finally {
       if (mounted) {
         setState(() { _isLoading = false; });
@@ -423,30 +385,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _scheduleNotifications(String birdId, Map<String, dynamic> birdData) async {
     final notificationService = NotificationService();
     
-    // Create unique IDs for the notifications. 
-    // Using a hash of the bird's ID and the type of notification.
     final hatchDayId = birdId.hashCode;
     final gotchaDayId = '$birdId-gotcha'.hashCode;
 
-    // Schedule Hatch Day notification
     if (birdData['hatchDay'] != null) {
       await notificationService.scheduleAnniversaryNotification(
         id: hatchDayId,
-        title: 'Upcoming Hatch Day! 🎂',
-        body: 'Get ready to celebrate! ${birdData['name']}\'s hatch day is in one week.',
+        title: AppStrings.upcomingBirthDayTitle, // Corrected
+        body: '${AppStrings.upcomingBirthDayBodyPart1} ${birdData['name']}${AppStrings.upcomingBirthDayBodyPart2}', // Corrected
         eventDate: birdData['hatchDay'],
       );
     } else {
-      // If the date was removed, cancel any existing notification.
       await notificationService.cancelNotification(hatchDayId);
     }
 
-    // Schedule Gotcha Day notification
     if (birdData['gotchaDay'] != null) {
       await notificationService.scheduleAnniversaryNotification(
         id: gotchaDayId,
-        title: 'Upcoming Gotcha Day! 🎉',
-        body: '${birdData['name']}\'s gotcha day is in one week! Time to celebrate your journey together.',
+        title: AppStrings.upcomingAdoptionDayTitle, // Corrected
+        body: '${birdData['name']}${AppStrings.upcomingAdoptionDayBodyPart1} ${AppStrings.upcomingAdoptionDayBodyPart2}', // Corrected
         eventDate: birdData['gotchaDay'],
       );
     } else {

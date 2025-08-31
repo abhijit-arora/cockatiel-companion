@@ -1,5 +1,7 @@
+// lib/features/daily_log/widgets/log_dialogs/weight_log_dialog.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For input formatters
+import 'package:flutter/services.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 typedef OnSaveWeightLog = Future<void> Function({
   required double weight,
@@ -34,7 +36,6 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
   void initState() {
     super.initState();
     if (widget.initialData != null) {
-      // Convert the weight (which might be an int or double) to a string for the controller
       _weightController.text = (widget.initialData!['weight'] ?? 0.0).toString();
       _selectedUnit = widget.initialData!['unit'] ?? 'g';
       _selectedContext = widget.initialData!['context'];
@@ -45,7 +46,7 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Log Weight'),
+      title: const Text(ScreenTitles.logWeight),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -56,8 +57,8 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
               TextFormField(
                 controller: _weightController,
                 decoration: InputDecoration(
-                  labelText: 'Weight*',
-                  suffixText: _selectedUnit, // Shows g or oz
+                  labelText: Labels.weightRequired,
+                  suffixText: _selectedUnit,
                 ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [
@@ -65,19 +66,18 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
                 ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a weight.';
+                    return AppStrings.weightValidation;
                   }
                   if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number.';
+                    return AppStrings.validNumberValidation;
                   }
                   return null;
                 },
               ),
-              // Simple Segmented Button for unit selection
               SegmentedButton<String>(
                 segments: const [
-                  ButtonSegment(value: 'g', label: Text('Grams')),
-                  ButtonSegment(value: 'oz', label: Text('Ounces')),
+                  ButtonSegment(value: 'g', label: Text(Labels.grams)),
+                  ButtonSegment(value: 'oz', label: Text(Labels.ounces)),
                 ],
                 selected: {_selectedUnit},
                 onSelectionChanged: (Set<String> newSelection) {
@@ -90,8 +90,8 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: _selectedContext,
-                hint: const Text('Select Context (Optional)'),
-                items: ['Before Meal', 'After Meal', 'Unspecified']
+                hint: const Text(AppStrings.selectContextHint),
+                items: DropdownOptions.weightContexts
                     .map((label) => DropdownMenuItem(value: label, child: Text(label)))
                     .toList(),
                 onChanged: (value) {
@@ -104,7 +104,7 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
               const SizedBox(height: 16),
               TextField(
                 controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notes (Optional)'),
+                decoration: const InputDecoration(labelText: Labels.notesOptional),
               ),
             ],
           ),
@@ -113,7 +113,7 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const Text(ButtonLabels.cancel),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : () async {
@@ -124,7 +124,7 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
               await widget.onSave(
                 weight: double.parse(_weightController.text),
                 unit: _selectedUnit,
-                context: _selectedContext ?? 'Unspecified',
+                context: _selectedContext ?? AppStrings.unspecifiedContext,
                 notes: _notesController.text,
               );
 
@@ -137,7 +137,7 @@ class _WeightLogDialogState extends State<WeightLogDialog> {
                 width: 20,
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.0),
               )
-            : const Text('Save'),
+            : const Text(ButtonLabels.save),
         ),
       ],
     );

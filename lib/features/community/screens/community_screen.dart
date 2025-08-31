@@ -1,16 +1,8 @@
+// lib/features/community/screens/community_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/features/community/widgets/chirp_list.dart';
 import 'package:cockatiel_companion/features/community/screens/create_chirp_screen.dart';
-
-// A list to define our categories. Keeping it here makes it easy to manage.
-const List<String> _categories = [
-  'All Chirps',
-  'Health & Wellness',
-  'Behavior & Training',
-  'Nutrition & Diet',
-  'Cage, Toys & Gear',
-  'General Chat',
-];
+import 'package:cockatiel_companion/core/constants.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -19,9 +11,11 @@ class CommunityScreen extends StatefulWidget {
   State<CommunityScreen> createState() => _CommunityScreenState();
 }
 
-// We need TickerProviderStateMixin to handle the TabController animation.
 class _CommunityScreenState extends State<CommunityScreen> with TickerProviderStateMixin {
   late final TabController _tabController;
+  
+  // The list of categories is now sourced from our central constants file.
+  final List<String> _categories = DropdownOptions.communityCategoriesWithAll;
 
   @override
   void initState() {
@@ -39,7 +33,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Community Aviary'),
+        title: const Text(ScreenTitles.community),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -50,26 +44,25 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
       ),
       body: TabBarView(
         controller: _tabController,
-        // Use our new, reusable ChirpList widget for each tab.
         children: _categories.map((String category) {
           return ChirpList(category: category);
         }).toList(),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Get the currently selected category from the TabController.
           final String currentCategory = _categories[_tabController.index];
+          final String allPostsCategory = DropdownOptions.communityCategoriesWithAll[0];
 
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => CreateChirpScreen(
-                // Pass the current category, but not if it's "All Chirps".
-                initialCategory: currentCategory == 'All Chirps' ? null : currentCategory,
+                initialCategory: currentCategory == allPostsCategory ? null : currentCategory,
               ),
             ),
           );
         },
-        label: const Text('Post a Chirp'),
+        // The label now uses our generic "post" term.
+        label: Text('${ButtonLabels.post} a ${AppStrings.post}'),
         icon: const Icon(Icons.add_comment_outlined),
       ),
     );

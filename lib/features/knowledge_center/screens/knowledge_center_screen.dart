@@ -1,6 +1,8 @@
+// lib/features/knowledge_center/screens/knowledge_center_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cockatiel_companion/core/constants.dart';
 
 class KnowledgeCenterScreen extends StatefulWidget {
   const KnowledgeCenterScreen({super.key});
@@ -10,7 +12,6 @@ class KnowledgeCenterScreen extends StatefulWidget {
 }
 
 class _KnowledgeCenterScreenState extends State<KnowledgeCenterScreen> {
-  // Helper function to get the right icon based on resource type
   IconData _getIconForType(String type) {
     switch (type) {
       case 'Video':
@@ -26,7 +27,7 @@ class _KnowledgeCenterScreenState extends State<KnowledgeCenterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Knowledge Center'),
+        title: const Text(ScreenTitles.knowledgeCenter),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('resources').snapshots(),
@@ -35,7 +36,7 @@ class _KnowledgeCenterScreenState extends State<KnowledgeCenterScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No resources found.'));
+            return const Center(child: Text(AppStrings.noResourcesFound));
           }
 
           final resources = snapshot.data!.docs;
@@ -48,19 +49,22 @@ class _KnowledgeCenterScreenState extends State<KnowledgeCenterScreen> {
 
               return ListTile(
                 leading: Icon(_getIconForType(data['type'] ?? '')),
-                title: Text(data['title'] ?? 'No Title'),
-                subtitle: Text(data['sourceName'] ?? 'Unknown Source'),
+                title: Text(data['title'] ?? AppStrings.noTitle),
+                subtitle: Text(data['sourceName'] ?? AppStrings.unknownSource),
                 onTap: () async {
                   final url = data['url'];
+                  // --- Capture context-dependent objects BEFORE the async gap ---
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
                   if (url != null) {
                     final uri = Uri.parse(url);
                     if (await canLaunchUrl(uri)) {
                       await launchUrl(uri);
                     } else {
-                      // Show an error message if the URL can't be launched
-                      if (mounted) { // <-- ADD THIS CHECK
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Could not launch $url')),
+                      // The mounted check is still good practice.
+                      if (mounted) {
+                        scaffoldMessenger.showSnackBar( // Use the captured object
+                          SnackBar(content: Text('${AppStrings.couldNotLaunch} $url')),
                         );
                       }
                     }
