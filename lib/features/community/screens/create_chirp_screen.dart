@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cockatiel_companion/core/constants.dart';
+import 'package:cockatiel_companion/features/user/services/user_service.dart';
 
 class CreateChirpScreen extends StatefulWidget {
   final String? initialCategory;
@@ -23,7 +24,6 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
   XFile? _mediaFile;
   bool _isSubmitting = false;
 
-  // The category list is now sourced from constants.
   final List<String> _categories = DropdownOptions.communityCategories;
 
   @override
@@ -39,11 +39,15 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
       return;
     }
 
+    // --- Capture context-dependent objects BEFORE the async gap ---
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
     setState(() => _isSubmitting = true);
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text(AppStrings.mustBeLoggedInToPost)),
       );
       setState(() => _isSubmitting = false);
@@ -59,7 +63,9 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
         mediaUrl = await uploadTask.ref.getDownloadURL();
       }
 
-      final authorLabel = await _getAuthorLabel(user);
+      // --- Use the UserService ---
+      final authorLabel = await UserService.getAuthorLabelForCurrentUser();
+      
       final chirpData = {
         'title': _titleController.text.trim(),
         'body': _bodyController.text.trim(),
@@ -79,47 +85,17 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
       await newChirpRef.update({'followerCount': 1});
 
       if (mounted) {
-        Navigator.of(context).pop();
+        navigator.pop();
       }
     } catch (e) {
       debugPrint('Error submitting chirp: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(content: Text('${AppStrings.genericError}: ${e.toString()}')),
         );
         setState(() => _isSubmitting = false);
       }
     }
-  }
-
-  Future<String> _getAuthorLabel(User user) async {
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    String aviaryId;
-    bool isGuardian = true;
-
-    if (userDoc.exists && userDoc.data()!.containsKey('partOfAviary')) {
-      aviaryId = userDoc.data()!['partOfAviary'];
-      isGuardian = false;
-    } else {
-      aviaryId = user.uid;
-    }
-
-    final aviaryDoc = await FirebaseFirestore.instance.collection('aviaries').doc(aviaryId).get();
-    final aviaryName = aviaryDoc.data()?['aviaryName'] ?? AppStrings.defaultHouseholdName;
-    String userLabel;
-    if (isGuardian) {
-      userLabel = aviaryDoc.data()?['guardianLabel'] ?? user.email ?? AppStrings.primaryOwner;
-    } else {
-      final caregiverDoc = await FirebaseFirestore.instance
-          .collection('aviaries')
-          .doc(aviaryId)
-          .collection('caregivers')
-          .doc(user.uid)
-          .get();
-      userLabel = caregiverDoc.data()?['label'] ?? user.email ?? AppStrings.secondaryUser;
-    }
-
-    return '$userLabel of $aviaryName';
   }
 
   Future<void> _pickMedia(ImageSource source) async {

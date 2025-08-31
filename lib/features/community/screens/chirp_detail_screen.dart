@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cockatiel_companion/core/constants.dart';
+import 'package:cockatiel_companion/features/user/services/user_service.dart';
 
 class ChirpDetailScreen extends StatefulWidget {
   final String chirpId;
@@ -34,22 +35,8 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
     try {
       final chirpRef = FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId);
 
-      // NOTE: This logic is duplicated and will be refactored into a UserService later.
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      String aviaryId = userDoc.exists && userDoc.data()!.containsKey('partOfAviary')
-          ? userDoc.data()!['partOfAviary']
-          : user.uid;
-      final aviaryDoc = await FirebaseFirestore.instance.collection('aviaries').doc(aviaryId).get();
-      final aviaryName = aviaryDoc.data()?['aviaryName'] ?? AppStrings.defaultHouseholdName;
-      final isGuardian = !(userDoc.exists && userDoc.data()!.containsKey('partOfAviary'));
-      String userLabel;
-      if (isGuardian) {
-        userLabel = aviaryDoc.data()?['guardianLabel'] ?? user.email ?? AppStrings.primaryOwner;
-      } else {
-        final caregiverDoc = await FirebaseFirestore.instance.collection('aviaries').doc(aviaryId).collection('caregivers').doc(user.uid).get();
-        userLabel = caregiverDoc.data()?['label'] ?? user.email ?? AppStrings.secondaryUser;
-      }
-      final authorLabel = '$userLabel of $aviaryName';
+      // --- Use the UserService ---
+      final authorLabel = await UserService.getAuthorLabelForCurrentUser();
 
       await chirpRef.collection('replies').add({
         'body': _replyController.text.trim(),
