@@ -353,6 +353,7 @@ class Labels {
   static const String postTitle = 'Title / Question*';
   static const String postBody = 'Body (Optional)';
   static const String attachMedia = 'Attach Media (Optional)';
+  static const String helpful = 'Helpful';
 
   // --- Miscellaneous UI ---
   static const String signOut = 'Sign Out';

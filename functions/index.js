@@ -292,3 +292,51 @@ exports.toggleChirpFollow = onCall(async (request) => {
     }
   });
 });
+
+exports.toggleReplyHelpful = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  const {chirpId, replyId} = data;
+  if (!chirpId || !replyId) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Chirp ID and Reply ID are required.",
+    );
+  }
+
+  const userId = auth.uid;
+  const replyRef = db
+      .collection("community_chirps")
+      .doc(chirpId)
+      .collection("replies")
+      .doc(replyId);
+
+  // A subcollection to track who has marked this reply as helpful.
+  const markerRef = replyRef.collection("helpfulMarkers").doc(userId);
+
+  return db.runTransaction(async (transaction) => {
+    const markerDoc = await transaction.get(markerRef);
+
+    if (markerDoc.exists) {
+      // --- The user has already marked it, so we UN-MARK ---
+      transaction.delete(markerRef);
+      transaction.update(replyRef, {
+        helpfulCount: admin.firestore.FieldValue.increment(-1),
+      });
+      return {newHelpfulState: false};
+    } else {
+      // --- The user has NOT yet marked it, so we MARK IT ---
+      transaction.set(markerRef, {
+        markedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      transaction.update(replyRef, {
+        helpfulCount: admin.firestore.FieldValue.increment(1),
+      });
+      return {newHelpfulState: true};
+    }
+  });
+});

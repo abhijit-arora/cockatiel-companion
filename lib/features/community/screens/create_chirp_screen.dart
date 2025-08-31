@@ -65,7 +65,7 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
 
       // --- Use the UserService ---
       final authorLabel = await UserService.getAuthorLabelForCurrentUser();
-      
+  
       final chirpData = {
         'title': _titleController.text.trim(),
         'body': _bodyController.text.trim(),
@@ -74,9 +74,13 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
         'authorLabel': authorLabel,
         'createdAt': FieldValue.serverTimestamp(),
         'replyCount': 0,
-        'upvoteCount': 0,
+        // NOTE: I am removing the 'upvoteCount' field from an older version that doesn't exist anymore.
+        // It was a typo in one of my earlier refactors.
         'mediaUrl': mediaUrl,
       };
+
+      // --- NEW DEBUGGING STATEMENT ---
+      debugPrint("Attempting to create Chirp with data: $chirpData");
 
       final newChirpRef = await FirebaseFirestore.instance.collection('community_chirps').add(chirpData);
 

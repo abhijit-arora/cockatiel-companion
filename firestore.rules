@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /aviaries/{aviaryId} {
+      // Read the aviary if you are the guardian or an enrolled caregiver.
+      allow read: if request.auth != null && (
+        request.auth.uid == aviaryId ||
+        exists(/databases/$(database)/documents/aviaries/$(aviaryId)/caregivers/$(request.auth.uid))
+      );
+      // Only guardian can write the root aviary doc.
+      allow write: if request.auth != null && request.auth.uid == aviaryId;
+
+      // Subcollections: nests, caregivers, etc.
+      match /{document=**} {
+        allow read, write: if request.auth != null && (
+          request.auth.uid == aviaryId ||
+          exists(/databases/$(database)/documents/aviaries/$(aviaryId)/caregivers/$(request.auth.uid))
+        );
+      }
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /birds/{birdId} {
+      // Allow creation if:
+      // 1. The user is logged in.
+      // 2. The user is either the owner OR an existing caregiver for that aviary.
+      // 3. The owner and the creator are both included in the 'viewers' list for security.
+      allow create: if request.auth != null
+                    && (
+                      request.resource.data.ownerId == request.auth.uid ||
+                      exists(/databases/$(database)/documents/aviaries/$(request.resource.data.ownerId)/caregivers/$(request.auth.uid))
+                    )
+                    && request.resource.data.viewers is list
+                    && request.auth.uid in request.resource.data.viewers
+                    && request.resource.data.ownerId in request.resource.data.viewers;
+
+      // Read/Update: only if you are a viewer
+      allow read, update: if request.auth != null
+                          && request.auth.uid in resource.data.viewers;
+
+      // Allow deleting only by the owner
+      allow delete: if request.auth != null
+                    && resource.data.ownerId == request.auth.uid;
+
+      // Rules for subcollections (e.g., daily logs)
+      match /{document=**} {
+        allow read, write: if request.auth != null
+                            && request.auth.uid in get(/databases/$(database)/documents/birds/$(birdId)).data.viewers;
+      }
+    }
+    
+    match /community_chirps/{chirpId} {
+      // Any logged-in user can read the list of chirps and their subcollections.
+      allow read: if request.auth != null;
+
+      // Production-ready create rule: validates all incoming fields.
+      allow create: if request.auth != null
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.title is string
+                    && request.resource.data.category is string
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.replyCount == 0
+                    // Explicitly check for our known optional fields.
+                    // This rule is secure and matches our app's data structure.
+                    && (!('body' in request.resource.data) || request.resource.data.body is string)
+                    && (!('authorLabel' in request.resource.data) || request.resource.data.authorLabel is string)
+                    && (!('mediaUrl' in request.resource.data) || request.resource.data.mediaUrl is string || request.resource.data.mediaUrl == null);
+
+      // The author can delete. Any logged-in user can update (for incrementing counts).
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+
+      // Rules for the 'followers' subcollection
+      match /followers/{userId} {
+        // A user can only follow/unfollow for themselves.
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Rules for the 'replies' subcollection
+      match /replies/{replyId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
+        allow update, delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+        
+        // Rules for marking replies as helpful
+        match /helpfulMarkers/{userId} {
+            // A user can only mark/un-mark helpful for themselves.
+            allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+    }
+
+    match /invitations/{invitationId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null
+                  && (request.auth.uid == resource.data.aviaryOwnerId
+                      || request.auth.token.email == resource.data.inviteeEmail);
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.aviaryOwnerId;
+    }
+
+    match /onboarding_tips/{tipId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    match /resources/{resourceId} {
+      allow read: if request.auth != null;
+    }
+  }
+}

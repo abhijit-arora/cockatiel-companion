@@ -1,10 +1,18 @@
 # Functional Specification Document (FSD)
 
 - **App Name:** FlockWell (formerly Cockatiel Companion)
-- **Document Version:** 0.4
-- **Last Updated:** 2025-08-27
+- **Document Version:** 0.5
+- **Last Updated:** 2025-08-31
 
 This document details the features and functionalities of the FlockWell application.
+
+---
+### **Architectural Vision: A Multi-Pet Ecosystem**
+
+While the initial launch version, FlockWell, is thematically and functionally tailored for bird owners, the underlying architecture of the application is being intentionally designed to be **pet-agnostic**.
+
+*   **Core Principle:** The application's core logic and data structures are decoupled from the user-facing theme. Generic concepts (e.g., `Pet`, `Household`, `Enclosure`, `Post`) are used in the codebase and database, while a centralized constants file provides the bird-specific thematic layer (e.g., `Bird`, `Aviary`, `Nest`, `Chirp`).
+*   **Future Scalability:** This approach will allow for the efficient creation of future applications for different types of pets (e.g., "KennelWell" for dogs, "PounceWell" for cats) that can leverage the same robust, shared backend infrastructure and a single user account system. This FSD will use the bird-specific thematic names for clarity, but the implementation will follow this generic architectural principle.
 
 ---
 
@@ -89,7 +97,7 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
         *   **Posts as "Chirps":** All posts/questions will be thematically referred to as "Chirps."
         *   **Categories:** Chirps will be organized into clear categories to ensure focused discussions (e.g., Health & Wellness, Behavior & Training, Nutrition, Gear, General Chat).
         *   **"+1 / Tell Me Too":** Instead of a simple upvote, Chirps will have a "+1" or "Tell Me Too" button. This allows users to follow a question they are also interested in, increasing its visibility and notifying them of new replies. The original poster's vote is automatically included.
-        *   **Replies & "Helpful" Marks:** Any user can reply to a Chirp. Other users can mark a reply as "Helpful" to endorse good advice.
+        *   **Replies & "Helpful" Marks:** Any user can reply to a Chirp. The author of the reply cannot mark their own reply. Other users can mark a reply as "Helpful" to endorse good advice. This is a positive-only action; there is no "downvote" or "not helpful" option.
         *   **Best Answer:** The original poster has the ability to mark one reply as the "Best Answer," which will be highlighted and pinned for future readers.
         *   **Media Attachments:** Users can attach one optional photo or short-form video (up to 15 seconds) to their Chirp for context.
 
@@ -110,11 +118,10 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
     *   When a user finishes typing a title for a new Chirp, a semantic search will be performed in the background to find existing, similar questions.
     *   If matches are found, the user will be presented with a non-blocking dialog suggesting they view the existing answers before posting a new question.
 
-*   **5.4. Moderation:**
+*   **5.4. Moderation & Safety:**
 
-    *   All Chirps, replies, and Flock Feed posts will have a "Report" button.
-    *   This will allow users to flag content that is inappropriate, abusive, or contains dangerously incorrect advice.
-    *   Reported content will be sent to a queue for review by moderators via the Business & Admin Tools panel.
+    *   **5.4.1. Report Content:** All Chirps and replies will have a user-facing "Report" button accessible via a menu. Tapping this button will open a dialog with a list of reasons (e.g., "Spam," "Harassment," "Dangerously Incorrect Advice," "Off-Topic").
+    *   **5.4.2. Reporting Workflow:** Submitting a report will create a document in a `reports` collection in Firestore, containing the flagged content ID, the reason, and the reporting user's ID. This will be sent to a queue for review by moderators via the Business & Admin Tools panel.
 
 ---
 

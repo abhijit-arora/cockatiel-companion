@@ -1,5 +1,6 @@
 // lib/features/community/screens/chirp_detail_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -25,7 +26,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
     }
 
     setState(() => _isReplying = true);
-
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       setState(() => _isReplying = false);
@@ -34,8 +34,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
 
     try {
       final chirpRef = FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId);
-
-      // --- Use the UserService ---
       final authorLabel = await UserService.getAuthorLabelForCurrentUser();
 
       await chirpRef.collection('replies').add({
@@ -46,12 +44,14 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
         'helpfulCount': 0,
       });
 
+      // This transaction now has the correct permissions to run.
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.update(chirpRef, {
           'replyCount': FieldValue.increment(1),
         });
       });
 
+      // --- FIX: Clear controller AFTER successful operations ---
       _replyController.clear();
 
     } catch (e) {
@@ -63,9 +63,22 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
     }
   }
 
+  Future<void> _toggleHelpful(String replyId) async {
+    try {
+      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('toggleReplyHelpful');
+      await callable.call({
+        'chirpId': widget.chirpId,
+        'replyId': replyId,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      debugPrint('Error toggling helpful: ${e.message}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(ScreenTitles.postDetail),
@@ -128,8 +141,14 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                   ),
                 ),
 
+                // --- FULLY REVISED SLIVERLIST BUILDER ---
                 StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId).collection('replies').orderBy('createdAt').snapshots(),
+                  stream: FirebaseFirestore.instance
+                      .collection('community_chirps')
+                      .doc(widget.chirpId)
+                      .collection('replies')
+                      .orderBy('createdAt')
+                      .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator()));
@@ -145,12 +164,83 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                     return SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final data = replies[index].data() as Map<String, dynamic>;
+                          final reply = replies[index];
+                          final data = reply.data() as Map<String, dynamic>;
+                          final int helpfulCount = data['helpfulCount'] ?? 0;
+                          final String authorId = data['authorId'] ?? '';
+                          // --- FIX: Correctly check if the current user is the author of the REPLY ---
+                          final bool isAuthor = currentUser?.uid == authorId;
+
                           return Card(
-                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                            child: ListTile(
-                              title: Text(data['body'] ?? ''),
-                              subtitle: Text('${Labels.by} ${data['authorLabel'] ?? AppStrings.anonymous}'),
+                            margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(data['body'] ?? '', style: Theme.of(context).textTheme.bodyLarge),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '${Labels.by} ${data['authorLabel'] ?? AppStrings.anonymous}',
+                                        style: Theme.of(context).textTheme.bodySmall,
+                                      ),
+                                      // --- FIX: Hide button if the current user is the author ---
+                                      if (!isAuthor)
+                                        Row(
+                                          children: [
+                                            StreamBuilder<DocumentSnapshot>(
+                                              stream: FirebaseFirestore.instance
+                                                  .collection('community_chirps')
+                                                  .doc(widget.chirpId)
+                                                  .collection('replies')
+                                                  .doc(reply.id)
+                                                  .collection('helpfulMarkers')
+                                                  .doc(currentUser?.uid)
+                                                  .snapshots(),
+                                              builder: (context, markerSnapshot) {
+                                                final bool isMarked = markerSnapshot.hasData && markerSnapshot.data!.exists;
+                                                // --- FIX: Use ElevatedButton for a consistent style ---
+                                                return ElevatedButton.icon(
+                                                  icon: Icon(
+                                                    isMarked ? Icons.thumb_up : Icons.thumb_up_outlined,
+                                                    size: 16,
+                                                  ),
+                                                  label: Text(Labels.helpful),
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: isMarked 
+                                                        ? Theme.of(context).colorScheme.primary 
+                                                        : Theme.of(context).colorScheme.surface,
+                                                    foregroundColor: isMarked 
+                                                        ? Theme.of(context).colorScheme.onPrimary 
+                                                        : Theme.of(context).colorScheme.primary,
+                                                    side: isMarked ? BorderSide.none : BorderSide(color: Theme.of(context).colorScheme.outline),
+                                                    elevation: 0,
+                                                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                                  ),
+                                                  onPressed: () => _toggleHelpful(reply.id),
+                                                );
+                                              },
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(helpfulCount.toString()),
+                                          ],
+                                        ),
+                                      // If the user IS the author, just show the count with a disabled icon
+                                      if (isAuthor)
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.thumb_up_outlined, size: 16, color: Colors.grey),
+                                            const SizedBox(width: 8),
+                                            Text(helpfulCount.toString()),
+                                          ],
+                                        )
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -159,10 +249,11 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                     );
                   },
                 ),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
               ],
             ),
           ),
-
+          // ... (Reply input field remains unchanged)
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(8.0),
