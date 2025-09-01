@@ -350,8 +350,10 @@ class Labels {
   static const String postedBy = 'Posted by';
   static const String replies = 'Replies';
   static const String by = 'by';
+  static const String byYou = 'by You';
   static const String postTitle = 'Title / Question*';
   static const String postBody = 'Body (Optional)';
+  static const String postedByYou = 'Posted by You';
   static const String attachMedia = 'Attach Media (Optional)';
   static const String helpful = 'Helpful';
 

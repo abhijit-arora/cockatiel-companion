@@ -33,7 +33,6 @@ class _ChirpListState extends State<ChirpList> {
         .collection('community_chirps')
         .orderBy('createdAt', descending: true);
     
-    // The "All Chirps" string is now sourced from constants.
     final String allPostsCategory = DropdownOptions.communityCategoriesWithAll[0];
     if (widget.category != allPostsCategory) {
       query = query.where('category', isEqualTo: widget.category);
@@ -73,8 +72,12 @@ class _ChirpListState extends State<ChirpList> {
             final int replyCount = data['replyCount'] ?? 0;
             final int followerCount = data['followerCount'] ?? 0;
             final String? mediaUrl = data['mediaUrl'];
+            // --- NEW: Check if the current user is the author ---
+            final bool isAuthor = currentUser.uid == data['authorId'];
 
             return Card(
+              // --- NEW: Conditional highlighting ---
+              color: isAuthor ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) : null, // 0.3 * 255 = 76.5, rounded to 77
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               clipBehavior: Clip.antiAlias,
               child: InkWell(
@@ -95,7 +98,14 @@ class _ChirpListState extends State<ChirpList> {
                         children: [
                           Text(title, style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 4),
-                          Text('${Labels.postedBy} $authorLabel', style: Theme.of(context).textTheme.bodySmall),
+                          // --- NEW: Conditional author text ---
+                          Text(
+                            isAuthor ? Labels.postedByYou : '${Labels.postedBy} $authorLabel',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              // Optional: make "You" bold to stand out
+                              fontWeight: isAuthor ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
                         ],
                       ),
                     ),

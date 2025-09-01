@@ -44,14 +44,12 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
         'helpfulCount': 0,
       });
 
-      // This transaction now has the correct permissions to run.
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         transaction.update(chirpRef, {
           'replyCount': FieldValue.increment(1),
         });
       });
 
-      // --- FIX: Clear controller AFTER successful operations ---
       _replyController.clear();
 
     } catch (e) {
@@ -74,6 +72,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
       debugPrint('Error toggling helpful: ${e.message}');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +104,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                       final String authorLabel = data['authorLabel'] ?? AppStrings.anonymous;
                       final String? mediaUrl = data['mediaUrl'];
                       final Timestamp? timestamp = data['createdAt'];
+                      final bool isChirpAuthor = currentUser?.uid == data['authorId'];
 
                       return Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -113,7 +113,12 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                           children: [
                             Text(title, style: Theme.of(context).textTheme.headlineSmall),
                             const SizedBox(height: 8),
-                            Text('${Labels.postedBy} $authorLabel'),
+                            Text(
+                              isChirpAuthor ? Labels.postedByYou : '${Labels.postedBy} $authorLabel',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: isChirpAuthor ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
                             if (timestamp != null)
                               Text(DateFormat.yMMMd().add_jm().format(timestamp.toDate()), style: Theme.of(context).textTheme.bodySmall),
                             const SizedBox(height: 16),
@@ -141,7 +146,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                   ),
                 ),
 
-                // --- FULLY REVISED SLIVERLIST BUILDER ---
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('community_chirps')
@@ -168,10 +172,10 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                           final data = reply.data() as Map<String, dynamic>;
                           final int helpfulCount = data['helpfulCount'] ?? 0;
                           final String authorId = data['authorId'] ?? '';
-                          // --- FIX: Correctly check if the current user is the author of the REPLY ---
-                          final bool isAuthor = currentUser?.uid == authorId;
+                          final bool isReplyAuthor = currentUser?.uid == authorId;
 
                           return Card(
+                            color: isReplyAuthor ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) : null,
                             margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                             child: Padding(
                               padding: const EdgeInsets.all(12.0),
@@ -184,11 +188,12 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        '${Labels.by} ${data['authorLabel'] ?? AppStrings.anonymous}',
-                                        style: Theme.of(context).textTheme.bodySmall,
+                                        isReplyAuthor ? Labels.byYou : '${Labels.by} ${data['authorLabel'] ?? AppStrings.anonymous}',
+                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                           fontWeight: isReplyAuthor ? FontWeight.bold : FontWeight.normal,
+                                        ),
                                       ),
-                                      // --- FIX: Hide button if the current user is the author ---
-                                      if (!isAuthor)
+                                      if (!isReplyAuthor)
                                         Row(
                                           children: [
                                             StreamBuilder<DocumentSnapshot>(
@@ -202,7 +207,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                                                   .snapshots(),
                                               builder: (context, markerSnapshot) {
                                                 final bool isMarked = markerSnapshot.hasData && markerSnapshot.data!.exists;
-                                                // --- FIX: Use ElevatedButton for a consistent style ---
                                                 return ElevatedButton.icon(
                                                   icon: Icon(
                                                     isMarked ? Icons.thumb_up : Icons.thumb_up_outlined,
@@ -228,8 +232,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                                             Text(helpfulCount.toString()),
                                           ],
                                         ),
-                                      // If the user IS the author, just show the count with a disabled icon
-                                      if (isAuthor)
+                                      if (isReplyAuthor)
                                         Row(
                                           children: [
                                             const Icon(Icons.thumb_up_outlined, size: 16, color: Colors.grey),
@@ -253,7 +256,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
               ],
             ),
           ),
-          // ... (Reply input field remains unchanged)
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(8.0),
