@@ -340,3 +340,85 @@ exports.toggleReplyHelpful = onCall(async (request) => {
     }
   });
 });
+
+exports.reportContent = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  // Expecting generic parameters, not bird-specific ones
+  const {contentId, contentType, reason} = data;
+
+  // --- 1. VALIDATION ---
+  if (!contentId || !contentType || !reason) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Content ID, content type, and reason are required.",
+    );
+  }
+
+  const validTypes = ["chirp", "reply"];
+  if (!validTypes.includes(contentType)) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Invalid content type specified.",
+    );
+  }
+
+  const reporterUid = auth.uid;
+  let docRef;
+
+  // --- 2. LOCATE THE CONTENT TO GET ITS DATA ---
+  // This logic determines where to look for the content based on its type
+  if (contentType === "chirp") {
+    docRef = db.collection("community_chirps").doc(contentId);
+  } else if (contentType === "reply") {
+    // Note: For replies, the contentId is expected to be the full path.
+    // We will construct this path from the Flutter app.
+    // Example: "community_chirps/{chirpId}/replies/{replyId}"
+    docRef = db.doc(contentId);
+  } else {
+    // This case is already handled by the validation above,
+    // but it's good practice
+    // to have a fallback.
+    return {success: false, message: "Invalid content type."};
+  }
+
+  const contentDoc = await docRef.get();
+  if (!contentDoc.exists) {
+    throw new HttpsError(
+        "not-found",
+        "The content you are trying to report does not exist.",
+    );
+  }
+
+  const contentData = contentDoc.data();
+  const authorId = contentData.authorId;
+  // Get title for chirps, body for replies
+  const contentBody = contentData.title || contentData.body;
+
+  // --- 3. CREATE THE REPORT DOCUMENT ---
+  // We save it to a top-level 'reports' collection for easy querying by admins.
+  await db.collection("reports").add({
+    reporterUid: reporterUid,
+    reportedAt: admin.firestore.FieldValue.serverTimestamp(),
+    reason: reason,
+
+    // Store information about the content that was flagged
+    contentType: contentType,
+    contentId: contentId,
+    contentAuthorUid: authorId,
+    // Store a snippet for context
+    contentSnippet: contentBody.substring(0, 100),
+
+    // The path to the original document for easy navigation in the admin panel
+    contentPath: docRef.path,
+
+    // Status for the admin panel workflow
+    status: "pending_review",
+  });
+
+  return {success: true, message: "Report has been submitted. Thank you."};
+});

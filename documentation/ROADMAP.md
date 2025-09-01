@@ -46,17 +46,24 @@ With a polished core app, this phase focuses on user engagement and growth.
     *   [x] Implemented the core UI for creating, viewing, listing, replying to, and displaying media for "Chirps".
 
 *   **[ ] Community Aviary - Phase 2: Interaction & Sorting (Up Next):**
-    *   **[x] Implemented the backend logic and UI for the "+1 / Tell Me Too" system. (Completed)**
-    *   **[x] Implemented the "Helpful" marking system for replies. (Completed)**
+    *   **[x] "+1 / Tell Me Too" system. (Completed)**
+    *   **[x] "Helpful" marking system for replies. (Completed)**
+    *   **Implement "Squawk" (Report) & Delete Functionality - Phase 1:**
+        *   [x] Add a menu to all Chirps and replies.
+        *   [x] Display a "Squawk" option for other users' content and a "Delete" option for a user's own content.
+        *   [x] Create a dialog for users to select a reason for reporting.
+        *   [x] Implement a generic, secure Cloud Function (`reportContent`) to write reports to a `reports` collection for manual admin review.
+        *   [x] The reporting action is invisible to other users, and reported content remains visible until a moderator takes action.
     *   Implement the **"Best Answer"** system for the original poster.
-    *   Implement **Report Content** functionality for Chirps and replies.
-    *   Add UI controls to sort the Chirp list by "Most Recent" and "Most Followed" (+1s).
+    *   Add UI controls to sort the Chirp list.
     *   Add a filter for "Unread" Chirps.
 
 *   **[ ] Community Aviary - Phase 3: Rich Content & Safety:**
-    *   Implement **video** and **GIF** uploading for Chirps, including a duration check.
-    *   Implement automatic NSFW content moderation for all image uploads using the Cloud Vision API.
-    *   **Add profile pictures for users and birds. (Addresses `TODO` in `profile_screen.dart`)**
+    *   Implement video and GIF uploading.
+    *   Implement automatic NSFW content moderation.
+    *   **Add profile pictures for users and birds.**
+    *   **Implement "Squawk" (Report Content) Functionality - Phase 2:**
+        *   [ ] Design and implement an automated system where a high number of reports can trigger an automatic action (e.g., hiding the content pending review).
 
 *   **[ ] Community Aviary - Phase 4: The Flock Feed:**
     *   Build the UI for the vertical-scrolling Flock Feed.
@@ -70,9 +77,9 @@ This phase focuses on improving the long-term stability, maintainability, and ov
 
 *   **[x] Centralize String Constants:** Migrated all hardcoded UI strings into a central `constants.dart` file with a scalable, thematic architecture. (Completed)
 *   **[x] Refactor User Identity Logic:** Created a `UserService` to centralize the logic for fetching a user's `authorLabel`, removing code duplication. (Completed)
-*   **[ ] Improve Self-Identification in Community Feeds:**
-    *   [ ] Display a "by You" label instead of the full author label for the current user's own Chirps and replies.
-    *   [ ] Apply a subtle background highlight to the cards of the current user's Chirps and replies to improve scannability.
+*   **[x] Improve Self-Identification in Community Feeds:**
+    *   [x] Display a "by You" label instead of the full author label for the current user's own Chirps and replies.
+    *   [x] Apply a subtle background highlight to the cards of the current user's Chirps and replies to improve scannability.
 *   **[ ] Address All Linter Warnings:** Resolve all outstanding IDE warnings (`use_build_context_synchronously`, etc.) to improve code stability.
 *   **[ ] Implement Robust Logging & Error Handling:** Replace all development `print()` calls with a proper logging framework and implement user-facing `SnackBar` messages for all `try-catch` blocks.
 *   **[ ] Implement Invitation Decline Logic:** Add the ability for users to decline pending caregiver invitations. (Addresses `TODO` in `pending_invitations_card.dart`).

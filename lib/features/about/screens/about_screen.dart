@@ -14,14 +14,23 @@ class ChangelogEntry {
 
 final List<ChangelogEntry> changelogData = [
   ChangelogEntry(
-    version: 'Version 1.2 (Up Next)', // <-- Add this new section
+    version: 'Version 1.2 (Community Update)', // Renamed for clarity
     changes: [
-      'Bulk Bird-to-Nest Movement.',
-      'Enhanced Caregiver Permissions & Roles.',
+      'Launched the Community Aviary Q&A Forum!',
+      'Users can now post "Chirps" with text and images.',
+      'Follow interesting questions with the "+1 / Tell Me Too" button.',
+      'Mark helpful replies to guide other users.',
+      'Engage with a privacy-first identity system (e.g., "Mama Birdie of SpiceBox").',
+      'Manage your content by deleting your own Chirps and replies.',
+      'Help moderate the community by "Squawking" (reporting) content that violates guidelines.',
+      'Added bulk bird-to-nest movement utility.',
+      'Enhanced bird profiles with Hatch Day and Gotcha Day.',
+      'Implemented swipe-to-dismiss anniversary reminders on the home screen.',
+      'Major navigation refactor with a new bottom bar.',
     ],
   ),
   ChangelogEntry(
-    version: 'Version 1.1 (Latest Update)', // <-- Change "In Progress" to "Latest Update"
+    version: 'Version 1.1',
     changes: [
       'Added Guardian & Caregiver custom labels and fixed permissions.',
       'Added Species and Nest assignment to bird profiles.',

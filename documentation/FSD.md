@@ -1,8 +1,8 @@
 # Functional Specification Document (FSD)
 
 - **App Name:** FlockWell (formerly Cockatiel Companion)
-- **Document Version:** 0.5
-- **Last Updated:** 2025-08-31
+- **Document Version:** 0.6
+- **Last Updated:** 2025-09-01
 
 This document details the features and functionalities of the FlockWell application.
 
@@ -105,12 +105,15 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
         *   **Content:** The feed will consist exclusively of user-submitted photos and short-form videos (up to 15 seconds) showcasing their birds.
         *   **Interactions:** Users can "Like" (e.g., with a heart icon) and post comments on any item in the feed.
 
-*   **5.2. Community Engagement & Profiles:**
+*   **5.2. Content Management & Self-Identification:**
 
-    *   **5.2.1. Community Profiles:** A simple, non-intrusive profile system will be in place. Tapping on a user's thematic label (e.g., "Papa Birdie") will navigate to a page listing that user's public activity (their Chirps, replies, and Flock Feed posts).
-    *   **5.2.2. Community Notifications:** To drive re-engagement, users will receive in-app (and eventually push) notifications for key interactions, such as:
-        *   "Someone replied to your Chirp."
-        *   "Someone liked your photo in the Flock Feed."
+    *   **5.2.1. User Self-Identification:** To improve scannability and create a more personal experience, the UI will adapt when displaying a user's own content.
+        *   **"You" Labels:** Instead of their full author label, a user will see a simple "Posted by You" or "by You" label on their own Chirps and replies.
+        *   **Visual Highlighting:** The cards for a user's own Chirps and replies will have a subtle, distinct background color to make them stand out in feeds.
+
+    *   **5.2.2. Deleting Content:** Users have full control over the content they create.
+        *   **Author Control:** The author of a Chirp or a reply can permanently delete it at any time via a menu option.
+        *   **Confirmation:** Deleting content will trigger a confirmation dialog to prevent accidental removal. Deleting a Chirp will also delete all of its associated replies.
 
 *   **5.3. AI-Powered Duplicate Prevention (Q&A Forum Polish):**
 
@@ -120,8 +123,9 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
 
 *   **5.4. Moderation & Safety:**
 
-    *   **5.4.1. Report Content:** All Chirps and replies will have a user-facing "Report" button accessible via a menu. Tapping this button will open a dialog with a list of reasons (e.g., "Spam," "Harassment," "Dangerously Incorrect Advice," "Off-Topic").
-    *   **5.4.2. Reporting Workflow:** Submitting a report will create a document in a `reports` collection in Firestore, containing the flagged content ID, the reason, and the reporting user's ID. This will be sent to a queue for review by moderators via the Business & Admin Tools panel.
+    *   **5.4.1. Squawk Content (Report):** All Chirps and replies will have a user-facing "Squawk" button accessible via a menu. Tapping this will open a dialog with a list of reasons for the alarm call (e.g., "Spam," "Harassment," "Dangerously Incorrect Advice," "Off-Topic").
+    *   **5.4.2. Reporting Workflow (Phase 1 - Manual Review):** Submitting a "Squawk" will create a document in a `reports` collection in Firestore. This document will contain the ID of the flagged content, the reason, and the reporting user's ID. This creates a moderation queue for manual review by an admin via the Business & Admin Tools panel.
+    *   **(Future Enhancement) Automated Actions:** In a future version, a system may be implemented where a high volume or percentage of "Squawks" on a piece of content will trigger an automatic action, such as hiding the content pending moderator review.
 
 ---
 

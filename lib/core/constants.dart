@@ -46,6 +46,12 @@ class AppStrings {
   static const String addReplyHint = 'Add a reply...';
   static const String postNotFound = 'Chirp not found.';
   static const String noPostsInCategory = 'No Chirps in this category yet. Be the first to post!';
+  static const String reportReceived = 'Squawk received. Our moderators will review it shortly.';
+  static const String reportError = 'Error: Could not send Squawk.';
+  static const String confirmDeletePost = 'Are you sure you want to permanently delete this Chirp and all of its replies?';
+  static const String confirmDeleteReply = 'Are you sure you want to permanently delete this reply?';
+  static const String deletePostError = 'Error: Could not delete Chirp.';
+  static const String deleteReplyError = 'Error: Could not delete reply.';
   
   // --- Common Nouns & Placeholders ---
   static const String defaultHouseholdName = 'An Aviary';
@@ -227,6 +233,8 @@ class ButtonLabels {
   static const String decline = 'Decline';
   static const String acceptInvite = 'Accept Invite';
   static const String saveProfile = 'Save Profile';
+  static const String report = 'Squawk'; // The button text
+  static const String submitReport = 'Submit Squawk';
 }
 
 // ===========================================================================
@@ -269,6 +277,8 @@ class ScreenTitles {
   // --- Community ---
   static const String postDetail = 'Chirp';
   static const String createPost = 'Post a New Chirp';
+  static const String reportPost = 'Squawk a Chirp';
+  static const String reportReply = 'Squawk a Reply';
   
   // --- Dialogs ---
   static const String confirmDeletion = 'Confirm Deletion';
@@ -356,6 +366,7 @@ class Labels {
   static const String postedByYou = 'Posted by You';
   static const String attachMedia = 'Attach Media (Optional)';
   static const String helpful = 'Helpful';
+  static const String reasonForReport = 'Reason for your Squawk?';
 
   // --- Miscellaneous UI ---
   static const String signOut = 'Sign Out';
@@ -420,6 +431,15 @@ class DropdownOptions {
   /// Context options for weight logging.
   static const List<String> weightContexts = [
     'Before Meal', 'After Meal', 'Unspecified',
+  ];
+
+  /// Reasons for reporting (squawking) content.
+  static const List<String> reportReasons = [
+    'Spam or Advertisement',
+    'Harassment or Hate Speech',
+    'Dangerously Incorrect Advice',
+    'Off-Topic or Irrelevant',
+    'Other',
   ];
 }
 
