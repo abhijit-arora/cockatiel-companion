@@ -215,7 +215,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         'notes': notes,
       });
     } catch (e) {
-      print('Error updating diet log: $e');
+      debugPrint('Error updating diet log: $e');
     }
   }
   
@@ -237,7 +237,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         'notes': notes,
       });
     } catch (e) {
-      print('Error updating droppings log: $e');
+      debugPrint('Error updating droppings log: $e');
     }
   }
   
@@ -259,7 +259,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         'notes': notes,
       });
     } catch (e) {
-      print('Error updating behavior log: $e');
+      debugPrint('Error updating behavior log: $e');
     }
   }
   
@@ -283,7 +283,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
         'notes': notes,
       });
     } catch (e) {
-      print('Error updating weight log: $e');
+      debugPrint('Error updating weight log: $e');
     }
   }
   
@@ -374,7 +374,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       });
       await logDocRef.set({}, SetOptions(merge: true));
     } catch (e) {
-      print('Error saving diet log: $e');
+      debugPrint('Error saving diet log: $e');
     }
   }
 
@@ -388,7 +388,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       });
       await logDocRef.set({}, SetOptions(merge: true));
     } catch (e) {
-      print('Error saving droppings log: $e');
+      debugPrint('Error saving droppings log: $e');
     }
   }
   
@@ -402,7 +402,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       });
       await logDocRef.set({}, SetOptions(merge: true));
     } catch (e) {
-      print('Error saving behavior log: $e');
+      debugPrint('Error saving behavior log: $e');
     }
   }
   
@@ -416,7 +416,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       });
       await logDocRef.set({}, SetOptions(merge: true));
     } catch (e) {
-      print('Error saving weight log: $e');
+      debugPrint('Error saving weight log: $e');
     }
   }
 

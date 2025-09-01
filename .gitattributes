@@ -1,0 +1,12 @@
+# Enforce consistent line endings across all platforms for this project.
+
+# Let Git handle most text files automatically.
+* text=auto
+
+# Enforce Linux-style line endings (LF) for specific file types.
+*.dart eol=lf
+*.js eol=lf
+*.json eol=lf
+*.yaml eol=lf
+*.md eol=lf
+*.rules eol=lf
