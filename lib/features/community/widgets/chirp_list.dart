@@ -99,6 +99,7 @@ class _ChirpListState extends State<ChirpList> {
 
     Query query = FirebaseFirestore.instance
         .collection('community_chirps')
+        .orderBy('latestActivityAt', descending: true)
         .orderBy('createdAt', descending: true);
     
     final String allPostsCategory = DropdownOptions.communityCategoriesWithAll[0];
@@ -106,190 +107,196 @@ class _ChirpListState extends State<ChirpList> {
       query = query.where('category', isEqualTo: widget.category);
     }
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: query.snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return const Center(child: Text(AppStrings.somethingWentWrong));
-        }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                AppStrings.noPostsInCategory,
-                textAlign: TextAlign.center,
+    return RefreshIndicator(
+      onRefresh: () async {
+        setState(() {});
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      child: StreamBuilder<QuerySnapshot>(
+        stream: query.snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text(AppStrings.somethingWentWrong));
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  AppStrings.noPostsInCategory,
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-          );
-        }
-
-        final chirps = snapshot.data!.docs;
-
-        return ListView.builder(
-          itemCount: chirps.length,
-          itemBuilder: (context, index) {
-            final chirp = chirps[index];
-            final data = chirp.data() as Map<String, dynamic>;
-
-            final String title = data['title'] ?? AppStrings.noTitle;
-            final String authorLabel = data['authorLabel'] ?? AppStrings.anonymous;
-            final int replyCount = data['replyCount'] ?? 0;
-            final int followerCount = data['followerCount'] ?? 0;
-            final String? mediaUrl = data['mediaUrl'];
-            final bool isAuthor = currentUser.uid == data['authorId'];
-
-            return Card(
-              color: isAuthor ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) : null,
-              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ChirpDetailScreen(chirpId: chirp.id),
+            );
+          }
+    
+          final chirps = snapshot.data!.docs;
+    
+          return ListView.builder(
+            itemCount: chirps.length,
+            itemBuilder: (context, index) {
+              final chirp = chirps[index];
+              final data = chirp.data() as Map<String, dynamic>;
+    
+              final String title = data['title'] ?? AppStrings.noTitle;
+              final String authorLabel = data['authorLabel'] ?? AppStrings.anonymous;
+              final int replyCount = data['replyCount'] ?? 0;
+              final int followerCount = data['followerCount'] ?? 0;
+              final String? mediaUrl = data['mediaUrl'];
+              final bool isAuthor = currentUser.uid == data['authorId'];
+    
+              return Card(
+                color: isAuthor ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) : null,
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => ChirpDetailScreen(chirpId: chirp.id),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 12, 0, 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(title, style: Theme.of(context).textTheme.titleLarge),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    isAuthor ? Labels.postedByYou : '${Labels.postedBy} $authorLabel',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontWeight: isAuthor ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            );
+                            ),
+                          ),
+                        ),
+                        PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'report') {
+                              _showReportDialog(chirp.id);
+                            } else if (value == 'delete') {
+                              _deleteChirp(chirp.id);
+                            }
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 0, 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(title, style: Theme.of(context).textTheme.titleLarge),
-                                const SizedBox(height: 4),
-                                Text(
-                                  isAuthor ? Labels.postedByYou : '${Labels.postedBy} $authorLabel',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: isAuthor ? FontWeight.bold : FontWeight.normal,
+                          itemBuilder: (BuildContext context) {
+                            List<PopupMenuEntry<String>> items = [];
+                            if (isAuthor) {
+                              items.add(
+                                const PopupMenuItem<String>(
+                                  value: 'delete',
+                                  child: ListTile(
+                                    leading: Icon(Icons.delete_outline, color: Colors.red),
+                                    title: Text(ButtonLabels.delete),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'report') {
-                            _showReportDialog(chirp.id);
-                          } else if (value == 'delete') {
-                            _deleteChirp(chirp.id);
-                          }
-                        },
-                        itemBuilder: (BuildContext context) {
-                          List<PopupMenuEntry<String>> items = [];
-                          if (isAuthor) {
-                            items.add(
-                              const PopupMenuItem<String>(
-                                value: 'delete',
-                                child: ListTile(
-                                  leading: Icon(Icons.delete_outline, color: Colors.red),
-                                  title: Text(ButtonLabels.delete),
+                              );
+                            } else {
+                              items.add(
+                                const PopupMenuItem<String>(
+                                  value: 'report',
+                                  child: ListTile(
+                                    leading: Icon(Icons.flag_outlined),
+                                    title: Text(ButtonLabels.report),
+                                  ),
                                 ),
-                              ),
-                            );
-                          } else {
-                            items.add(
-                              const PopupMenuItem<String>(
-                                value: 'report',
-                                child: ListTile(
-                                  leading: Icon(Icons.flag_outlined),
-                                  title: Text(ButtonLabels.report),
-                                ),
-                              ),
-                            );
-                          }
-                          return items;
-                        },
-                      ),
-                    ],
-                  ),
-                  if (mediaUrl != null && mediaUrl.isNotEmpty)
-                    InkWell(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ChirpDetailScreen(chirpId: chirp.id),
-                          ),
-                        );
-                      },
-                      child: Image.network(
-                        mediaUrl,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(32.0),
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        StreamBuilder<DocumentSnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('community_chirps')
-                              .doc(chirp.id)
-                              .collection('followers')
-                              .doc(currentUser.uid)
-                              .snapshots(),
-                          builder: (context, followSnapshot) {
-                            final bool isFollowed = followSnapshot.hasData && followSnapshot.data!.exists;
-                            return ElevatedButton.icon(
-                              icon: Icon(
-                                isFollowed ? Icons.check : Icons.add,
-                                size: 16,
-                              ),
-                              label: Text(isFollowed ? '${AppStrings.followingPost} ($followerCount)' : '${AppStrings.followPost} ($followerCount)'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isFollowed 
-                                    ? Theme.of(context).colorScheme.primary 
-                                    : Theme.of(context).colorScheme.surface,
-                                foregroundColor: isFollowed 
-                                    ? Theme.of(context).colorScheme.onPrimary 
-                                    : Theme.of(context).colorScheme.primary,
-                                side: isFollowed ? BorderSide.none : BorderSide(color: Theme.of(context).colorScheme.outline),
-                                elevation: 0,
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                              ),
-                              onPressed: () => _toggleFollow(chirp.id),
-                            );
+                              );
+                            }
+                            return items;
                           },
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.comment_outlined, size: 20, color: Colors.grey),
-                            const SizedBox(width: 4),
-                            Text(replyCount.toString()),
-                          ],
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+                    if (mediaUrl != null && mediaUrl.isNotEmpty)
+                      InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ChirpDetailScreen(chirpId: chirp.id),
+                            ),
+                          );
+                        },
+                        child: Image.network(
+                          mediaUrl,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          StreamBuilder<DocumentSnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('community_chirps')
+                                .doc(chirp.id)
+                                .collection('followers')
+                                .doc(currentUser.uid)
+                                .snapshots(),
+                            builder: (context, followSnapshot) {
+                              final bool isFollowed = followSnapshot.hasData && followSnapshot.data!.exists;
+                              return ElevatedButton.icon(
+                                icon: Icon(
+                                  isFollowed ? Icons.check : Icons.add,
+                                  size: 16,
+                                ),
+                                label: Text(isFollowed ? '${AppStrings.followingPost} ($followerCount)' : '${AppStrings.followPost} ($followerCount)'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isFollowed 
+                                      ? Theme.of(context).colorScheme.primary 
+                                      : Theme.of(context).colorScheme.surface,
+                                  foregroundColor: isFollowed 
+                                      ? Theme.of(context).colorScheme.onPrimary 
+                                      : Theme.of(context).colorScheme.primary,
+                                  side: isFollowed ? BorderSide.none : BorderSide(color: Theme.of(context).colorScheme.outline),
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                                ),
+                                onPressed: () => _toggleFollow(chirp.id),
+                              );
+                            },
+                          ),
+                          Row(
+                            children: [
+                              const Icon(Icons.comment_outlined, size: 20, color: Colors.grey),
+                              const SizedBox(width: 4),
+                              Text(replyCount.toString()),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

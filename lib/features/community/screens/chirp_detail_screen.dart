@@ -20,7 +20,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
   bool _isReplying = false;
 
   Future<void> _postReply() async {
-    // ... (This method is unchanged)
     if (_replyController.text.trim().isEmpty) return;
     setState(() => _isReplying = true);
     final user = FirebaseAuth.instance.currentUser;
@@ -39,7 +38,10 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
         'helpfulCount': 0,
       });
       await FirebaseFirestore.instance.runTransaction((transaction) async {
-        transaction.update(chirpRef, {'replyCount': FieldValue.increment(1)});
+        transaction.update(chirpRef, {
+          'replyCount': FieldValue.increment(1),
+          'latestActivityAt': FieldValue.serverTimestamp(),
+        });
       });
       _replyController.clear();
     } catch (e) {
@@ -50,7 +52,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
   }
 
   Future<void> _toggleHelpful(String replyId) async {
-    // ... (This method is unchanged)
     try {
       final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('toggleReplyHelpful');
       await callable.call({'chirpId': widget.chirpId, 'replyId': replyId});
@@ -59,7 +60,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
     }
   }
 
-  // --- REVISED METHOD TO CALL THE GENERIC CLOUD FUNCTION ---
   Future<void> _showReportDialog(String replyId, String replyPath) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     await showDialog(
@@ -71,7 +71,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
             final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('reportContent');
             await callable.call({
               'contentType': 'reply',
-              'contentId': replyPath, // Pass the full document path
+              'contentId': replyPath,
               'reason': reason,
             });
             scaffoldMessenger.showSnackBar(
@@ -88,7 +88,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
   }
 
   Future<void> _deleteReply(String replyId) async {
-    // ... (This method is unchanged)
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -126,7 +125,149 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
     }
   }
 
-  // --- BUILD METHOD REVISION ---
+  Future<void> _markAsBestAnswer(String replyId) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    try {
+      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('markAsBestAnswer');
+      await callable.call({
+        'chirpId': widget.chirpId,
+        'replyId': replyId,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text(e.message ?? AppStrings.genericError)),
+      );
+    }
+  }
+
+  Widget _buildReplyCard(DocumentSnapshot reply, Map<String, dynamic> data, bool isChirpAuthor, bool isBest) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final int helpfulCount = data['helpfulCount'] ?? 0;
+    final String authorId = data['authorId'] ?? '';
+    final bool isReplyAuthor = currentUser?.uid == authorId;
+    
+    return Card(
+      color: isReplyAuthor 
+          ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) 
+          : null,
+      shape: isBest 
+          ? RoundedRectangleBorder(
+              side: BorderSide(color: Colors.green.shade600, width: 2),
+              borderRadius: BorderRadius.circular(12),
+            )
+          : null,
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: ListTile(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isBest)
+              Chip(
+                label: const Text(Labels.bestAnswer),
+                backgroundColor: Colors.green.shade100,
+                avatar: Icon(Icons.check_circle, color: Colors.green.shade800),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+            Padding(
+              padding: EdgeInsets.only(top: isBest ? 8.0 : 0),
+              child: Text(data['body'] ?? ''),
+            ),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Text(
+            isReplyAuthor ? Labels.byYou : '${Labels.by} ${data['authorLabel'] ?? AppStrings.anonymous}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: isReplyAuthor ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!isReplyAuthor)
+              StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('community_chirps').doc(widget.chirpId)
+                    .collection('replies').doc(reply.id)
+                    .collection('helpfulMarkers').doc(currentUser?.uid)
+                    .snapshots(),
+                builder: (context, markerSnapshot) {
+                  final bool isMarked = markerSnapshot.hasData && markerSnapshot.data!.exists;
+                  return TextButton.icon(
+                    icon: Icon(isMarked ? Icons.thumb_up : Icons.thumb_up_outlined, size: 16),
+                    label: Text(helpfulCount.toString()),
+                    style: TextButton.styleFrom(
+                      foregroundColor: isMarked ? Theme.of(context).colorScheme.primary : Colors.grey,
+                    ),
+                    onPressed: () => _toggleHelpful(reply.id),
+                  );
+                },
+              ),
+            if (isReplyAuthor)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.thumb_up_outlined, size: 16, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(helpfulCount.toString()),
+                ],
+              ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, size: 20.0),
+              onSelected: (value) {
+                if (value == 'report') {
+                  _showReportDialog(reply.id, reply.reference.path);
+                } else if (value == 'delete') {
+                  _deleteReply(reply.id);
+                } else if (value == 'mark_best') {
+                  _markAsBestAnswer(reply.id);
+                }
+              },
+              itemBuilder: (BuildContext context) {
+                List<PopupMenuEntry<String>> items = [];
+                if (isReplyAuthor) {
+                  items.add(
+                    const PopupMenuItem<String>(
+                      value: 'delete',
+                      child: ListTile(
+                        leading: Icon(Icons.delete_outline, color: Colors.red),
+                        title: Text(ButtonLabels.delete),
+                      ),
+                    ),
+                  );
+                } else {
+                  if (isChirpAuthor && !isBest) {
+                    items.add(
+                      const PopupMenuItem<String>(
+                        value: 'mark_best',
+                        child: ListTile(
+                          leading: Icon(Icons.check_circle_outline, color: Colors.green),
+                          title: Text(Labels.markAsBestAnswer),
+                        ),
+                      ),
+                    );
+                  }
+                  items.add(
+                    const PopupMenuItem<String>(
+                      value: 'report',
+                      child: ListTile(
+                        leading: Icon(Icons.flag_outlined),
+                        title: Text(ButtonLabels.report),
+                      ),
+                    ),
+                  );
+                }
+                return items;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -137,7 +278,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
           Expanded(
             child: CustomScrollView(
               slivers: [
-                // ... (SliverToBoxAdapter for main chirp is unchanged)
                 SliverToBoxAdapter(
                   child: StreamBuilder<DocumentSnapshot>(
                     stream: FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId).snapshots(),
@@ -148,7 +288,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                       if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
                         return const Center(child: Text(AppStrings.postNotFound));
                       }
-
                       final data = snapshot.data!.data() as Map<String, dynamic>;
                       final String title = data['title'] ?? AppStrings.noTitle;
                       final String body = data['body'] ?? '';
@@ -156,7 +295,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                       final String? mediaUrl = data['mediaUrl'];
                       final Timestamp? timestamp = data['createdAt'];
                       final bool isChirpAuthor = currentUser?.uid == data['authorId'];
-
                       return Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -173,7 +311,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                             if (timestamp != null)
                               Text(DateFormat.yMMMd().add_jm().format(timestamp.toDate()), style: Theme.of(context).textTheme.bodySmall),
                             const SizedBox(height: 16),
-                            
                             if (mediaUrl != null && mediaUrl.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -187,7 +324,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                                 padding: const EdgeInsets.only(bottom: 16.0),
                                 child: Text(body, style: Theme.of(context).textTheme.bodyLarge),
                               ),
-                            
                             const Divider(height: 24),
                             Text(Labels.replies, style: Theme.of(context).textTheme.titleLarge),
                           ],
@@ -196,117 +332,51 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                     },
                   ),
                 ),
-                StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('community_chirps').doc(widget.chirpId)
-                      .collection('replies').orderBy('createdAt').snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator()));
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId).snapshots(),
+                  builder: (context, chirpSnapshot) {
+                    if (!chirpSnapshot.hasData) {
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
                     }
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const SliverToBoxAdapter(child: Center(child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text(AppStrings.beFirstToReply),
-                      )));
-                    }
-                    final replies = snapshot.data!.docs;
-                    return SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final reply = replies[index];
-                          final data = reply.data() as Map<String, dynamic>;
-                          final int helpfulCount = data['helpfulCount'] ?? 0;
-                          final String authorId = data['authorId'] ?? '';
-                          final bool isReplyAuthor = currentUser?.uid == authorId;
-                          return Card(
-                            color: isReplyAuthor ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) : null,
-                            margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                            child: ListTile(
-                              title: Text(data['body'] ?? ''),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(
-                                  isReplyAuthor ? Labels.byYou : '${Labels.by} ${data['authorLabel'] ?? AppStrings.anonymous}',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                       fontWeight: isReplyAuthor ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (!isReplyAuthor)
-                                    StreamBuilder<DocumentSnapshot>(
-                                      stream: FirebaseFirestore.instance
-                                          .collection('community_chirps').doc(widget.chirpId)
-                                          .collection('replies').doc(reply.id)
-                                          .collection('helpfulMarkers').doc(currentUser?.uid)
-                                          .snapshots(),
-                                      builder: (context, markerSnapshot) {
-                                        final bool isMarked = markerSnapshot.hasData && markerSnapshot.data!.exists;
-                                        return TextButton.icon(
-                                          icon: Icon(isMarked ? Icons.thumb_up : Icons.thumb_up_outlined, size: 16),
-                                          label: Text(helpfulCount.toString()),
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: isMarked ? Theme.of(context).colorScheme.primary : Colors.grey,
-                                          ),
-                                          onPressed: () => _toggleHelpful(reply.id),
-                                        );
-                                      },
-                                    ),
-                                  if (isReplyAuthor)
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.thumb_up_outlined, size: 16, color: Colors.grey),
-                                        const SizedBox(width: 4),
-                                        Text(helpfulCount.toString()),
-                                      ],
-                                    ),
-                                  PopupMenuButton<String>(
-                                    icon: const Icon(Icons.more_vert, size: 20.0),
-                                    onSelected: (value) {
-                                      if (value == 'report') {
-                                        // --- Pass the full path to the dialog ---
-                                        _showReportDialog(reply.id, reply.reference.path);
-                                      } else if (value == 'delete') {
-                                        _deleteReply(reply.id);
-                                      }
-                                    },
-                                    itemBuilder: (BuildContext context) {
-                                      List<PopupMenuEntry<String>> items = [];
-                                      if (isReplyAuthor) {
-                                        items.add(
-                                          const PopupMenuItem<String>(
-                                            value: 'delete',
-                                            child: ListTile(
-                                              leading: Icon(Icons.delete_outline, color: Colors.red),
-                                              title: Text(ButtonLabels.delete),
-                                            ),
-                                          ),
-                                        );
-                                      } else {
-                                        items.add(
-                                          const PopupMenuItem<String>(
-                                            value: 'report',
-                                            child: ListTile(
-                                              leading: Icon(Icons.flag_outlined),
-                                              title: Text(ButtonLabels.report),
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                      return items;
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                        childCount: replies.length,
-                      ),
+                    final chirpData = chirpSnapshot.data!.data() as Map<String, dynamic>;
+                    final bestAnswerData = chirpData['bestAnswer'] as Map<String, dynamic>?;
+                    final bestAnswerId = bestAnswerData?['replyId'] as String?;
+                    final isChirpAuthor = currentUser?.uid == chirpData['authorId'];
+                    return StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('community_chirps').doc(widget.chirpId)
+                          .collection('replies').orderBy('createdAt').snapshots(),
+                      builder: (context, replySnapshot) {
+                        if (replySnapshot.connectionState == ConnectionState.waiting) {
+                          return const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator()));
+                        }
+                        if (!replySnapshot.hasData || replySnapshot.data!.docs.isEmpty) {
+                          return const SliverToBoxAdapter(child: Center(child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Text(AppStrings.beFirstToReply),
+                          )));
+                        }
+                        final allReplies = replySnapshot.data!.docs;
+                        final bestAnswerReply = allReplies.where((doc) => doc.id == bestAnswerId).toList();
+                        final otherReplies = allReplies.where((doc) => doc.id != bestAnswerId).toList();
+                        return SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              if (index == 0 && bestAnswerReply.isNotEmpty) {
+                                final reply = bestAnswerReply[0];
+                                final data = reply.data() as Map<String, dynamic>;
+                                return _buildReplyCard(reply, data, isChirpAuthor, true);
+                              }
+                              final replyIndex = bestAnswerReply.isNotEmpty ? index - 1 : index;
+                              if (replyIndex < 0 || replyIndex >= otherReplies.length) return null;
+                              final reply = otherReplies[replyIndex];
+                              final data = reply.data() as Map<String, dynamic>;
+                              return _buildReplyCard(reply, data, isChirpAuthor, false);
+                            },
+                            childCount: (bestAnswerReply.isNotEmpty ? 1 : 0) + otherReplies.length,
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -314,7 +384,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
               ],
             ),
           ),
-          // ... (Reply input field is unchanged)
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(8.0),

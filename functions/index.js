@@ -422,3 +422,75 @@ exports.reportContent = onCall(async (request) => {
 
   return {success: true, message: "Report has been submitted. Thank you."};
 });
+
+exports.markAsBestAnswer = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  const {chirpId, replyId} = data;
+  if (!chirpId || !replyId) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Chirp ID and Reply ID are required.",
+    );
+  }
+
+  const userId = auth.uid;
+  const chirpRef = db.collection("community_chirps").doc(chirpId);
+  const newBestReplyRef = chirpRef.collection("replies").doc(replyId);
+
+  return db.runTransaction(async (transaction) => {
+    // 1. Get the main chirp document
+    const chirpDoc = await transaction.get(chirpRef);
+    if (!chirpDoc.exists) {
+      throw new HttpsError("not-found", "Chirp not found.");
+    }
+    const chirpData = chirpDoc.data();
+
+    // 2. SECURITY CHECK: Only the author can mark a best answer.
+    if (chirpData.authorId !== userId) {
+      throw new HttpsError(
+          "permission-denied",
+          "Only the author of the Chirp can select a best answer.",
+      );
+    }
+
+    // 3. Get the new reply to be marked as best
+    const newBestReplyDoc = await transaction.get(newBestReplyRef);
+    if (!newBestReplyDoc.exists) {
+      throw new HttpsError("not-found", "The selected reply does not exist.");
+    }
+
+    // 4. If an old best answer exists, un-mark it.
+    if (chirpData.bestAnswer && chirpData.bestAnswer.replyId) {
+      const oldBestReplyRef = chirpRef
+          .collection("replies")
+          .doc(chirpData.bestAnswer.replyId);
+
+      // We check if the old best answer still exists
+      // before trying to update it.
+      const oldBestReplyDoc = await transaction.get(oldBestReplyRef);
+      if (oldBestReplyDoc.exists) {
+        transaction.update(oldBestReplyRef, {isBestAnswer: false});
+      }
+    }
+
+    // 5. Set the new best answer on the main chirp and the reply itself.
+    const newBestReplyData = newBestReplyDoc.data();
+    transaction.update(chirpRef, {
+      bestAnswer: {
+        replyId: newBestReplyDoc.id,
+        body: newBestReplyData.body,
+        authorLabel: newBestReplyData.authorLabel,
+        createdAt: newBestReplyData.createdAt,
+      },
+    });
+
+    transaction.update(newBestReplyRef, {isBestAnswer: true});
+
+    return {success: true, message: "Reply marked as best answer."};
+  });
+});

@@ -367,6 +367,8 @@ class Labels {
   static const String attachMedia = 'Attach Media (Optional)';
   static const String helpful = 'Helpful';
   static const String reasonForReport = 'Reason for your Squawk?';
+  static const String bestAnswer = 'Best Answer';
+  static const String markAsBestAnswer = 'Mark as Best Answer';
 
   // --- Miscellaneous UI ---
   static const String signOut = 'Sign Out';
