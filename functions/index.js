@@ -494,3 +494,43 @@ exports.markAsBestAnswer = onCall(async (request) => {
     return {success: true, message: "Reply marked as best answer."};
   });
 });
+
+exports.declineInvitation = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  const {invitationId} = data;
+  if (!invitationId) {
+    throw new HttpsError("invalid-argument", "Invitation ID is required.");
+  }
+
+  const inviteeEmail = auth.token.email;
+  const invRef = db.collection("invitations").doc(invitationId);
+
+  // We use a transaction to safely read and then write.
+  return db.runTransaction(async (transaction) => {
+    const invDoc = await transaction.get(invRef);
+
+    if (!invDoc.exists) {
+      throw new HttpsError("not-found", "Invitation not found.");
+    }
+
+    const invData = invDoc.data();
+
+    // SECURITY CHECK: You can only decline an invitation sent to your email.
+    if (invData.inviteeEmail !== inviteeEmail || invData.status !== "pending") {
+      throw new HttpsError(
+          "failed-precondition",
+          "This invitation is not valid to be declined.",
+      );
+    }
+
+    // All checks passed, update the status.
+    transaction.update(invRef, {status: "declined"});
+
+    return {success: true, message: "Invitation declined."};
+  });
+});

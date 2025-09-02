@@ -115,16 +115,35 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
   Future<void> _sendInvite({required String email, required String label}) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || _aviaryId == null) return;
-    // --- Capture scaffoldMessenger before the async gap ---
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final normalizedEmail = email.toLowerCase();
+
     try {
+      // --- NEW: Check for existing pending invitations ---
+      final existingInvites = await FirebaseFirestore.instance
+          .collection('invitations')
+          .where('aviaryOwnerId', isEqualTo: _aviaryId)
+          .where('inviteeEmail', isEqualTo: normalizedEmail)
+          .where('status', isEqualTo: 'pending')
+          .limit(1)
+          .get();
+
+      if (existingInvites.docs.isNotEmpty) {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text('An invitation is already pending for this email address.')),
+        );
+        return;
+      }
+
+      // If no pending invites, proceed to create a new one
       await FirebaseFirestore.instance.collection('invitations').add({
         'aviaryOwnerId': _aviaryId,
-        'inviteeEmail': email.toLowerCase(),
+        'inviteeEmail': normalizedEmail,
         'label': label,
         'status': 'pending',
         'createdAt': FieldValue.serverTimestamp(),
       });
+
       if (!mounted) return;
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('${AppStrings.invitationSent} $email!')),
@@ -418,10 +437,9 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
       stream: FirebaseFirestore.instance
           .collection('invitations')
           .where('aviaryOwnerId', isEqualTo: aviaryId)
-          .where('status', isEqualTo: 'pending')
+          // NEW: Query for all statuses, not just pending
           .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError) return const SizedBox.shrink();
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const SizedBox.shrink();
         }
@@ -429,18 +447,57 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
         return Column(
           children: invites.map((invite) {
             final data = invite.data() as Map<String, dynamic>;
+            final status = data['status'] ?? 'pending';
+            
+            // --- NEW: UI logic based on status ---
+            Widget? trailingWidget;
+            String subtitleText;
+            Color? tileColor;
+
+            switch (status) {
+              case 'pending':
+                subtitleText = AppStrings.invitationPending;
+                trailingWidget = IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.orange),
+                  tooltip: 'Revoke Invitation',
+                  onPressed: () {
+                    invite.reference.delete();
+                  },
+                );
+                break;
+              case 'accepted':
+                subtitleText = 'Accepted';
+                tileColor = Colors.green.withAlpha(25);
+                trailingWidget = IconButton(
+                  icon: const Icon(Icons.check_circle_outline),
+                  tooltip: 'Dismiss',
+                  onPressed: () {
+                    invite.reference.delete();
+                  },
+                );
+                break;
+              case 'declined':
+                subtitleText = 'Declined';
+                tileColor = Colors.red.withAlpha(25);
+                trailingWidget = IconButton(
+                  icon: const Icon(Icons.delete_forever_outlined),
+                  tooltip: 'Dismiss',
+                  onPressed: () {
+                    invite.reference.delete();
+                  },
+                );
+                break;
+              default:
+                return const SizedBox.shrink();
+            }
+
             return Card(
+              color: tileColor,
               child: ListTile(
                 leading: const Icon(Icons.mail_outline),
                 title: Text(data['inviteeEmail']),
-                subtitle: const Text(AppStrings.invitationPending),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  onPressed: (){
-                    FirebaseFirestore.instance.collection('invitations').doc(invite.id).delete();
-                    setState(() {});
-                  },
-                ),
+                subtitle: Text(subtitleText),
+                trailing: trailingWidget,
               ),
             );
           }).toList(),

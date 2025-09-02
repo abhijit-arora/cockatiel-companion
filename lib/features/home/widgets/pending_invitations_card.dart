@@ -81,6 +81,57 @@ class _InvitationTileState extends State<_InvitationTile> {
     }
   }
 
+  Future<void> _declineInvite() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    // Show confirmation dialog first
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(ScreenTitles.declineInvitation),
+        content: const Text(AppStrings.confirmDeclineInvitation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(ButtonLabels.cancel),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(ButtonLabels.decline),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      return; // User cancelled
+    }
+
+    setState(() { _isLoading = true; });
+
+    try {
+      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('declineInvitation');
+      await callable.call({'invitationId': widget.invite.id});
+
+      // The card will disappear automatically because of the StreamBuilder
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Invitation successfully declined.')),
+      );
+
+    } on FirebaseFunctionsException catch (e) {
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(e.message ?? AppStrings.declineInvitationError)),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() { _isLoading = false; });
+      }
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     final data = widget.invite.data() as Map<String, dynamic>;
@@ -109,7 +160,7 @@ class _InvitationTileState extends State<_InvitationTile> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   TextButton(
-                    onPressed: () { /* TODO: Decline logic */ },
+                    onPressed: _declineInvite,
                     child: const Text(ButtonLabels.decline),
                   ),
                   ElevatedButton(

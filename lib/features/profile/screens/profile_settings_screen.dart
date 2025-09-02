@@ -103,20 +103,23 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text(Labels.signOut, style: TextStyle(color: Colors.red)),
             onTap: () async {
+              // --- Capture navigator BEFORE the async gap of showDialog ---
+              final navigator = Navigator.of(context);
+
               // Show a confirmation dialog before signing out
               final confirmed = await showDialog<bool>(
                 context: context,
-                builder: (context) => AlertDialog(
+                builder: (dialogContext) => AlertDialog( // Use a different name for the builder's context
                   title: const Text('Confirm Sign Out'),
                   content: const Text('Are you sure you want to sign out?'),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
                       child: const Text(ButtonLabels.cancel),
                     ),
                     TextButton(
                       style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      onPressed: () => Navigator.of(context).pop(true),
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
                       child: const Text(Labels.signOut),
                     ),
                   ],
@@ -125,6 +128,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
               if (confirmed == true) {
                 await FirebaseAuth.instance.signOut();
+                // Use the captured navigator AFTER all async gaps
+                navigator.popUntil((route) => route.isFirst);
               }
             },
           ),

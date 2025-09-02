@@ -129,6 +129,8 @@ class AppStrings {
   static const String defaultCaregiverLabel = 'a Caregiver';
   static const String invitationMessagePart1 = 'You\'ve been invited to be "';
   static const String invitationMessagePart2 = '" in an Aviary!';
+  static const String confirmDeclineInvitation = 'Are you sure you want to decline this invitation?';
+  static const String declineInvitationError = 'Error: Could not decline invitation.';
   
   // --- Dynamic String Components ---
   static const String orSeparator = 'OR';
@@ -261,6 +263,7 @@ class ScreenTitles {
   static const String setPublicHouseholdName = 'Set Public Aviary Name';
   static const String bulkMovePets = 'Bulk Move Birds';
   static const String inviteSecondaryUser = 'Invite a Caregiver';
+  static const String declineInvitation = 'Decline Invitation?';
   
   // --- Pet (Bird) & Enclosure (Nest) Management ---
   static const String addPet = 'Add to Your Flock';
