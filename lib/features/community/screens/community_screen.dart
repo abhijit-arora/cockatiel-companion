@@ -14,7 +14,9 @@ class CommunityScreen extends StatefulWidget {
 class _CommunityScreenState extends State<CommunityScreen> with TickerProviderStateMixin {
   late final TabController _tabController;
   
-  // The list of categories is now sourced from our central constants file.
+  // --- NEW: State variable to hold the selected sort option ---
+  String _selectedSortOption = DropdownOptions.chirpSortOptions[0]; // Default to 'Latest Activity'
+
   final List<String> _categories = DropdownOptions.communityCategoriesWithAll;
 
   @override
@@ -42,11 +44,48 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
           }).toList(),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: _categories.map((String category) {
-          return ChirpList(category: category);
-        }).toList(),
+      // --- REVISED: The body is now a Column containing the controls and the TabBarView ---
+      body: Column(
+        children: [
+          // --- REVISED: Sorting Controls UI using a Dropdown ---
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end, // Align to the right
+              children: [
+                const Text(Labels.sortBy, style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(width: 8),
+                DropdownButton<String>(
+                  value: _selectedSortOption,
+                  items: DropdownOptions.chirpSortOptions.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedSortOption = newValue!;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: _categories.map((String category) {
+                return ChirpList(
+                  category: category,
+                  sortBy: _selectedSortOption,
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -61,7 +100,6 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
             ),
           );
         },
-        // The label now uses our generic "post" term.
         label: Text('${ButtonLabels.post} a ${AppStrings.post}'),
         icon: const Icon(Icons.add_comment_outlined),
       ),

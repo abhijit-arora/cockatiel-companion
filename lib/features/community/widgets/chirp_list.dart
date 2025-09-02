@@ -9,7 +9,8 @@ import 'package:cockatiel_companion/features/community/widgets/dialogs/report_di
 
 class ChirpList extends StatefulWidget {
   final String category;
-  const ChirpList({super.key, required this.category});
+  final String sortBy; // NEW: Add the sortBy parameter
+  const ChirpList({super.key, required this.category, required this.sortBy});
 
   @override
   State<ChirpList> createState() => _ChirpListState();
@@ -102,10 +103,17 @@ class _ChirpListState extends State<ChirpList> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return const Center(child: Text(AppStrings.loginToViewCommunity));
 
-    Query query = FirebaseFirestore.instance
-        .collection('community_chirps')
-        .orderBy('latestActivityAt', descending: true)
-        .orderBy('createdAt', descending: true);
+    Query query = FirebaseFirestore.instance.collection('community_chirps');
+
+    // --- NEW: Dynamic Sorting Logic ---
+    if (widget.sortBy == DropdownOptions.chirpSortOptions[0]) { // 'Latest Activity'
+      query = query.orderBy('latestActivityAt', descending: true)
+                  .orderBy('createdAt', descending: true);
+    } else if (widget.sortBy == DropdownOptions.chirpSortOptions[1]) { // 'Most Follows'
+      query = query.orderBy('followerCount', descending: true);
+    } else if (widget.sortBy == DropdownOptions.chirpSortOptions[2]) { // 'Most Replies'
+      query = query.orderBy('replyCount', descending: true);
+    }
     
     final String allPostsCategory = DropdownOptions.communityCategoriesWithAll[0];
     if (widget.category != allPostsCategory) {

@@ -115,6 +115,10 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
         *   **Author Control:** The author of a Chirp or a reply can permanently delete it at any time via a menu option.
         *   **Confirmation:** Deleting content will trigger a confirmation dialog to prevent accidental removal. Deleting a Chirp will also delete all of its associated replies.
 
+    *   **(Future Enhancement) Feed Customization:** A feature will be added to allow users to hide or mark specific Chirps as "not interested" to personalize their content feed over time.
+
+    *   **(Future Version - V2.0) Public Aviary Profiles:** The concept of community profiles may be expanded into fully-visitable public "Aviaries," where users can showcase their Flock. This would include robust privacy settings to control what information is shared publicly versus what is kept private to the household.
+
 *   **5.3. AI-Powered Duplicate Prevention (Q&A Forum Polish):**
 
     *   To maintain a clean and organized Q&A forum, an AI-powered check will be implemented.

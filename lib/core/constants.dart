@@ -371,6 +371,7 @@ class Labels {
   static const String reasonForReport = 'Reason for your Squawk?';
   static const String bestAnswer = 'Best Answer';
   static const String markAsBestAnswer = 'Mark as Best Answer';
+  static const String sortBy = 'Sort by:';
 
   // --- Miscellaneous UI ---
   static const String signOut = 'Sign Out';
@@ -444,6 +445,13 @@ class DropdownOptions {
     'Dangerously Incorrect Advice',
     'Off-Topic or Irrelevant',
     'Other',
+  ];
+
+  /// Sorting options for the community feed.
+  static const List<String> chirpSortOptions = [
+    'Latest Activity',
+    'Most Follows',
+    'Most Replies',
   ];
 }
 

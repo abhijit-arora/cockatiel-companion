@@ -111,8 +111,10 @@ These are major features to be prioritized after the core app is feature-complet
     *   [ ] Implement AI Duplicate Chirp Detection to reduce repeat questions.
     *   [ ] Implement other features under FSD section 3.4.
 *   **Community Enhancements:**
+    *   [ ] **V2.0: Public Aviary Profiles:** Evolve the app into a social network by allowing users to visit each other's public Aviary profiles, view their Flock, and perform social interactions (e.g., "likes," "pokes"). This will require a major focus on privacy controls and security rules.
     *   [ ] Implement threaded (nested) replies in the Q&A Forum.
     *   [ ] Implement user mentions (@username) that trigger notifications.
+    *   [ ] Implement a "Hide Chirp" or "Not Interested" feature to allow users to customize their feeds.
 *   **Power-User Logging...**
 *   **Data Visualization & Trends...**
 *   **Pre-Flight Checklist...**
