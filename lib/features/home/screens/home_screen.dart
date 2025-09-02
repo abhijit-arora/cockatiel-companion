@@ -3,12 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
-import 'package:cockatiel_companion/features/aviary/screens/aviary_management_screen.dart';
 import 'package:cockatiel_companion/features/profile/screens/profile_screen.dart';
+import 'package:cockatiel_companion/features/profile/widgets/settings_action_button.dart';
 import 'package:cockatiel_companion/features/daily_log/screens/daily_log_screen.dart';
-import 'package:cockatiel_companion/features/knowledge_center/screens/knowledge_center_screen.dart';
-import 'package:cockatiel_companion/features/care_tasks/screens/care_tasks_screen.dart';
-import 'package:cockatiel_companion/features/about/screens/about_screen.dart';
 import 'package:cockatiel_companion/features/home/widgets/onboarding_tip_card.dart';
 import 'package:cockatiel_companion/features/home/widgets/upcoming_tasks_card.dart';
 import 'package:cockatiel_companion/features/home/widgets/pending_invitations_card.dart';
@@ -63,65 +60,10 @@ class _HomePageState extends State<HomePage> {
             const Text(ScreenTitles.homePage),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.group_work_outlined),
-            tooltip: Labels.manageHouseholdTooltip,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const AviaryManagementScreen()),
-              );
-            },
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'care_tasks':
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const CareTasksScreen()));
-                  break;
-                case 'knowledge_center':
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const KnowledgeCenterScreen()));
-                  break;
-                case 'about':
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AboutScreen()));
-                  break;
-                case 'sign_out':
-                  FirebaseAuth.instance.signOut();
-                  break;
-              }
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'care_tasks',
-                child: ListTile(
-                  leading: Icon(Icons.task_alt),
-                  title: Text(ScreenTitles.careTasks),
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'knowledge_center',
-                child: ListTile(
-                  leading: Icon(Icons.library_books),
-                  title: Text(ScreenTitles.knowledgeCenter),
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'about',
-                child: ListTile(
-                  leading: Icon(Icons.info_outline),
-                  title: Text(ScreenTitles.aboutApp),
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem<String>(
-                value: 'sign_out',
-                child: ListTile(
-                  leading: Icon(Icons.logout),
-                  title: Text(Labels.signOut),
-                ),
-              ),
-            ],
-          ),
+        actions: const [
+          // All the old actions are now consolidated in the Settings screen.
+          // We just need our new, reusable button.
+          SettingsActionButton(),
         ],
       ),
       body: _isLoading

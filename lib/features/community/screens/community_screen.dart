@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/features/community/widgets/chirp_list.dart';
 import 'package:cockatiel_companion/features/community/screens/create_chirp_screen.dart';
+import 'package:cockatiel_companion/features/profile/widgets/settings_action_button.dart';
 import 'package:cockatiel_companion/core/constants.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -36,6 +37,10 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
     return Scaffold(
       appBar: AppBar(
         title: const Text(ScreenTitles.community),
+        // --- NEW: Add the settings action button ---
+        actions: const [
+          SettingsActionButton(),
+        ],
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
