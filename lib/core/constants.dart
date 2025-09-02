@@ -280,6 +280,9 @@ class ScreenTitles {
   static const String logWeight = 'Log Weight';
 
   // --- Community ---
+  static const String qaForum = 'Q&A Forum';
+  static const String socialFeed = 'Flock Feed';
+  static const String flockFeedComingSoon = 'Flock Feed Coming Soon!';
   static const String postDetail = 'Chirp';
   static const String createPost = 'Post a New Chirp';
   static const String reportPost = 'Squawk a Chirp';
