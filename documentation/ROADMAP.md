@@ -48,14 +48,9 @@ With a polished core app, this phase focuses on user engagement and growth.
 *   **[ ] Community Aviary - Phase 2: Interaction & Sorting (Up Next):**
     *   **[x] "+1 / Tell Me Too" system. (Completed)**
     *   **[x] "Helpful" marking system for replies. (Completed)**
-    *   **Implement "Squawk" (Report) & Delete Functionality - Phase 1:**
-        *   [x] Add a menu to all Chirps and replies.
-        *   [x] Display a "Squawk" option for other users' content and a "Delete" option for a user's own content.
-        *   [x] Create a dialog for users to select a reason for reporting.
-        *   [x] Implement a generic, secure Cloud Function (`reportContent`) to write reports to a `reports` collection for manual admin review.
-        *   [x] The reporting action is invisible to other users, and reported content remains visible until a moderator takes action.
-    *   Implement the **"Best Answer"** system for the original poster.
-    *   Add UI controls to sort the Chirp list.
+    *   **[x] "Squawk" (Report) & Delete Functionality - Phase 1. (Completed)**
+    *   **[x] "Best Answer" system for the original poster. (Completed)**
+    *   **[x] UI controls to sort the Chirp list. (Completed)**
     *   Add a filter for "Unread" Chirps.
 
 *   **[ ] Community Aviary - Phase 3: Rich Content & Safety:**
@@ -75,15 +70,13 @@ With a polished core app, this phase focuses on user engagement and growth.
 
 This phase focuses on improving the long-term stability, maintainability, and overall quality of the codebase.
 
-*   **[x] Centralize String Constants:** Migrated all hardcoded UI strings into a central `constants.dart` file with a scalable, thematic architecture. (Completed)
-*   **[x] Refactor User Identity Logic:** Created a `UserService` to centralize the logic for fetching a user's `authorLabel`, removing code duplication. (Completed)
-*   **[x] Improve Self-Identification in Community Feeds:**
-    *   [x] Display a "by You" label instead of the full author label for the current user's own Chirps and replies.
-    *   [x] Apply a subtle background highlight to the cards of the current user's Chirps and replies to improve scannability.
-*   **[ ] Address All Linter Warnings:** Resolve all outstanding IDE warnings (`use_build_context_synchronously`, etc.) to improve code stability.
-*   **[ ] Implement Robust Logging & Error Handling:** Replace all development `print()` calls with a proper logging framework and implement user-facing `SnackBar` messages for all `try-catch` blocks.
-*   **[ ] Implement Invitation Decline Logic:** Add the ability for users to decline pending caregiver invitations. (Addresses `TODO` in `pending_invitations_card.dart`).
-*   **[ ] Implement Droppings Image Upload:** Add the ability for users to attach a photo to a droppings log entry. (Addresses `TODO` in `droppings_log_dialog.dart`).
+*   **[x] Centralize String Constants (Completed)**
+*   **[x] Refactor User Identity Logic (Completed)**
+*   **[x] Improve Self-Identification in Community Feeds (Completed)**
+*   **[x] Address All Linter Warnings (Completed)**
+*   **[x] Implement Robust Logging & Error Handling (Completed)**
+*   **[x] Implement Invitation Decline Logic (Completed)**
+*   **[ ] Implement Droppings Image Upload**
 *   **[ ] Refactor Backend Constants & Database Structure:**
     *   [ ] Decouple hardcoded collection names (e.g., 'birds') from Cloud Functions into a shared configuration.
     *   [ ] Plan and execute a Firestore data migration to a pet-agnostic schema (e.g., a `pets` collection with a `type` field).

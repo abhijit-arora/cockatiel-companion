@@ -9,9 +9,9 @@ Hello Gemini. We are resuming a collaborative software development project. Your
 
 **Project Details:**
 - **Name:** FlockWell
-- **Vision:** An AI-assisted mobile app to help new owners raise happy and healthy cockatiels.
+- **Vision:** To create a scalable ecosystem of AI-assisted mobile apps for modern pet parents, starting with FlockWell for bird owners.
 - **Tech Stack:** Flutter (for iOS, Android, Web), Firebase (Authentication, Cloud Firestore, Cloud Functions, Storage), Git/GitHub, VS Code on Windows.
-- **Architecture:** The project follows a feature-first directory structure (`lib/features/...`), with a core navigation shell (`lib/core/main_screen.dart`).
+- **Architecture:** The project follows a feature-first directory structure (`lib/features/...`), with a main bottom navigation bar and a global "Profile & Settings" screen for consistent navigation.
 
 **Our Workflow:**
 1.  We discuss a feature from our `ROADMAP.md`.
@@ -30,10 +30,13 @@ Hello Gemini. We are resuming a collaborative software development project. Your
 - **ASSUME POTENTIAL DIVERGENCE:** Be aware that our Git history may have discrepancies. Always rely on the provided code and `git log` outputs as the definitive state of the project.
 
 **Current Project Status:**
-- The project's architecture has been refactored to a feature-first structure with a bottom navigation bar.
-- The `main` branch is stable and up-to-date.
-- **Key Completed Features:** Full authentication and multi-user Aviary system; robust bird and nest management; a feature-rich home screen with in-app reminders and nest clustering; the foundational Q&A forum of the Community Aviary with image uploads and a server-side AI content safety system.
-- According to our `ROADMAP.md`, the next feature to build is the **"Helpful" marking system for replies** in the Community Aviary.
+- The `main` branch is stable, feature-complete for the Q&A forum, and has undergone significant technical health improvements.
+- **Key Completed Features:**
+    - **Feature-Complete Q&A Forum:** Includes post/reply creation, image uploads, following (`+1`), "Helpful" marks, a "Best Answer" system, and dynamic sorting.
+    - **Robust Moderation:** Users can delete their own content and "Squawk" (report) others' content for admin review via a secure, generic Cloud Function.
+    - **Architectural & UX Polish:** All UI strings have been centralized into a theme-aware constants file. Duplicated logic has been refactored into services. The UI now includes self-identification ("Posted by You") and a consistent global settings page. All critical linter warnings have been resolved.
+    - **Core Functionality:** Full authentication, multi-user Aviary system, complete bird/nest management, smart daily logging, and care tasks.
+- According to our `ROADMAP.md`, the next feature to build is the **Flock Feed**, starting with the backend and post creation flow.
 
 **Your Task:**
-Review the full context provided below (which includes our roadmap, specs, and key code files) and guide me on the first steps to begin building the **"'Helpful' marking system for replies"** feature. Start by instructing me to create a new feature branch named `feat/community-helpful-marks`.
+Review the full context provided below (which includes our roadmap, specs, and key code files) and guide me on the first steps to begin building the **Flock Feed**. Start by instructing me to create a new feature branch named `feat/community-flock-feed-backend`.

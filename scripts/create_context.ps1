@@ -3,38 +3,51 @@
 
 # --- CONFIGURATION ---
 $filesToInclude = @(
+    # Core Documentation
     "documentation/RESUME_PROMPT.md",
+    "documentation/VISION.md",
     "documentation/ROADMAP.md",
     "documentation/FSD.md",
+    "documentation/CHANGELOG.md",
+    "README.md",
+
+    # Project Configuration
     "pubspec.yaml",
+    "firestore.rules",
     "functions/index.js",
 
-    # Core App Logic
+    # Core App Logic & Constants
     "lib/main.dart",
+    "lib/core/constants.dart",
     "lib/core/auth_gate.dart",
     "lib/core/main_screen.dart",
 
     # Feature: Authentication
-    "lib/features/authentication/screens/auth_screen.dart",
     "lib/features/authentication/services/auth_service.dart",
+    "lib/features/authentication/screens/auth_screen.dart",
 
-    # Feature: Home
+    # Feature: User Services
+    "lib/features/user/services/user_service.dart",
+    
+    # Feature: Home Screen
     "lib/features/home/screens/home_screen.dart",
+    "lib/features/home/widgets/pending_invitations_card.dart",
 
-    # Feature: Profile
-    "lib/features/profile/screens/profile_screen.dart",
-
-    # Feature: Daily Log
-    "lib/features/daily_log/screens/daily_log_screen.dart",
+    # Feature: Profile & Settings
+    "lib/features/profile/screens/profile_screen.dart", # The Add/Edit Pet screen
+    "lib/features/profile/screens/profile_settings_screen.dart",
+    "lib/features/profile/widgets/settings_action_button.dart",
 
     # Feature: Aviary Management
     "lib/features/aviary/screens/aviary_management_screen.dart",
     
-    # Feature: Community (Key Files)
+    # Feature: Community (Thematic names are okay here as they map to the folder)
     "lib/features/community/screens/community_screen.dart",
-    "lib/features/community/screens/create_chirp_screen.dart",
     "lib/features/community/screens/chirp_detail_screen.dart",
-    "lib/features/community/widgets/chirp_list.dart"
+    "lib/features/community/screens/create_chirp_screen.dart",
+    "lib/features/community/screens/flock_feed_screen.dart",
+    "lib/features/community/widgets/chirp_list.dart",
+    "lib/features/community/widgets/unified_post_card.dart"
 )
 # --- END OF CONFIGURATION ---
 
