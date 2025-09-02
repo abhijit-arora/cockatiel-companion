@@ -171,6 +171,8 @@ class AppStrings {
   static const String logDroppingsSubtitle = 'Tap to log health observations';
   static const String logBehaviorSubtitle = 'Tap to log behavior';
   static const String logWeightSubtitle = 'Tap to log weight';
+  static const String updateError = 'Error: Could not update entry.';
+  static const String saveError = 'Error: Could not save entry.';
 
   // --- Notifications ---
   static const String upcomingBirthDayTitle = 'Upcoming Hatch Day! 🎂';

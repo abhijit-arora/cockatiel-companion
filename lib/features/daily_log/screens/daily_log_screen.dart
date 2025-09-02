@@ -216,6 +216,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       });
     } catch (e) {
       debugPrint('Error updating diet log: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.updateError)),
+        );
+      }
     }
   }
   
@@ -238,6 +243,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       });
     } catch (e) {
       debugPrint('Error updating droppings log: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.updateError)),
+        );
+      }
     }
   }
   
@@ -260,6 +270,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       });
     } catch (e) {
       debugPrint('Error updating behavior log: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.updateError)),
+        );
+      }
     }
   }
   
@@ -284,6 +299,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       });
     } catch (e) {
       debugPrint('Error updating weight log: $e');
+      // We will add the SnackBar in a later refactor for all errors.
     }
   }
   
@@ -375,6 +391,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       await logDocRef.set({}, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Error saving diet log: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.saveError)),
+        );
+      }
     }
   }
 
@@ -389,6 +410,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       await logDocRef.set({}, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Error saving droppings log: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.saveError)),
+        );
+      }
     }
   }
   
@@ -403,20 +429,35 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
       await logDocRef.set({}, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Error saving behavior log: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.saveError)),
+        );
+      }
     }
   }
   
-  Future<void> _saveWeightLog({ required double weight, required String unit, required String context, required String notes }) async {
+  Future<void> _saveWeightLog({
+    required double weight,
+    required String unit,
+    required String context,
+    required String notes,
+  }) async {
     final logDateId = DateFormat('yyyy-MM-dd').format(_selectedDate);
     final logDocRef = FirebaseFirestore.instance.collection('birds').doc(widget.birdId).collection('daily_logs').doc(logDateId);
     try {
       await logDocRef.collection('weight_entries').add({
-        'weight': weight, 'unit': unit, 'context': context, 'notes': notes,
-        'timestamp': FieldValue.serverTimestamp(), 'birdId': widget.birdId,
+        'weight': weight,
+        'unit': unit,
+        'context': context,
+        'notes': notes,
+        'timestamp': FieldValue.serverTimestamp(),
+        'birdId': widget.birdId,
       });
       await logDocRef.set({}, SetOptions(merge: true));
     } catch (e) {
       debugPrint('Error saving weight log: $e');
+      // We will add the SnackBar in a later refactor for all errors.
     }
   }
 

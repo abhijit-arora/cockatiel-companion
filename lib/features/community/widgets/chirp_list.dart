@@ -22,6 +22,11 @@ class _ChirpListState extends State<ChirpList> {
       await callable.call({'chirpId': chirpId});
     } on FirebaseFunctionsException catch (e) {
       debugPrint('Error toggling follow: ${e.message}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? AppStrings.genericError)),
+        );
+      }
     }
   }
 

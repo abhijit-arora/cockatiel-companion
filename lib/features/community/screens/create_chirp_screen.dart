@@ -79,9 +79,6 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
         'mediaUrl': mediaUrl,
       };
 
-      // --- NEW DEBUGGING STATEMENT ---
-      debugPrint("Attempting to create Chirp with data: $chirpData");
-
       final newChirpRef = await FirebaseFirestore.instance.collection('community_chirps').add(chirpData);
 
       final chirpFollowersRef = newChirpRef.collection('followers').doc(user.uid);
@@ -95,7 +92,7 @@ class _CreateChirpScreenState extends State<CreateChirpScreen> {
       debugPrint('Error submitting chirp: $e');
       if (mounted) {
         scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('${AppStrings.genericError}: ${e.toString()}')),
+          SnackBar(content: Text('${AppStrings.saveError}: ${e.toString()}')),
         );
         setState(() => _isSubmitting = false);
       }

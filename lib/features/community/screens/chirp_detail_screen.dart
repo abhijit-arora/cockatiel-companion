@@ -46,6 +46,11 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
       _replyController.clear();
     } catch (e) {
       debugPrint('Error posting reply: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.saveError} ${e.toString()}')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isReplying = false);
     }
@@ -57,6 +62,12 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
       await callable.call({'chirpId': widget.chirpId, 'replyId': replyId});
     } on FirebaseFunctionsException catch (e) {
       debugPrint('Error toggling helpful: ${e.message}');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? AppStrings.genericError)),
+        );
+      }
+
     }
   }
 

@@ -234,6 +234,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       debugPrint('Error fetching bird data: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.errorLoadingData} ${e.toString()}')),
+        );
+      }
     } finally {
       setState(() { _isLoading = false; });
     }
@@ -259,7 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       debugPrint('Error adding nest: $e');
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text(AppStrings.createEnclosureError)),
+        SnackBar(content: Text('${AppStrings.createEnclosureError} ${e.toString()}')),
       );
     }
   }
@@ -295,6 +300,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     } catch (e) {
       debugPrint('Error fetching nests: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.errorLoadingData} ${e.toString()}')),
+        );
+      }
     } finally {
       setState(() { _isNestsLoading = false; });
     }
@@ -307,6 +317,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       debugPrint('Error: No user is logged in.');
+      // No SnackBar needed here, as this is a logic guard, not a user-facing error.
       return;
     }
     final navigator = Navigator.of(context);
@@ -375,6 +386,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     } catch (e) {
       debugPrint('Error saving profile: $e');
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('${AppStrings.saveError} ${e.toString()}')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() { _isLoading = false; });

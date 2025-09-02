@@ -148,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                       }
                       if (snapshot.hasError) {
                         debugPrint('Error loading home screen data: ${snapshot.error}');
-                        return const Center(child: Text(AppStrings.somethingWentWrong));
+                        return Center(child: Text('${AppStrings.errorLoadingData} ${snapshot.error.toString()}'));
                       }
                       if (!snapshot.hasData || snapshot.data!.length < 2) {
                         return const Center(child: Text(AppStrings.loadingData));

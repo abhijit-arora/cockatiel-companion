@@ -102,9 +102,11 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                     navigator.pop();
 
                   } catch (e) {
+                    // It's good practice to keep the debugPrint for our own logs,
+                    // in addition to showing the user a message.
                     debugPrint('Error saving task: $e');
                     scaffoldMessenger.showSnackBar(
-                      SnackBar(content: Text('${AppStrings.failedToSaveTask}: $e')),
+                      SnackBar(content: Text('${AppStrings.failedToSaveTask}: ${e.toString()}')),
                     );
                   }
                 },

@@ -55,7 +55,12 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
       }
     } catch (e) {
       debugPrint('Error fetching nests: $e');
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.errorLoadingData} ${e.toString()}')),
+        );
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -85,6 +90,11 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
       }
     } catch (e) {
       debugPrint('Error fetching birds: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.errorLoadingData} ${e.toString()}')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -133,7 +143,7 @@ class _BulkMoveScreenState extends State<BulkMoveScreen> {
     } catch (e) {
       debugPrint('Error moving birds: $e');
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text(AppStrings.movePetsError)),
+        SnackBar(content: Text('${AppStrings.movePetsError} ${e.toString()}')),
       );
     } finally {
       if (mounted) {

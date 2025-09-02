@@ -133,7 +133,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
       debugPrint('Error sending invitation: $e');
       if (!mounted) return;
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text(AppStrings.invitationError)),
+        SnackBar(content: Text('${AppStrings.invitationError} ${e.toString()}')),
       );
     }
   }
@@ -263,6 +263,11 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
       return true;
     } catch (e) {
       debugPrint('Error updating guardian label: $e');
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text('${AppStrings.updateError} ${e.toString()}'))
+        );
+      }
       return false;
     }
   }
@@ -477,7 +482,7 @@ class _AviaryManagementScreenState extends State<AviaryManagementScreen> {
                   }
                   if (snapshot.hasError) {
                     debugPrint('AviaryManagement error: ${snapshot.error}');
-                    return const Center(child: Text(AppStrings.errorLoadingData));
+                    return Center(child: Text('${AppStrings.errorLoadingData} ${snapshot.error.toString()}'));
                   }
                   if (!snapshot.hasData) {
                     return const Center(child: Text(AppStrings.noDataFound));
