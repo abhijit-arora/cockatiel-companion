@@ -66,8 +66,8 @@ class _ChirpListState extends State<ChirpList> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(ScreenTitles.confirmDeletion),
-        content: const Text(AppStrings.confirmDeletePost),
+        title: const Text(ScreenTitles.deleteQaPost),
+        content: const Text(AppStrings.confirmDeleteQaPost),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -87,7 +87,7 @@ class _ChirpListState extends State<ChirpList> {
       } catch (e) {
         if (mounted) {
           scaffoldMessenger.showSnackBar(
-            const SnackBar(content: Text(AppStrings.deletePostError)),
+            const SnackBar(content: Text(AppStrings.deleteQaPostError)),
           );
         }
       }

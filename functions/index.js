@@ -706,3 +706,81 @@ exports.deleteFeedPost = onCall(async (request) => {
 
   return {success: true, message: "Post deleted successfully."};
 });
+
+exports.addFeedComment = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError(
+        "unauthenticated",
+        "You must be logged in to comment.",
+    );
+  }
+
+  const {postId, body} = data;
+  if (!postId || !body || typeof body !== "string" || body.trim() === "") {
+    throw new HttpsError(
+        "invalid-argument",
+        "Post ID and a non-empty comment body are required.",
+    );
+  }
+
+  const authorUid = auth.uid;
+  const postRef = db.collection("community_feed_posts").doc(postId);
+
+  // --- Get Author Label Logic ---
+  // NOTE: This is the same logic used in createFeedPost. We will refactor this
+  // into a shared helper function in a future technical health sprint.
+  const userDoc = await db.collection("users").doc(authorUid).get();
+  let aviaryId;
+  let isGuardian = true;
+  if (userDoc.exists && userDoc.data().partOfAviary) {
+    aviaryId = userDoc.data().partOfAviary;
+    isGuardian = false;
+  } else {
+    aviaryId = authorUid;
+  }
+  const aviaryDoc = await db.collection("aviaries").doc(aviaryId).get();
+  const aviaryData = aviaryDoc.data() || {}; // Get the data or an empty object
+  const aviaryName = aviaryData.aviaryName || "An Aviary";
+  let userLabel;
+  if (isGuardian) {
+    userLabel = aviaryData.guardianLabel || auth.token.email || "Guardian";
+  } else {
+    const caregiverDoc = await db
+        .collection("aviaries").doc(aviaryId)
+        .collection("caregivers").doc(authorUid).get();
+    const caregiverData = caregiverDoc.data() || {};
+    userLabel = caregiverData.label || auth.token.email || "Caregiver";
+  }
+  const authorLabel = `${userLabel} of ${aviaryName}`;
+
+  const commentData = {
+    authorId: authorUid,
+    authorLabel: authorLabel,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    body: body.trim(),
+    likeCount: 0,
+  };
+
+  // --- Use a transaction to post the comment
+  // and update the count atomically ---
+  await db.runTransaction(async (transaction) => {
+    const postDoc = await transaction.get(postRef);
+    if (!postDoc.exists) {
+      throw new HttpsError(
+          "not-found",
+          "The post you are trying to comment on does not exist.",
+      );
+    }
+
+    const newCommentRef = postRef
+        .collection("comments").doc(); // Auto-generate ID
+    transaction.set(newCommentRef, commentData);
+    transaction.update(postRef, {
+      commentCount: admin.firestore.FieldValue.increment(1),
+    });
+  });
+
+  return {success: true, message: "Comment posted successfully."};
+});

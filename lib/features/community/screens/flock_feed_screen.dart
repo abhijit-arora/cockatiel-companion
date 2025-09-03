@@ -4,25 +4,24 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/features/community/widgets/unified_post_card.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_functions/cloud_functions.dart'; // NEW IMPORT
-import 'package:cockatiel_companion/core/constants.dart'; // NEW IMPORT
-import 'package:cockatiel_companion/features/community/widgets/dialogs/report_dialog.dart'; // NEW IMPORT
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:cockatiel_companion/core/constants.dart';
+import 'package:cockatiel_companion/features/community/widgets/dialogs/report_dialog.dart';
+import 'package:cockatiel_companion/features/community/screens/feed_post_detail_screen.dart';
 
-class FlockFeedScreen extends StatefulWidget { // CONVERT TO STATEFUL WIDGET
+class FlockFeedScreen extends StatefulWidget {
   const FlockFeedScreen({super.key});
 
   @override
   State<FlockFeedScreen> createState() => _FlockFeedScreenState();
 }
 
-class _FlockFeedScreenState extends State<FlockFeedScreen> { // NEW STATE CLASS
-  // Helper to format timestamp
+class _FlockFeedScreenState extends State<FlockFeedScreen> {
   String _formatTimestamp(Timestamp? timestamp) {
     if (timestamp == null) return '';
     return DateFormat.yMMMd().add_jm().format(timestamp.toDate());
   }
 
-  // --- NEW: LOGIC FOR INTERACTIONS ---
   Future<void> _toggleLike(String postId) async {
     try {
       final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('toggleFeedPostLike');
@@ -41,8 +40,8 @@ class _FlockFeedScreenState extends State<FlockFeedScreen> { // NEW STATE CLASS
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Post?'), // Not themed for now
-        content: const Text('Are you sure you want to permanently delete this post?'),
+        title: const Text(ScreenTitles.deleteFeedPost),
+        content: const Text(AppStrings.confirmDeleteFeedPost),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text(ButtonLabels.cancel)),
           TextButton(
@@ -58,10 +57,10 @@ class _FlockFeedScreenState extends State<FlockFeedScreen> { // NEW STATE CLASS
       try {
         final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('deleteFeedPost');
         await callable.call({'postId': postId});
-        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Post deleted.')));
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text(AppStrings.feedPostDeleted)));
       } on FirebaseFunctionsException catch (e) {
         scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text(e.message ?? 'Could not delete post.')),
+          SnackBar(content: Text(e.message ?? AppStrings.deleteFeedPostError)),
         );
       }
     }
@@ -71,13 +70,13 @@ class _FlockFeedScreenState extends State<FlockFeedScreen> { // NEW STATE CLASS
     showDialog(
       context: context,
       builder: (context) => ReportDialog(
-        title: 'Report Post', // Not themed for now
+        title: ScreenTitles.reportFeedPost,
         onSubmit: (reason) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
           try {
             final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('reportContent');
             await callable.call({
-              'contentType': 'feedPost', // Use a unique type
+              'contentType': 'feedPost',
               'contentId': postId,
               'reason': reason,
             });
@@ -93,7 +92,7 @@ class _FlockFeedScreenState extends State<FlockFeedScreen> { // NEW STATE CLASS
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return const Center(child: Text('Please log in to view the feed.'));
+    if (currentUser == null) return const Center(child: Text(AppStrings.loginToViewFeed));
 
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -112,7 +111,7 @@ class _FlockFeedScreenState extends State<FlockFeedScreen> { // NEW STATE CLASS
             child: Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                'The Flock Feed is quiet... Be the first to share something!',
+                AppStrings.flockFeedEmpty,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -128,7 +127,6 @@ class _FlockFeedScreenState extends State<FlockFeedScreen> { // NEW STATE CLASS
             final data = post.data() as Map<String, dynamic>;
             final bool isAuthor = currentUser.uid == data['authorId'];
             
-            // --- NEW: Live stream for like status ---
             return StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('community_feed_posts').doc(post.id)
@@ -148,9 +146,20 @@ class _FlockFeedScreenState extends State<FlockFeedScreen> { // NEW STATE CLASS
                   isAction1Active: isLiked,
                   isAuthor: isAuthor,
                   onCardTap: () {
-                    // TODO: Navigate to a Feed Post Detail screen
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => FeedPostDetailScreen(postId: post.id),
+                      ),
+                    );
                   },
                   onAction1Tap: () => _toggleLike(post.id),
+                  onAction2Tap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => FeedPostDetailScreen(postId: post.id),
+                      ),
+                    );
+                  },
                   onMenuTap: () {
                     if (isAuthor) {
                       _deletePost(post.id);

@@ -26,7 +26,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
   @override
   void initState() {
     super.initState();
-    _hubTabController = TabController(length: _hubTabs.length, vsync: this);
+    _hubTabController = TabController(length: _hubTabs.length, vsync: this, initialIndex: 1);
     // Add a listener to know when the main tab changes
     _hubTabController.addListener(() {
       setState(() {}); // Trigger a rebuild to show/hide FAB

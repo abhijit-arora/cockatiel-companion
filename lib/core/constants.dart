@@ -20,25 +20,16 @@ class AppStrings {
   static const String appTagline = 'Your AI-assisted companion for raising happy and healthy birds.';
 
   // --- Thematic Concepts (MODIFIABLE FOR NEW PETS) ---
-  /// A group of users and their pets (e.g., a household).
   static const String household = 'Aviary';
-  /// The collection of a user's pets.
   static const String petGroup = 'Flock';
-  /// A physical enclosure for pets.
   static const String enclosure = 'Nest';
-  /// A Q&A forum post.
   static const String qaPost = 'Chirp';
-  /// A social feed post.
   static const String feedPost = 'Flutter';
-  /// The primary user/owner.
   static const String primaryOwner = 'Guardian';
-  /// An invited user with shared access.
   static const String secondaryUser = 'Caregiver';
 
   // --- Anniversaries (MODIFIABLE FOR NEW PETS) ---
-  /// The day the pet was born/hatched.
   static const String birthDay = 'Hatch Day';
-  /// The day the pet was acquired by the owner.
   static const String adoptionDay = 'Gotcha Day';
 
   // --- Community Interaction ---
@@ -50,11 +41,22 @@ class AppStrings {
   static const String noPostsInCategory = 'No Chirps in this category yet. Be the first to post!';
   static const String reportReceived = 'Squawk received. Our moderators will review it shortly.';
   static const String reportError = 'Error: Could not send Squawk.';
-  static const String confirmDeletePost = 'Are you sure you want to permanently delete this Chirp and all of its replies?';
+  static const String confirmDeleteQaPost = 'Are you sure you want to permanently delete this Chirp and all of its replies?';
   static const String confirmDeleteReply = 'Are you sure you want to permanently delete this reply?';
-  static const String deletePostError = 'Error: Could not delete Chirp.';
+  static const String deleteQaPostError = 'Error: Could not delete Chirp.';
   static const String deleteReplyError = 'Error: Could not delete reply.';
   static const String postValidationError = 'Please add a photo/video or write a caption.';
+  static const String addCommentHint = 'Add a comment...';
+  static const String feedPostAndComments = 'Flutter & Comments';
+  static const String comments = 'Comments';
+  static const String like = 'Like';
+  static const String liked = 'Liked';
+  static const String flockFeedEmpty = 'The Flock Feed is quiet... Be the first to share something!';
+  static const String loginToViewFeed = 'Please log in to view the feed.';
+  static const String beFirstToComment = 'Be the first to comment!';
+  static const String feedPostDeleted = 'Flutter deleted.';
+  static const String deleteFeedPostError = 'Could not delete Flutter.';
+  static const String confirmDeleteFeedPost = 'Are you sure you want to permanently delete this Flutter?';
   
   // --- Common Nouns & Placeholders ---
   static const String defaultHouseholdName = 'An Aviary';
@@ -285,12 +287,14 @@ class ScreenTitles {
   // --- Community ---
   static const String qaForum = 'Q&A Forum';
   static const String socialFeed = 'Flock Feed';
-  static const String flockFeedComingSoon = 'Flock Feed Coming Soon!';
   static const String postDetail = 'Chirp';
   static const String createPost = 'Post a New Chirp';
   static const String reportPost = 'Squawk a Chirp';
   static const String reportReply = 'Squawk a Reply';
   static const String createFeedPost = 'Share a Flutter';
+  static const String deleteQaPost = 'Delete Chirp?';
+  static const String deleteFeedPost = 'Delete Flutter?';
+  static const String reportFeedPost = 'Squawk this Flutter';
   
   // --- Dialogs ---
   static const String confirmDeletion = 'Confirm Deletion';

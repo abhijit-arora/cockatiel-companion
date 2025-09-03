@@ -17,6 +17,7 @@ class UnifiedPostCard extends StatelessWidget {
   final bool isAuthor;
   final VoidCallback onCardTap;
   final VoidCallback onAction1Tap;
+  final VoidCallback? onAction2Tap;
   final VoidCallback onMenuTap;
 
   const UnifiedPostCard({
@@ -33,6 +34,7 @@ class UnifiedPostCard extends StatelessWidget {
     required this.isAuthor,
     required this.onCardTap,
     required this.onAction1Tap,
+    this.onAction2Tap,
     required this.onMenuTap,
   });
 
@@ -41,8 +43,8 @@ class UnifiedPostCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     // --- Determine labels and icons based on PostType ---
-    final String action1Label = postType == PostType.qa ? AppStrings.followPost : ''; // Like label is now empty
-    final String action1ActiveLabel = postType == PostType.qa ? AppStrings.followingPost : ''; // Liked label is empty
+    final String action1Label = postType == PostType.qa ? AppStrings.followPost : AppStrings.like;
+    final String action1ActiveLabel = postType == PostType.qa ? AppStrings.followingPost : AppStrings.liked;
     final IconData action1Icon = postType == PostType.qa ? Icons.add : Icons.favorite_border;
     final IconData action1ActiveIcon = postType == PostType.qa ? Icons.check : Icons.favorite;
     final IconData action2Icon = postType == PostType.qa ? Icons.comment_outlined : Icons.chat_bubble_outline;
@@ -173,12 +175,19 @@ class UnifiedPostCard extends StatelessWidget {
                       ),
                     
                     const SizedBox(width: 16),
-                    Row(
-                      children: [
-                        Icon(action2Icon, size: 20, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(actionCount2.toString()),
-                      ],
+                    InkWell(
+                      onTap: onAction2Tap,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                        child: Row(
+                          children: [
+                            Icon(action2Icon, size: 20, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Text(actionCount2.toString()),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
