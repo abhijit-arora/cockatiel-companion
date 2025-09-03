@@ -110,6 +110,11 @@ service cloud.firestore {
       allow update, delete: if request.auth != null
                              && resource.data.authorId == request.auth.uid;
 
+      match /likes/{userId} {
+        // A user can only like/unlike for themselves.
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
       // TODO: Add rules for likes and comments subcollections later.
     }
     

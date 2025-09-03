@@ -359,7 +359,7 @@ exports.reportContent = onCall(async (request) => {
     );
   }
 
-  const validTypes = ["chirp", "reply"];
+  const validTypes = ["chirp", "reply", "feedPost"];
   if (!validTypes.includes(contentType)) {
     throw new HttpsError(
         "invalid-argument",
@@ -611,4 +611,98 @@ exports.createFeedPost = onCall(async (request) => {
   const newPostRef = await db.collection("community_feed_posts").add(postData);
 
   return {success: true, postId: newPostRef.id};
+});
+
+exports.toggleFeedPostLike = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  const {postId} = data;
+  if (!postId) {
+    throw new HttpsError("invalid-argument", "Post ID is required.");
+  }
+
+  const userId = auth.uid;
+  const postRef = db.collection("community_feed_posts").doc(postId);
+  const likeRef = postRef.collection("likes").doc(userId);
+
+  return db.runTransaction(async (transaction) => {
+    const likeDoc = await transaction.get(likeRef);
+
+    if (likeDoc.exists) {
+      // --- The user has already liked, so we UNLIKE ---
+      transaction.delete(likeRef);
+      transaction.update(postRef, {
+        likeCount: admin.firestore.FieldValue.increment(-1),
+      });
+      return {newLikeState: false};
+    } else {
+      // --- The user has NOT yet liked, so we LIKE ---
+      transaction.set(likeRef, {
+        likedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      transaction.update(postRef, {
+        likeCount: admin.firestore.FieldValue.increment(1),
+      });
+      return {newLikeState: true};
+    }
+  });
+});
+
+exports.deleteFeedPost = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  const {postId} = data;
+  if (!postId) {
+    throw new HttpsError("invalid-argument", "Post ID is required.");
+  }
+
+  const userId = auth.uid;
+  const postRef = db.collection("community_feed_posts").doc(postId);
+
+  const postDoc = await postRef.get();
+  if (!postDoc.exists) {
+    throw new HttpsError("not-found", "Post not found.");
+  }
+
+  const postData = postDoc.data();
+
+  // --- SECURITY CHECK: Only the author can delete their post ---
+  if (postData.authorId !== userId) {
+    throw new HttpsError(
+        "permission-denied",
+        "You can only delete your own posts.",
+    );
+  }
+
+  // --- DELETE ASSOCIATED MEDIA from Firebase Storage ---
+  if (postData.mediaUrl) {
+    try {
+      // Create a reference from the public URL
+      const fileRef = getStorage().bucket().file(
+          decodeURIComponent(
+              postData.mediaUrl.split("/o/")[1].split("?")[0],
+          ),
+      );
+      await fileRef.delete();
+    } catch (error) {
+      // Log the error but don't block the Firestore deletion
+      console.error(`Failed to delete media for post ${postId}:`, error);
+    }
+  }
+
+  // --- DELETE THE FIRESTORE DOCUMENT ---
+  // Note: We are not deleting subcollections (likes/comments) here yet.
+  // A more robust solution for that is a separate background function,
+  // which we can add to the roadmap. Deleting the post is the main goal.
+  await postRef.delete();
+
+  return {success: true, message: "Post deleted successfully."};
 });
