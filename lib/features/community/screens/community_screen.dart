@@ -4,6 +4,7 @@ import 'package:cockatiel_companion/features/community/widgets/chirp_list.dart';
 import 'package:cockatiel_companion/features/community/screens/create_chirp_screen.dart';
 import 'package:cockatiel_companion/core/constants.dart';
 import 'package:cockatiel_companion/features/community/screens/flock_feed_screen.dart';
+import 'package:cockatiel_companion/features/community/screens/create_feed_post_screen.dart';
 import 'package:cockatiel_companion/features/profile/widgets/settings_action_button.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -89,7 +90,7 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
           ),
         );
       },
-      label: Text('${ButtonLabels.post} a ${AppStrings.post}'),
+      label: Text('${ButtonLabels.post} a ${AppStrings.qaPost}'),
       icon: const Icon(Icons.add_comment_outlined),
     );
   }
@@ -99,9 +100,13 @@ class _CommunityScreenState extends State<CommunityScreen> with TickerProviderSt
     return FloatingActionButton(
       heroTag: 'flock_feed_fab',
       onPressed: () {
-        // TODO: Navigate to a new 'Create Feed Post' screen
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const CreateFeedPostScreen(),
+          ),
+        );
       },
-      child: const Icon(Icons.add_a_photo_outlined),
+      child: const Icon(Icons.edit_note_outlined),
     );
   }
 

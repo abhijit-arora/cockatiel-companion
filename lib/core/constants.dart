@@ -26,8 +26,10 @@ class AppStrings {
   static const String petGroup = 'Flock';
   /// A physical enclosure for pets.
   static const String enclosure = 'Nest';
-  /// A community forum post.
-  static const String post = 'Chirp';
+  /// A Q&A forum post.
+  static const String qaPost = 'Chirp';
+  /// A social feed post.
+  static const String feedPost = 'Flutter';
   /// The primary user/owner.
   static const String primaryOwner = 'Guardian';
   /// An invited user with shared access.
@@ -52,6 +54,7 @@ class AppStrings {
   static const String confirmDeleteReply = 'Are you sure you want to permanently delete this reply?';
   static const String deletePostError = 'Error: Could not delete Chirp.';
   static const String deleteReplyError = 'Error: Could not delete reply.';
+  static const String postValidationError = 'Please add a photo/video or write a caption.';
   
   // --- Common Nouns & Placeholders ---
   static const String defaultHouseholdName = 'An Aviary';
@@ -287,6 +290,7 @@ class ScreenTitles {
   static const String createPost = 'Post a New Chirp';
   static const String reportPost = 'Squawk a Chirp';
   static const String reportReply = 'Squawk a Reply';
+  static const String createFeedPost = 'Share a Flutter';
   
   // --- Dialogs ---
   static const String confirmDeletion = 'Confirm Deletion';
@@ -378,6 +382,7 @@ class Labels {
   static const String bestAnswer = 'Best Answer';
   static const String markAsBestAnswer = 'Mark as Best Answer';
   static const String sortBy = 'Sort by:';
+  static const String captionOptional = 'Caption (Optional)';
 
   // --- Miscellaneous UI ---
   static const String signOut = 'Sign Out';

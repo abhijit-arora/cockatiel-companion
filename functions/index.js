@@ -534,3 +534,81 @@ exports.declineInvitation = onCall(async (request) => {
     return {success: true, message: "Invitation declined."};
   });
 });
+
+exports.createFeedPost = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in to post.");
+  }
+
+  const {body, mediaUrl} = data;
+  const authorUid = auth.uid;
+
+  // --- 1. VALIDATION ---
+  if (!body && !mediaUrl) {
+    throw new HttpsError(
+        "invalid-argument",
+        "A post must contain a caption or media.",
+    );
+  }
+
+  // --- 2. HASHTAG PARSING ---
+  const hashtags = [];
+  if (body) {
+    // This regex finds all words starting with #
+    const hashtagRegex = /(#\w+)/g;
+    const matches = body.match(hashtagRegex);
+    if (matches) {
+      // Add valid hashtags to the array, ensuring no duplicates
+      matches.forEach((tag) => {
+        if (!hashtags.includes(tag)) {
+          hashtags.push(tag);
+        }
+      });
+    }
+  }
+
+  // --- 3. GET AUTHOR LABEL ---
+  // This reuses the same logic as our Flutter UserService.
+  // We will refactor this later.
+  const userDoc = await db.collection("users").doc(authorUid).get();
+  let aviaryId;
+  let isGuardian = true;
+  if (userDoc.exists && userDoc.data().partOfAviary) {
+    aviaryId = userDoc.data().partOfAviary;
+    isGuardian = false;
+  } else {
+    aviaryId = authorUid;
+  }
+  const aviaryDoc = await db.collection("aviaries").doc(aviaryId).get();
+  const aviaryName = aviaryDoc.data().aviaryName || "An Aviary";
+  let userLabel;
+  if (isGuardian) {
+    userLabel = aviaryDoc.data()
+        .guardianLabel || auth.token.email || "Guardian";
+  } else {
+    const caregiverDoc = await db
+        .collection("aviaries").doc(aviaryId)
+        .collection("caregivers").doc(authorUid).get();
+    userLabel = caregiverDoc.data().label || auth.token.email || "Caregiver";
+  }
+  const authorLabel = `${userLabel} of ${aviaryName}`;
+
+
+  // --- 4. PREPARE AND SAVE THE DOCUMENT ---
+  const postData = {
+    authorId: authorUid,
+    authorLabel: authorLabel,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    body: body || null,
+    mediaUrl: mediaUrl || null,
+    hashtags: hashtags, // Add the parsed hashtags
+    likeCount: 0,
+    commentCount: 0,
+  };
+
+  const newPostRef = await db.collection("community_feed_posts").add(postData);
+
+  return {success: true, postId: newPostRef.id};
+});

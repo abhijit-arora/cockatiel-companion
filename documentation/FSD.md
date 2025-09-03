@@ -101,9 +101,12 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
         *   **Best Answer:** The original poster has the ability to mark one reply as the "Best Answer," which will be highlighted and pinned for future readers.
         *   **Media Attachments:** Users can attach one optional photo or short-form video (up to 15 seconds) to their Chirp for context.
 
-    *   **5.1.2. The Flock Feed:** This section is a visual, continuous-scrolling feed for social sharing.
-        *   **Content:** The feed will consist exclusively of user-submitted photos and short-form videos (up to 15 seconds) showcasing their birds.
+    *   **5.1.2. The Flock Feed ("Flutters"):** This section is a visual, continuous-scrolling feed for social sharing.
+        *   **Posts as "Flutters":** All social posts will be thematically referred to as "Flutters."
+        *   **Content:** Flutters will consist of an optional primary media element (photo or short-form video) and an optional text caption.
         *   **Interactions:** Users can "Like" (e.g., with a heart icon) and post comments on any item in the feed.
+        *   **Hashtags & Discoverability:** Users can include hashtags (e.g., `#molting`) in their captions. These will be automatically parsed and stored in a dedicated data field. Tapping on a hashtag will navigate the user to a search result page showing all public content (both Q&A and Flock Feed posts) that includes that hashtag. The number of hashtags per post will be limited by a remote configuration to prevent abuse.
+        *   **(Future Enhancement) Link Previews:** When a user includes a URL in their post, the system will attempt to generate a rich preview card showing the link's title, description, and thumbnail.
 
 *   **5.2. Content Management & Self-Identification:**
 

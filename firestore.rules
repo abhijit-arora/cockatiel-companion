@@ -94,6 +94,25 @@ service cloud.firestore {
       }
     }
 
+    match /community_feed_posts/{postId} {
+      // Any authenticated user can read the feed.
+      allow read: if request.auth != null;
+
+      // Users can create a post if they are the author and provide valid data.
+      allow create: if request.auth != null
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.createdAt == request.time
+                    && (request.resource.data.body is string || request.resource.data.mediaUrl is string)
+                    && request.resource.data.likeCount == 0
+                    && request.resource.data.commentCount == 0;
+
+      // Only the author can update or delete their post.
+      allow update, delete: if request.auth != null
+                             && resource.data.authorId == request.auth.uid;
+
+      // TODO: Add rules for likes and comments subcollections later.
+    }
+    
     match /invitations/{invitationId} {
       allow create: if request.auth != null;
       allow read: if request.auth != null

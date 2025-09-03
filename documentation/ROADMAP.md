@@ -60,10 +60,18 @@ With a polished core app, this phase focuses on user engagement and growth.
     *   **Implement "Squawk" (Report Content) Functionality - Phase 2:**
         *   [ ] Design and implement an automated system where a high number of reports can trigger an automatic action (e.g., hiding the content pending review).
 
-*   **[ ] Community Aviary - Phase 4: The Flock Feed:**
-    *   Build the UI for the vertical-scrolling Flock Feed.
-    *   Implement the "Like" and "Comment" systems.
-    *   Add Community-related notifications.
+*   **[ ] Community Aviary - Phase 4: The Flock Feed (In Progress):**
+    *   **[x] Build the foundational UI for the vertical-scrolling Flock Feed. (Completed)**
+    *   **Implement the backend and creation flow for Flock Feed posts:**
+        *   [ ] Create a new `community_feed_posts` collection in Firestore.
+        *   [ ] Build the `CreateFeedPostScreen` for composing posts with media and captions.
+        *   [ ] Implement a Cloud Function to handle post creation, including parsing and storing hashtags in a dedicated array field.
+    *   **Wire up the live feed:**
+        *   [ ] Connect the `FlockFeedScreen` to the `community_feed_posts` collection with a `StreamBuilder`.
+        *   [ ] Implement "Like" functionality with a secure Cloud Function.
+        *   [ ] Implement the foundational UI for a `FeedPostDetailScreen` to view comments.
+    *   Implement the "Comment" system for feed posts.
+    *   Add Community-related notifications for likes and comments.
 
 ---
 ### **Version 1.3: Technical Health & Polish Update**
@@ -78,8 +86,9 @@ This phase focuses on improving the long-term stability, maintainability, and ov
 *   **[x] Implement Invitation Decline Logic (Completed)**
 *   **[ ] Implement Droppings Image Upload**
 *   **[ ] Refactor Backend Constants & Database Structure:**
-    *   [ ] Decouple hardcoded collection names (e.g., 'birds') from Cloud Functions into a shared configuration.
-    *   [ ] Plan and execute a Firestore data migration to a pet-agnostic schema (e.g., a `pets` collection with a `type` field).
+    *   [ ] Decouple hardcoded collection names from Cloud Functions into a shared configuration.
+    *   [ ] Execute a Firestore data migration to a pet-agnostic schema (e.g., `pets` collection).
+    *   [ ] Rename `community_chirps` collection to `community_queries` to align with the generic backend strategy.
 *   **[ ] Global Access to User Actions:** Create a unified "Settings" or "Profile" page accessible from a main navigation point to house actions like Sign Out, Manage Aviary, etc.
 *   **[ ] Email Verification & Password Reset Polish:**
     *   [ ] Resolve Firebase project block on email sending actions.
