@@ -71,10 +71,14 @@ With a polished core app, this phase focuses on user engagement and growth.
         *   [ ] Implement "Like" functionality with a secure `toggleFeedPostLike` Cloud Function.
         *   [ ] Implement "Delete" functionality with a `deleteFeedPost` Cloud Function that also removes the associated media from Firebase Storage.
         *   [ ] Wire up the "Squawk" (report) button to our existing `reportContent` Cloud Function.
-    *   **Implement the Comment System:**
-        *   [ ] Build the UI for the `FeedPostDetailScreen` to view comments.
-        *   [ ] Implement the backend and UI for posting new comments.
-    *   Add Community-related notifications for likes and comments.
+    *   **[x] Implement the Core Comment System. (Completed)**
+        *   [x] Built the UI for the `FeedPostDetailScreen` to view a post and its comments.
+        *   [x] Implemented the `addFeedComment` Cloud Function and security rules for posting new comments.
+        *   [x] Wired up the UI to post and display comments in real-time, sorted chronologically.
+    *   **Implement Comment Interactions:**
+        *   [ ] Implement "Like" functionality for comments.
+        *   [ ] Add Delete/Report functionality to comments.
+    *   Add Community-related notifications for likes and new comments.
 
 ---
 ### **Version 1.3: Technical Health & Polish Update**
