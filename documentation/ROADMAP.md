@@ -60,17 +60,20 @@ With a polished core app, this phase focuses on user engagement and growth.
     *   **Implement "Squawk" (Report Content) Functionality - Phase 2:**
         *   [ ] Design and implement an automated system where a high number of reports can trigger an automatic action (e.g., hiding the content pending review).
 
-*   **[ ] Community Aviary - Phase 4: The Flock Feed (In Progress):**
+*   **[ ] Community Aviary - Phase 4: The Flock Feed (Up Next):**
     *   **[x] Build the foundational UI for the vertical-scrolling Flock Feed. (Completed)**
-    *   **Implement the backend and creation flow for Flock Feed posts:**
-        *   [ ] Create a new `community_feed_posts` collection in Firestore.
-        *   [ ] Build the `CreateFeedPostScreen` for composing posts with media and captions.
-        *   [ ] Implement a Cloud Function to handle post creation, including parsing and storing hashtags in a dedicated array field.
-    *   **Wire up the live feed:**
-        *   [ ] Connect the `FlockFeedScreen` to the `community_feed_posts` collection with a `StreamBuilder`.
-        *   [ ] Implement "Like" functionality with a secure Cloud Function.
-        *   [ ] Implement the foundational UI for a `FeedPostDetailScreen` to view comments.
-    *   Implement the "Comment" system for feed posts.
+    *   **[x] Implement the backend and creation flow for Flock Feed posts. (Completed)**
+        *   [x] Created a new `community_feed_posts` collection with security rules.
+        *   [x] Built the `CreateFeedPostScreen` for composing posts with media and captions.
+        *   [x] Implemented a `createFeedPost` Cloud Function to handle post creation and hashtag parsing.
+        *   [x] Wired up the `FlockFeedScreen` to a live `StreamBuilder`.
+    *   **Implement Core Feed Interactions:**
+        *   [ ] Implement "Like" functionality with a secure `toggleFeedPostLike` Cloud Function.
+        *   [ ] Implement "Delete" functionality with a `deleteFeedPost` Cloud Function that also removes the associated media from Firebase Storage.
+        *   [ ] Wire up the "Squawk" (report) button to our existing `reportContent` Cloud Function.
+    *   **Implement the Comment System:**
+        *   [ ] Build the UI for the `FeedPostDetailScreen` to view comments.
+        *   [ ] Implement the backend and UI for posting new comments.
     *   Add Community-related notifications for likes and comments.
 
 ---

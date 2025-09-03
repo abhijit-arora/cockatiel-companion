@@ -104,9 +104,12 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
     *   **5.1.2. The Flock Feed ("Flutters"):** This section is a visual, continuous-scrolling feed for social sharing.
         *   **Posts as "Flutters":** All social posts will be thematically referred to as "Flutters."
         *   **Content:** Flutters will consist of an optional primary media element (photo or short-form video) and an optional text caption.
-        *   **Interactions:** Users can "Like" (e.g., with a heart icon) and post comments on any item in the feed.
+        *   **Interactions:** Users can "Like" (with a heart icon) and post text-based comments on any item in the feed.
+        *   **Content Management:** Authors can edit or permanently delete their own Flutters. Deleting a Flutter will also delete all associated comments and media from Firebase Storage. A confirmation dialog will prevent accidental deletion.
+        *   **Moderation:** Users can "Squawk" (report) any Flutter that violates community guidelines via a menu. This action is private and submits the content for manual moderator review.
         *   **Hashtags & Discoverability:** Users can include hashtags (e.g., `#molting`) in their captions. These will be automatically parsed and stored in a dedicated data field. Tapping on a hashtag will navigate the user to a search result page showing all public content (both Q&A and Flock Feed posts) that includes that hashtag. The number of hashtags per post will be limited by a remote configuration to prevent abuse.
         *   **(Future Enhancement) Link Previews:** When a user includes a URL in their post, the system will attempt to generate a rich preview card showing the link's title, description, and thumbnail.
+        *   **(Future Enhancement) Bookmarking:** Users will be able to save or bookmark Flutters to a private collection for later viewing.
 
 *   **5.2. Content Management & Self-Identification:**
 
