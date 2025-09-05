@@ -88,6 +88,72 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
     }
   }
 
+  Future<void> _toggleCommentLike(String commentPath) async {
+    try {
+      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('toggleCommentLike');
+      await callable.call({'commentId': commentPath});
+    } on FirebaseFunctionsException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? AppStrings.genericError)),
+        );
+      }
+    }
+  }
+  
+  void _showReportCommentDialog(String commentPath) {
+    showDialog(
+      context: context,
+      builder: (context) => ReportDialog(
+        title: ScreenTitles.reportComment,
+        onSubmit: (reason) async {
+          final scaffoldMessenger = ScaffoldMessenger.of(context);
+          try {
+            final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('reportContent');
+            await callable.call({
+              'contentType': 'comment', // A new type for our generic function
+              'contentId': commentPath,
+              'reason': reason,
+            });
+            scaffoldMessenger.showSnackBar(const SnackBar(content: Text(AppStrings.reportReceived)));
+          } on FirebaseFunctionsException catch (e) {
+            scaffoldMessenger.showSnackBar(SnackBar(content: Text(e.message ?? AppStrings.reportError)));
+          }
+        },
+      ),
+    );
+  }
+
+  Future<void> _deleteComment(String commentId) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Comment?'),
+        content: const Text('Are you sure you want to permanently delete this comment?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text(ButtonLabels.cancel)),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(ButtonLabels.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      try {
+        final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('deleteFeedComment');
+        await callable.call({'postId': widget.postId, 'commentId': commentId});
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Comment deleted.')));
+      } on FirebaseFunctionsException catch (e) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text(e.message ?? 'Could not delete comment.')),
+        );
+      }
+    }
+  }
+  
   void _showReportDialog(String postId) {
     showDialog(
       context: context,
@@ -118,6 +184,7 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ... (build method up to the SliverList is unchanged) ...
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return const Scaffold(body: Center(child: Text(AppStrings.loginToViewFeed)));
 
@@ -209,7 +276,7 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
                                     Text(
                                       isCommentAuthor ? Labels.byYou : (data['authorLabel'] ?? AppStrings.anonymous),
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.bold, // Author is always bold
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     Text(
@@ -219,18 +286,66 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
                                   ],
                                 ),
                               ),
+                              // --- FULLY REVISED TRAILING WIDGET ---
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // --- Placeholder Like Button ---
-                                  Icon(
-                                    Icons.favorite_border,
-                                    size: 20,
-                                    color: Colors.grey.shade600,
+                                  StreamBuilder<DocumentSnapshot>(
+                                    stream: comment.reference.collection('likes').doc(currentUser.uid).snapshots(),
+                                    builder: (context, likeSnapshot) {
+                                      final bool isLiked = likeSnapshot.hasData && likeSnapshot.data!.exists;
+                                      return TextButton.icon(
+                                        icon: Icon(
+                                          isLiked ? Icons.favorite : Icons.favorite_border,
+                                          size: 20,
+                                        ),
+                                        label: Text((data['likeCount'] ?? 0).toString()),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: isLiked ? Colors.red : Colors.grey,
+                                        ),
+                                        onPressed: () {
+                                          if (!isCommentAuthor) {
+                                            _toggleCommentLike(comment.reference.path);
+                                          }
+                                        },
+                                      );
+                                    }
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text((data['likeCount'] ?? 0).toString()),
-                                  // TODO: Add a PopupMenuButton here for delete/report on comments later
+                                  PopupMenuButton<String>(
+                                    icon: const Icon(Icons.more_vert, size: 20.0),
+                                    onSelected: (value) {
+                                      if (value == 'report') {
+                                        _showReportCommentDialog(comment.reference.path);
+                                      } else if (value == 'delete') {
+                                        _deleteComment(comment.id);
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) {
+                                      List<PopupMenuEntry<String>> items = [];
+                                      if (isCommentAuthor) {
+                                        items.add(
+                                          const PopupMenuItem<String>(
+                                            value: 'delete',
+                                            child: ListTile(
+                                              leading: Icon(Icons.delete_outline, color: Colors.red),
+                                              title: Text(ButtonLabels.delete),
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        items.add(
+                                          const PopupMenuItem<String>(
+                                            value: 'report',
+                                            child: ListTile(
+                                              leading: Icon(Icons.flag_outlined),
+                                              title: Text(ButtonLabels.report),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      return items;
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -244,6 +359,7 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
               ],
             ),
           ),
+          // ... (Reply input field is unchanged)
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(8.0),

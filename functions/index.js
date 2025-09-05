@@ -359,7 +359,7 @@ exports.reportContent = onCall(async (request) => {
     );
   }
 
-  const validTypes = ["chirp", "reply", "feedPost"];
+  const validTypes = ["chirp", "reply", "feedPost", "comment"];
   if (!validTypes.includes(contentType)) {
     throw new HttpsError(
         "invalid-argument",
@@ -783,4 +783,87 @@ exports.addFeedComment = onCall(async (request) => {
   });
 
   return {success: true, message: "Comment posted successfully."};
+});
+
+exports.toggleCommentLike = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  // Note: We expect the full path to the comment as the commentId
+  const {commentId} = data;
+  if (!commentId) {
+    throw new HttpsError("invalid-argument", "Comment ID path is required.");
+  }
+
+  const userId = auth.uid;
+  const commentRef = db.doc(commentId); // Use the full path directly
+  const likeRef = commentRef.collection("likes").doc(userId);
+
+  return db.runTransaction(async (transaction) => {
+    const likeDoc = await transaction.get(likeRef);
+
+    if (likeDoc.exists) {
+      // --- The user has already liked, so we UNLIKE ---
+      transaction.delete(likeRef);
+      transaction.update(commentRef, {
+        likeCount: admin.firestore.FieldValue.increment(-1),
+      });
+      return {newLikeState: false};
+    } else {
+      // --- The user has NOT yet liked, so we LIKE ---
+      transaction.set(likeRef, {
+        likedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      transaction.update(commentRef, {
+        likeCount: admin.firestore.FieldValue.increment(1),
+      });
+      return {newLikeState: true};
+    }
+  });
+});
+
+exports.deleteFeedComment = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  const {postId, commentId} = data;
+  if (!postId || !commentId) {
+    throw new HttpsError(
+        "invalid-argument",
+        "Post ID and Comment ID are required.",
+    );
+  }
+
+  const userId = auth.uid;
+  const postRef = db.collection("community_feed_posts").doc(postId);
+  const commentRef = postRef.collection("comments").doc(commentId);
+
+  return db.runTransaction(async (transaction) => {
+    const commentDoc = await transaction.get(commentRef);
+    if (!commentDoc.exists) {
+      throw new HttpsError("not-found", "Comment not found.");
+    }
+
+    // SECURITY CHECK: You can only delete your own comments.
+    if (commentDoc.data().authorId !== userId) {
+      throw new HttpsError(
+          "permission-denied",
+          "You can only delete your own comments.",
+      );
+    }
+
+    // Atomically delete the comment and decrement the post's comment count.
+    transaction.delete(commentRef);
+    transaction.update(postRef, {
+      commentCount: admin.firestore.FieldValue.increment(-1),
+    });
+
+    return {success: true, message: "Comment deleted."};
+  });
 });

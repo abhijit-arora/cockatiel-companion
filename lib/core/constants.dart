@@ -295,6 +295,7 @@ class ScreenTitles {
   static const String deleteQaPost = 'Delete Chirp?';
   static const String deleteFeedPost = 'Delete Flutter?';
   static const String reportFeedPost = 'Squawk this Flutter';
+  static const String reportComment = 'Squawk this Comment';
   
   // --- Dialogs ---
   static const String confirmDeletion = 'Confirm Deletion';
