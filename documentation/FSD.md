@@ -111,11 +111,13 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
         *   **(Future Enhancement) Link Previews:** When a user includes a URL in their post, the system will attempt to generate a rich preview card showing the link's title, description, and thumbnail.
         *   **(Future Enhancement) Bookmarking:** Users will be able to save or bookmark Flutters to a private collection for later viewing.
 
-*   **5.2. Content Management & Self-Identification:**
+*   **5.2. User Identity & Avatars (NEW SECTION):**
 
-    *   **5.2.1. User Self-Identification:** To improve scannability and create a more personal experience, the UI will adapt when displaying a user's own content.
-        *   **"You" Labels:** Instead of their full author label, a user will see a simple "Posted by You" or "by You" label on their own Chirps and replies.
-        *   **Visual Highlighting:** The cards for a user's own Chirps and replies will have a subtle, distinct background color to make them stand out in feeds.
+    *   **5.2.1. Thematic Identity:** To foster a fun and privacy-conscious community, users are primarily identified by their thematic labels (e.g., "Mama Birdie of SpiceBox") rather than their real names or emails.
+
+    *   **5.2.2. In-App Avatars (Phase 1):** Instead of custom photo uploads, users can personalize their profile by selecting from a pre-defined library of fun, on-brand, procedurally generated avatars. The chosen avatar will represent the user on all of their community content (Chirps, Flutters, replies, and comments).
+
+    *   **(Future Enhancement) Custom Profile Pictures (Phase 2):** In a future version, the ability for users to upload and crop a custom profile picture from their device will be implemented. This will be supported by a secure backend process for image resizing and storage.
 
     *   **5.2.2. Deleting Content:** Users have full control over the content they create.
         *   **Author Control:** The author of a Chirp or a reply can permanently delete it at any time via a menu option.
@@ -125,16 +127,22 @@ The Community Aviary is a multifaceted social hub designed to foster a supportiv
 
     *   **(Future Version - V2.0) Public Aviary Profiles:** The concept of community profiles may be expanded into fully-visitable public "Aviaries," where users can showcase their Flock. This would include robust privacy settings to control what information is shared publicly versus what is kept private to the household.
 
-*   **5.3. AI-Powered Duplicate Prevention (Q&A Forum Polish):**
+*   **5.3. Community Engagement & Profiles:**
+
+    *   **5.3.1. Self-Identification in Feeds:** To improve scannability, the UI will adapt when displaying a user's own content.
+        *   **"You" Labels:** Instead of their full author label, a user will see a simple "Posted by You" or "by You" label on their own posts and comments.
+        *   **Visual Highlighting:** The cards for a user's own content will have a subtle, distinct background color.
+
+*   **5.4. AI-Powered Duplicate Prevention (Q&A Forum Polish):**
 
     *   To maintain a clean and organized Q&A forum, an AI-powered check will be implemented.
     *   When a user finishes typing a title for a new Chirp, a semantic search will be performed in the background to find existing, similar questions.
     *   If matches are found, the user will be presented with a non-blocking dialog suggesting they view the existing answers before posting a new question.
 
-*   **5.4. Moderation & Safety:**
+*   **5.5. Moderation & Safety:**
 
-    *   **5.4.1. Squawk Content (Report):** All Chirps and replies will have a user-facing "Squawk" button accessible via a menu. Tapping this will open a dialog with a list of reasons for the alarm call (e.g., "Spam," "Harassment," "Dangerously Incorrect Advice," "Off-Topic").
-    *   **5.4.2. Reporting Workflow (Phase 1 - Manual Review):** Submitting a "Squawk" will create a document in a `reports` collection in Firestore. This document will contain the ID of the flagged content, the reason, and the reporting user's ID. This creates a moderation queue for manual review by an admin via the Business & Admin Tools panel.
+    *   **5.5.1. Squawk Content (Report):** All Chirps and replies will have a user-facing "Squawk" button accessible via a menu. Tapping this will open a dialog with a list of reasons for the alarm call (e.g., "Spam," "Harassment," "Dangerously Incorrect Advice," "Off-Topic").
+    *   **5.5.2. Reporting Workflow (Phase 1 - Manual Review):** Submitting a "Squawk" will create a document in a `reports` collection in Firestore. This document will contain the ID of the flagged content, the reason, and the reporting user's ID. This creates a moderation queue for manual review by an admin via the Business & Admin Tools panel.
     *   **(Future Enhancement) Automated Actions:** In a future version, a system may be implemented where a high volume or percentage of "Squawks" on a piece of content will trigger an automatic action, such as hiding the content pending moderator review.
 
 ---

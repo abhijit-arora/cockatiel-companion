@@ -36,6 +36,7 @@ $filesToInclude = @(
     # Feature: Profile & Settings
     "lib/features/profile/screens/profile_screen.dart", # The Add/Edit Pet screen
     "lib/features/profile/screens/profile_settings_screen.dart",
+    "lib/features/profile/screens/avatar_selection_screen.dart", # Add new screen
     "lib/features/profile/widgets/settings_action_button.dart",
 
     # Feature: Aviary Management
@@ -46,8 +47,11 @@ $filesToInclude = @(
     "lib/features/community/screens/chirp_detail_screen.dart",
     "lib/features/community/screens/create_chirp_screen.dart",
     "lib/features/community/screens/flock_feed_screen.dart",
+    "lib/features/community/screens/create_feed_post_screen.dart", # Add new screen
+    "lib/features/community/screens/feed_post_detail_screen.dart", # Add new screen
     "lib/features/community/widgets/chirp_list.dart",
-    "lib/features/community/widgets/unified_post_card.dart"
+    "lib/features/community/widgets/unified_post_card.dart",
+    "lib/features/community/widgets/dialogs/report_dialog.dart" # Add new dialog
 )
 # --- END OF CONFIGURATION ---
 

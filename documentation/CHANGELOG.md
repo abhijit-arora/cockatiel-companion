@@ -5,17 +5,28 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **Community Aviary - Phase 2:**
-  - Filter for "Unread" Chirps.
 - **Community Aviary - Phase 3:**
   - Video and GIF support for posts.
   - Automated NSFW content moderation.
-  - Profile pictures for users and birds.
-  - "Squawk" (Report Content) Phase 2: Automated actions.
+  - Custom Profile Picture Uploads (Phase 2).
+- **Monetization & Access Control:**
+  - Integration with an ad provider.
+  - Pet limit enforcement for the free tier.
+
+## [1.4.0] - 2025-09-06
+
+### Added
+- **User Identity & Profiles:**
+  - Implemented a selectable in-app avatar system. Users can now choose from a library of procedurally generated avatars to represent them.
+  - The chosen avatar is now displayed in real-time on all user content across the Q&A Forum and the Flock Feed.
 - **Community Aviary - Phase 4 (Flock Feed):**
-  - Backend and creation flow for Flock Feed posts.
-  - "Like" and "Comment" systems for feed posts.
-  - Community-related notifications.
+  - **Feature-complete core interaction model.**
+  - Implemented the backend and UI for the "Like" system on posts.
+  - Implemented the full backend and UI for the "Delete" and "Report" (`Squawk`) system on posts.
+  - Implemented the core, single-level comment system, allowing users to post and view comments in real-time.
+
+### Changed
+- Refactored the Q&A Forum and the new Flock Feed to use a `UnifiedPostCard` widget, ensuring a consistent and professional design language across all community features.
 
 ## [1.3.0] - 2025-09-01
 

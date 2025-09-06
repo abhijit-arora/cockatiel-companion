@@ -192,7 +192,6 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
     final String authorId = data['authorId'] ?? '';
     final bool isReplyAuthor = currentUser?.uid == authorId;
     final timestamp = _formatTimestamp(data['createdAt']);
-    final authorAvatarSvg = data['authorAvatarSvg'] as String?;
     
     return Card(
       color: isReplyAuthor ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) : null,

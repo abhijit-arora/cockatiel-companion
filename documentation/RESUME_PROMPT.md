@@ -30,13 +30,15 @@ Hello Gemini. We are resuming a collaborative software development project. Your
 - **ASSUME POTENTIAL DIVERGENCE:** Be aware that our Git history may have discrepancies. Always rely on the provided code and `git log` outputs as the definitive state of the project.
 
 **Current Project Status:**
-- The `main` branch is stable, feature-complete for the Q&A forum, and has undergone significant technical health improvements.
+- The `main` branch is stable. The Community Aviary module (both Q&A Forum and Flock Feed) is now feature-complete in its core functionality.
 - **Key Completed Features:**
-    - **Feature-Complete Q&A Forum:** Includes post/reply creation, image uploads, following (`+1`), "Helpful" marks, a "Best Answer" system, and dynamic sorting.
-    - **Robust Moderation:** Users can delete their own content and "Squawk" (report) others' content for admin review via a secure, generic Cloud Function.
-    - **Architectural & UX Polish:** All UI strings have been centralized into a theme-aware constants file. Duplicated logic has been refactored into services. The UI now includes self-identification ("Posted by You") and a consistent global settings page. All critical linter warnings have been resolved.
+    - **Complete Community Module:**
+        - **Q&A Forum ("Chirps"):** Fully implemented with post/reply creation, following, helpful marks, best answers, reporting, deletion, and dynamic sorting.
+        - **Flock Feed ("Flutters"):** Fully implemented with post creation (media/text), a live-updating feed, and a complete comment system with likes, reporting, and deletion.
+    - **User Identity:** A robust, selectable in-app avatar system is live and integrated throughout all community features.
+    - **Architectural & UX Polish:** The project has undergone a significant technical health sprint, resolving all major linter warnings, implementing user-facing error handling, and refactoring key components like `UserService` and a global `Settings` page.
     - **Core Functionality:** Full authentication, multi-user Aviary system, complete bird/nest management, smart daily logging, and care tasks.
-- According to our `ROADMAP.md`, the next feature to build is the **Flock Feed**, starting with the backend and post creation flow.
+- According to our `ROADMAP.md`, the next feature to build is **Video & GIF Uploading** for the Flock Feed.
 
 **Your Task:**
-Review the full context provided below (which includes our roadmap, specs, and key code files) and guide me on the first steps to begin building the **Flock Feed**. Start by instructing me to create a new feature branch named `feat/community-flock-feed-backend`.
+Review the full context provided below (which includes our roadmap, specs, and key code files) and guide me on the first steps to begin building **Video & GIF Uploading**. Start by instructing me to create a new feature branch named `feat/community-video-uploads`.

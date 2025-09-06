@@ -14,18 +14,29 @@ class ChangelogEntry {
 
 final List<ChangelogEntry> changelogData = [
   ChangelogEntry(
-    version: 'Version 1.2 (Community Update)', // Renamed for clarity
+    version: 'Version 1.3 (Community Polish)',
+    changes: [
+      'Personalize your profile with a unique, generated avatar!',
+      'Introduced the "Flock Feed" for sharing photos and stories.',
+      'Users can now post comments on Flock Feed items.',
+      'Like, Delete, and Report ("Squawk") functionality added to the Flock Feed.',
+      'Implemented a "Best Answer" system for the Q&A Forum.',
+      'Added robust sorting options to the Q&A Forum.',
+      'Enhanced UI with "Posted by You" labels and highlighting for your own content.',
+      'Resolved numerous bugs and improved app stability.',
+    ],
+  ),
+  ChangelogEntry(
+    version: 'Version 1.2 (Community Foundation)',
     changes: [
       'Launched the Community Aviary Q&A Forum!',
       'Users can now post "Chirps" with text and images.',
       'Follow interesting questions with the "+1 / Tell Me Too" button.',
       'Mark helpful replies to guide other users.',
-      'Engage with a privacy-first identity system (e.g., "Mama Birdie of SpiceBox").',
-      'Manage your content by deleting your own Chirps and replies.',
-      'Help moderate the community by "Squawking" (reporting) content that violates guidelines.',
+      'Engage with a privacy-first identity system.',
       'Added bulk bird-to-nest movement utility.',
       'Enhanced bird profiles with Hatch Day and Gotcha Day.',
-      'Implemented swipe-to-dismiss anniversary reminders on the home screen.',
+      'Implemented swipe-to-dismiss anniversary reminders.',
       'Major navigation refactor with a new bottom bar.',
     ],
   ),
