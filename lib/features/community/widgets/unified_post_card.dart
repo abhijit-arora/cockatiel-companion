@@ -1,12 +1,16 @@
 // lib/features/community/widgets/unified_post_card.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/core/constants.dart';
+import 'package:flutter_svg/svg.dart';
 
 enum PostType { qa, feed }
 
 class UnifiedPostCard extends StatelessWidget {
   final PostType postType;
+  final String authorId;
   final String authorLabel;
+  final String? authorAvatarSvg;
   final String timestamp;
   final String? title;
   final String? body;
@@ -23,7 +27,9 @@ class UnifiedPostCard extends StatelessWidget {
   const UnifiedPostCard({
     super.key,
     required this.postType,
+    required this.authorId,
     required this.authorLabel,
+    this.authorAvatarSvg,
     required this.timestamp,
     this.title,
     this.body,
@@ -57,9 +63,21 @@ class UnifiedPostCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
-            leading: CircleAvatar(
-              backgroundColor: theme.colorScheme.secondaryContainer,
-              child: const Icon(Icons.person),
+            leading: StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance.collection('aviaries').doc(authorId).snapshots(),
+              builder: (context, snapshot) {
+                String? avatarSvg;
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  avatarSvg = data['avatarSvg'];
+                }
+                return CircleAvatar(
+                  backgroundColor: theme.colorScheme.secondaryContainer,
+                  child: avatarSvg != null
+                      ? SvgPicture.string(avatarSvg)
+                      : const Icon(Icons.person),
+                );
+              },
             ),
             title: Text(
               isAuthor ? Labels.postedByYou : authorLabel,

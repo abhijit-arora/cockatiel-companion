@@ -28,12 +28,13 @@ class UserService {
 
     // Fetch the Aviary document to get the aviaryName
     final aviaryDoc = await firestore.collection('aviaries').doc(aviaryId).get();
-    final aviaryName = aviaryDoc.data()?['aviaryName'] ?? AppStrings.defaultHouseholdName;
+    final aviaryData = aviaryDoc.data() ?? {};
+    final aviaryName = aviaryData['aviaryName'] ?? AppStrings.defaultHouseholdName;
 
     // Fetch the user's specific label based on their role
     String userLabel;
     if (isGuardian) {
-      userLabel = aviaryDoc.data()?['guardianLabel'] ?? user.email ?? AppStrings.primaryOwner;
+      userLabel = aviaryData['guardianLabel'] ?? user.email ?? AppStrings.primaryOwner;
     } else {
       final caregiverDoc = await firestore
           .collection('aviaries')
@@ -41,9 +42,27 @@ class UserService {
           .collection('caregivers')
           .doc(user.uid)
           .get();
-      userLabel = caregiverDoc.data()?['label'] ?? user.email ?? AppStrings.secondaryUser;
+      final caregiverData = caregiverDoc.data() ?? {};
+      userLabel = caregiverData['label'] ?? user.email ?? AppStrings.secondaryUser;
     }
 
     return '$userLabel of $aviaryName';
+  }
+
+  // --- NEW METHOD ---
+  /// Finds the top-level Aviary ID for the current user,
+  /// regardless of whether they are a Guardian or a Caregiver.
+  static Future<String?> findAviaryIdForCurrentUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+
+    final firestore = FirebaseFirestore.instance;
+    final userDoc = await firestore.collection('users').doc(user.uid).get();
+
+    if (userDoc.exists && userDoc.data()!.containsKey('partOfAviary')) {
+      return userDoc.data()!['partOfAviary']; // User is a Caregiver
+    } else {
+      return user.uid; // User is a Guardian
+    }
   }
 }

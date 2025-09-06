@@ -207,6 +207,8 @@ class AppStrings {
   static const String cannotDeleteLastEnclosure = 'You cannot delete your last Nest.';
   static const String cannotDeleteEnclosureWithPets = 'You cannot delete a Nest that has birds in it.';
   static const String householdNotFound = 'Aviary not found.';
+  static const String profilePictureUpdated = 'Profile picture updated!';
+  static const String errorUploadingImage = 'Error uploading image.';
 }
 
 // ===========================================================================
@@ -244,6 +246,7 @@ class ButtonLabels {
   static const String saveProfile = 'Save Profile';
   static const String report = 'Squawk'; // The button text
   static const String submitReport = 'Submit Squawk';
+  static const String saveAvatar = 'Save Avatar';
 }
 
 // ===========================================================================
@@ -302,6 +305,9 @@ class ScreenTitles {
   static const String editYourLabel = 'Edit Your Label';
   static const String confirmCompletion = 'Confirm Completion';
   static const String createNewCareTask = 'Create New Care Task';
+  static const String chooseAvatar = 'Choose Your Avatar';
+  static const String profileAndSettings = 'Profile & Settings';
+  static const String confirmSignOut = 'Confirm Sign Out';
 }
 
 // ===========================================================================
@@ -397,6 +403,11 @@ class Labels {
   static const String upcoming = 'Upcoming:';
   static const String anniversaryChannelName = 'Anniversary Reminders';
   static const String anniversaryChannelDescription = 'Reminders for your birds\' special days';
+  static const String generateNewAvatars = 'Generate New Avatars';
+  static const String loading = 'Loading...';
+  static const String notLoggedIn = 'Not logged in';
+  static const String noEmail = 'No email associated';
+  static const String areYouSureSignOut = 'Are you sure you want to sign out?';
 }
 
 // ===========================================================================

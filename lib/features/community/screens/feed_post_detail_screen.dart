@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/core/constants.dart';
 import 'package:cockatiel_companion/features/community/widgets/unified_post_card.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:cockatiel_companion/features/community/widgets/dialogs/report_dialog.dart';
 
@@ -213,6 +214,7 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
                           final bool isLiked = likeSnapshot.hasData && likeSnapshot.data!.exists;
                           return UnifiedPostCard(
                             postType: PostType.feed,
+                            authorId: data['authorId'] ?? '', // FIX: Add the required authorId
                             authorLabel: data['authorLabel'] ?? AppStrings.anonymous,
                             timestamp: _formatTimestamp(data['createdAt']),
                             body: data['body'],
@@ -261,12 +263,27 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
                           final data = comment.data() as Map<String, dynamic>;
                           final isCommentAuthor = currentUser.uid == data['authorId'];
                           final timestamp = _formatTimestamp(data['createdAt']);
+                          final authorId = data['authorId'] ?? '';
                           
                           return Card(
                             color: isCommentAuthor ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) : null,
                             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                             child: ListTile(
-                              leading: const CircleAvatar(child: Icon(Icons.person)),
+                              leading: StreamBuilder<DocumentSnapshot>( // NEW StreamBuilder
+                                stream: FirebaseFirestore.instance.collection('aviaries').doc(authorId).snapshots(),
+                                builder: (context, snapshot) {
+                                  String? avatarSvg;
+                                  if (snapshot.hasData && snapshot.data!.exists) {
+                                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                                    avatarSvg = data['avatarSvg'];
+                                  }
+                                  return CircleAvatar(
+                                    child: avatarSvg != null
+                                        ? SvgPicture.string(avatarSvg)
+                                        : const Icon(Icons.person),
+                                  );
+                                },
+                              ),
                               title: Text(data['body'] ?? ''),
                               subtitle: Padding(
                                 padding: const EdgeInsets.only(top: 4.0),

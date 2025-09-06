@@ -56,7 +56,11 @@ With a polished core app, this phase focuses on user engagement and growth.
 *   **[ ] Community Aviary - Phase 3: Rich Content & Safety:**
     *   Implement video and GIF uploading.
     *   Implement automatic NSFW content moderation.
-    *   **Add profile pictures for users and birds.**
+    *   **Implement User Avatars (Phase 1):**
+        *   [ ] Create a library of pre-made, selectable in-app avatars.
+        *   [ ] Allow users to choose an avatar from a new selection screen.
+        *   [ ] Display the chosen avatar throughout the community sections.
+    *   **(Future) Implement Custom Profile Picture Uploads (Phase 2).**
     *   **Implement "Squawk" (Report Content) Functionality - Phase 2:**
         *   [ ] Design and implement an automated system where a high number of reports can trigger an automatic action (e.g., hiding the content pending review).
 

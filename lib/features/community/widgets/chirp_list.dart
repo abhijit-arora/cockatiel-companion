@@ -168,6 +168,7 @@ class _ChirpListState extends State<ChirpList> {
                   // --- RENDER THE NEW UNIFIED WIDGET ---
                   return UnifiedPostCard(
                     postType: PostType.qa,
+                    authorId: data['authorId'] ?? '', // FIX: Add the required authorId
                     authorLabel: data['authorLabel'] ?? AppStrings.anonymous,
                     timestamp: _formatTimestamp(data['createdAt']),
                     title: data['title'] ?? AppStrings.noTitle,

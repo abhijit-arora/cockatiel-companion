@@ -3,10 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:cockatiel_companion/core/constants.dart';
-import 'package:cockatiel_companion/features/user/services/user_service.dart';
+import 'package:cockatiel_companion/features/community/widgets/unified_post_card.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:cockatiel_companion/features/community/widgets/dialogs/report_dialog.dart';
+import 'package:cockatiel_companion/features/user/services/user_service.dart';
 
 class ChirpDetailScreen extends StatefulWidget {
   final String chirpId;
@@ -30,10 +32,13 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
     try {
       final chirpRef = FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId);
       final authorLabel = await UserService.getAuthorLabelForCurrentUser();
+      // The incorrect avatar-fetching logic is completely removed.
+
       await chirpRef.collection('replies').add({
         'body': _replyController.text.trim(),
         'authorId': user.uid,
         'authorLabel': authorLabel,
+        // The 'authorAvatarSvg' field is NOT saved here.
         'createdAt': FieldValue.serverTimestamp(),
         'helpfulCount': 0,
       });
@@ -67,22 +72,21 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
           SnackBar(content: Text(e.message ?? AppStrings.genericError)),
         );
       }
-
     }
   }
 
-  Future<void> _showReportDialog(String replyId, String replyPath) async {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    await showDialog(
+  void _showReportDialog(String contentId, String contentPath, bool isReply) {
+    showDialog(
       context: context,
       builder: (context) => ReportDialog(
-        title: ScreenTitles.reportReply,
+        title: isReply ? ScreenTitles.reportReply : ScreenTitles.reportPost,
         onSubmit: (reason) async {
+          final scaffoldMessenger = ScaffoldMessenger.of(context);
           try {
             final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('reportContent');
             await callable.call({
-              'contentType': 'reply',
-              'contentId': replyPath,
+              'contentType': isReply ? 'reply' : 'chirp',
+              'contentId': isReply ? contentPath : contentId,
               'reason': reason,
             });
             scaffoldMessenger.showSnackBar(
@@ -106,10 +110,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
         title: const Text(ScreenTitles.confirmDeletion),
         content: const Text(AppStrings.confirmDeleteReply),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(ButtonLabels.cancel),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text(ButtonLabels.cancel)),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () => Navigator.of(context).pop(true),
@@ -135,15 +136,44 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
       }
     }
   }
+  
+  Future<void> _deleteChirp(String chirpId) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(ScreenTitles.deleteQaPost),
+        content: const Text(AppStrings.confirmDeleteQaPost),
+        actions: [
+          TextButton(onPressed: () => navigator.pop(false), child: const Text(ButtonLabels.cancel)),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => navigator.pop(true),
+            child: const Text(ButtonLabels.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      try {
+        await FirebaseFirestore.instance.collection('community_chirps').doc(chirpId).delete();
+        navigator.pop(); // Go back to the main feed after deleting
+      } catch (e) {
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text(AppStrings.deleteQaPostError)),
+          );
+        }
+      }
+    }
+  }
 
   Future<void> _markAsBestAnswer(String replyId) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('markAsBestAnswer');
-      await callable.call({
-        'chirpId': widget.chirpId,
-        'replyId': replyId,
-      });
+      await callable.call({'chirpId': widget.chirpId, 'replyId': replyId});
     } on FirebaseFunctionsException catch (e) {
       scaffoldMessenger.showSnackBar(
         SnackBar(content: Text(e.message ?? AppStrings.genericError)),
@@ -151,16 +181,21 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
     }
   }
 
+  String _formatTimestamp(Timestamp? timestamp) {
+    if (timestamp == null) return '';
+    return DateFormat.yMMMd().add_jm().format(timestamp.toDate());
+  }
+
   Widget _buildReplyCard(DocumentSnapshot reply, Map<String, dynamic> data, bool isChirpAuthor, bool isBest) {
     final currentUser = FirebaseAuth.instance.currentUser;
     final int helpfulCount = data['helpfulCount'] ?? 0;
     final String authorId = data['authorId'] ?? '';
     final bool isReplyAuthor = currentUser?.uid == authorId;
+    final timestamp = _formatTimestamp(data['createdAt']);
+    final authorAvatarSvg = data['authorAvatarSvg'] as String?;
     
     return Card(
-      color: isReplyAuthor 
-          ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) 
-          : null,
+      color: isReplyAuthor ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) : null,
       shape: isBest 
           ? RoundedRectangleBorder(
               side: BorderSide(color: Colors.green.shade600, width: 2),
@@ -169,6 +204,22 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
           : null,
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: ListTile(
+        leading: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('aviaries').doc(authorId).snapshots(),
+          builder: (context, snapshot) {
+            String? avatarSvg;
+            if (snapshot.hasData && snapshot.data!.exists) {
+              final data = snapshot.data!.data() as Map<String, dynamic>;
+              // FIX: Use bracket syntax for map access
+              avatarSvg = data['avatarSvg']; 
+            }
+            return CircleAvatar(
+              child: avatarSvg != null
+                  ? SvgPicture.string(avatarSvg)
+                  : const Icon(Icons.person),
+            );
+          },
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -186,9 +237,9 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
           ],
         ),
         subtitle: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
+          padding: const EdgeInsets.only(top: 4.0),
           child: Text(
-            isReplyAuthor ? Labels.byYou : '${Labels.by} ${data['authorLabel'] ?? AppStrings.anonymous}',
+            isReplyAuthor ? '${Labels.byYou} • $timestamp' : '${Labels.by} ${data['authorLabel'] ?? AppStrings.anonymous} • $timestamp',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontWeight: isReplyAuthor ? FontWeight.bold : FontWeight.normal,
             ),
@@ -199,11 +250,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
           children: [
             if (!isReplyAuthor)
               StreamBuilder<DocumentSnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('community_chirps').doc(widget.chirpId)
-                    .collection('replies').doc(reply.id)
-                    .collection('helpfulMarkers').doc(currentUser?.uid)
-                    .snapshots(),
+                stream: reply.reference.collection('helpfulMarkers').doc(currentUser?.uid).snapshots(),
                 builder: (context, markerSnapshot) {
                   final bool isMarked = markerSnapshot.hasData && markerSnapshot.data!.exists;
                   return TextButton.icon(
@@ -229,7 +276,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
               icon: const Icon(Icons.more_vert, size: 20.0),
               onSelected: (value) {
                 if (value == 'report') {
-                  _showReportDialog(reply.id, reply.reference.path);
+                  _showReportDialog(reply.id, reply.reference.path, true);
                 } else if (value == 'delete') {
                   _deleteReply(reply.id);
                 } else if (value == 'mark_best') {
@@ -282,8 +329,12 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return const Scaffold(body: Center(child: Text(AppStrings.loginToViewFeed)));
+
     return Scaffold(
-      appBar: AppBar(title: const Text(ScreenTitles.postDetail)),
+      appBar: AppBar(
+        title: const Text(ScreenTitles.postDetail),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -293,54 +344,41 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                   child: StreamBuilder<DocumentSnapshot>(
                     stream: FirebaseFirestore.instance.collection('community_chirps').doc(widget.chirpId).snapshots(),
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Padding(padding: EdgeInsets.all(32.0), child: Center(child: CircularProgressIndicator()));
-                      }
-                      if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
-                        return const Center(child: Text(AppStrings.postNotFound));
-                      }
+                      if (!snapshot.hasData) return const Center(child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator()));
+                      if (!snapshot.data!.exists) return const Center(child: Text(AppStrings.postNotFound));
+                      
                       final data = snapshot.data!.data() as Map<String, dynamic>;
-                      final String title = data['title'] ?? AppStrings.noTitle;
-                      final String body = data['body'] ?? '';
-                      final String authorLabel = data['authorLabel'] ?? AppStrings.anonymous;
-                      final String? mediaUrl = data['mediaUrl'];
-                      final Timestamp? timestamp = data['createdAt'];
-                      final bool isChirpAuthor = currentUser?.uid == data['authorId'];
-                      return Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(title, style: Theme.of(context).textTheme.headlineSmall),
-                            const SizedBox(height: 8),
-                            Text(
-                              isChirpAuthor ? Labels.postedByYou : '${Labels.postedBy} $authorLabel',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                fontWeight: isChirpAuthor ? FontWeight.bold : FontWeight.normal,
-                              ),
-                            ),
-                            if (timestamp != null)
-                              Text(DateFormat.yMMMd().add_jm().format(timestamp.toDate()), style: Theme.of(context).textTheme.bodySmall),
-                            const SizedBox(height: 16),
-                            if (mediaUrl != null && mediaUrl.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 16.0),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(mediaUrl, width: double.infinity, fit: BoxFit.cover),
-                                ),
-                              ),
-                            if (body.isNotEmpty) 
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 16.0),
-                                child: Text(body, style: Theme.of(context).textTheme.bodyLarge),
-                              ),
-                            const Divider(height: 24),
-                            Text(Labels.replies, style: Theme.of(context).textTheme.titleLarge),
-                          ],
-                        ),
+                      final isAuthor = currentUser.uid == data['authorId'];
+                      
+                      return UnifiedPostCard(
+                        postType: PostType.qa,
+                        authorId: data['authorId'] ?? '',
+                        authorLabel: data['authorLabel'] ?? AppStrings.anonymous,
+                        timestamp: _formatTimestamp(data['createdAt']),
+                        title: data['title'] ?? AppStrings.noTitle,
+                        body: data['body'],
+                        mediaUrl: data['mediaUrl'],
+                        actionCount1: data['followerCount'] ?? 0,
+                        actionCount2: data['replyCount'] ?? 0,
+                        isAction1Active: false, // This screen doesn't need live follow status on the card
+                        isAuthor: isAuthor,
+                        onCardTap: () {}, // Already on the detail screen
+                        onAction1Tap: () {}, // Follow button is on the list screen
+                        onMenuTap: () {
+                          if (isAuthor) {
+                            _deleteChirp(widget.chirpId);
+                          } else {
+                            _showReportDialog(widget.chirpId, snapshot.data!.reference.path, false);
+                          }
+                        },
                       );
                     },
+                  ),
+                ),
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: Text(Labels.replies, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 StreamBuilder<DocumentSnapshot>(
@@ -352,11 +390,12 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                     final chirpData = chirpSnapshot.data!.data() as Map<String, dynamic>;
                     final bestAnswerData = chirpData['bestAnswer'] as Map<String, dynamic>?;
                     final bestAnswerId = bestAnswerData?['replyId'] as String?;
-                    final isChirpAuthor = currentUser?.uid == chirpData['authorId'];
+                    final isChirpAuthor = currentUser.uid == chirpData['authorId'];
                     return StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
                           .collection('community_chirps').doc(widget.chirpId)
-                          .collection('replies').orderBy('createdAt').snapshots(),
+                          .collection('replies').orderBy('createdAt', descending: false)
+                          .snapshots(),
                       builder: (context, replySnapshot) {
                         if (replySnapshot.connectionState == ConnectionState.waiting) {
                           return const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator()));
@@ -404,7 +443,7 @@ class _ChirpDetailScreenState extends State<ChirpDetailScreen> {
                   child: TextField(
                     controller: _replyController,
                     decoration: const InputDecoration(
-                      hintText: AppStrings.addReplyHint,
+                      hintText: AppStrings.addCommentHint,
                       border: OutlineInputBorder(),
                     ),
                     textCapitalization: TextCapitalization.sentences,

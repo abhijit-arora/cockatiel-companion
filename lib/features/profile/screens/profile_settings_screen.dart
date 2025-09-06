@@ -1,4 +1,5 @@
 // lib/features/profile/screens/profile_settings_screen.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cockatiel_companion/core/constants.dart';
@@ -7,6 +8,8 @@ import 'package:cockatiel_companion/features/aviary/screens/aviary_management_sc
 import 'package:cockatiel_companion/features/care_tasks/screens/care_tasks_screen.dart';
 import 'package:cockatiel_companion/features/knowledge_center/screens/knowledge_center_screen.dart';
 import 'package:cockatiel_companion/features/user/services/user_service.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cockatiel_companion/features/profile/screens/avatar_selection_screen.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -16,20 +19,22 @@ class ProfileSettingsScreen extends StatefulWidget {
 }
 
 class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
-  String _authorLabel = 'Loading...';
+  String _authorLabel = Labels.loading;
   final User? _currentUser = FirebaseAuth.instance.currentUser;
+  String? _aviaryId;
 
   @override
   void initState() {
     super.initState();
-    _loadAuthorLabel();
+    _loadUserData();
   }
 
-  Future<void> _loadAuthorLabel() async {
+  Future<void> _loadUserData() async {
     if (_currentUser == null) {
-      setState(() => _authorLabel = 'Not logged in');
+      setState(() => _authorLabel = Labels.notLoggedIn);
       return;
     }
+    _aviaryId = await UserService.findAviaryIdForCurrentUser();
     final label = await UserService.getAuthorLabelForCurrentUser();
     if (mounted) {
       setState(() {
@@ -37,31 +42,52 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       });
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile & Settings'),
+        title: const Text(ScreenTitles.profileAndSettings),
       ),
       body: ListView(
         children: [
-          // --- PROFILE HEADER ---
           UserAccountsDrawerHeader(
             accountName: Text(
               _authorLabel,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-            accountEmail: Text(_currentUser?.email ?? 'No email associated'),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.onPrimary,
-              foregroundColor: Theme.of(context).colorScheme.primary,
-              // TODO: Replace with user's actual profile picture
-              child: const Icon(Icons.person, size: 48),
+            accountEmail: Text(_currentUser?.email ?? Labels.noEmail),
+            currentAccountPicture: GestureDetector(
+              // --- CORRECTED: This now navigates to the AvatarSelectionScreen ---
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const AvatarSelectionScreen()),
+                );
+              },
+              child: StreamBuilder<DocumentSnapshot>(
+                stream: _aviaryId != null
+                    ? FirebaseFirestore.instance.collection('aviaries').doc(_aviaryId).snapshots()
+                    : null,
+                builder: (context, snapshot) {
+                  String? avatarSvg;
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    avatarSvg = data['avatarSvg'];
+                  }
+                  
+                  return CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                    // The display logic is still correct
+                    child: avatarSvg != null
+                        ? SvgPicture.string(avatarSvg)
+                        : const Icon(Icons.person, size: 48),
+                  );
+                },
+              ),
             ),
           ),
-
-          // --- SETTINGS LIST ---
+          
           ListTile(
             leading: const Icon(Icons.group_work_outlined),
             title: const Text(ScreenTitles.manageHousehold),
@@ -103,15 +129,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text(Labels.signOut, style: TextStyle(color: Colors.red)),
             onTap: () async {
-              // --- Capture navigator BEFORE the async gap of showDialog ---
               final navigator = Navigator.of(context);
-
-              // Show a confirmation dialog before signing out
               final confirmed = await showDialog<bool>(
                 context: context,
-                builder: (dialogContext) => AlertDialog( // Use a different name for the builder's context
-                  title: const Text('Confirm Sign Out'),
-                  content: const Text('Are you sure you want to sign out?'),
+                builder: (dialogContext) => AlertDialog(
+                  title: const Text(ScreenTitles.confirmSignOut),
+                  content: const Text(Labels.areYouSureSignOut),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -128,7 +151,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
               if (confirmed == true) {
                 await FirebaseAuth.instance.signOut();
-                // Use the captured navigator AFTER all async gaps
                 navigator.popUntil((route) => route.isFirst);
               }
             },

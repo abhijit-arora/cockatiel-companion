@@ -595,7 +595,6 @@ exports.createFeedPost = onCall(async (request) => {
   }
   const authorLabel = `${userLabel} of ${aviaryName}`;
 
-
   // --- 4. PREPARE AND SAVE THE DOCUMENT ---
   const postData = {
     authorId: authorUid,
@@ -728,9 +727,7 @@ exports.addFeedComment = onCall(async (request) => {
   const authorUid = auth.uid;
   const postRef = db.collection("community_feed_posts").doc(postId);
 
-  // --- Get Author Label Logic ---
-  // NOTE: This is the same logic used in createFeedPost. We will refactor this
-  // into a shared helper function in a future technical health sprint.
+  // --- Get Author Label & Avatar Logic ---
   const userDoc = await db.collection("users").doc(authorUid).get();
   let aviaryId;
   let isGuardian = true;
@@ -741,7 +738,7 @@ exports.addFeedComment = onCall(async (request) => {
     aviaryId = authorUid;
   }
   const aviaryDoc = await db.collection("aviaries").doc(aviaryId).get();
-  const aviaryData = aviaryDoc.data() || {}; // Get the data or an empty object
+  const aviaryData = aviaryDoc.data() || {}; // Single, correct declaration
   const aviaryName = aviaryData.aviaryName || "An Aviary";
   let userLabel;
   if (isGuardian) {
@@ -754,10 +751,12 @@ exports.addFeedComment = onCall(async (request) => {
     userLabel = caregiverData.label || auth.token.email || "Caregiver";
   }
   const authorLabel = `${userLabel} of ${aviaryName}`;
+  const avatarSvg = aviaryData.avatarSvg || null; // Correctly get the avatar
 
   const commentData = {
     authorId: authorUid,
     authorLabel: authorLabel,
+    authorAvatarSvg: avatarSvg, // Correctly include the avatar
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     body: body.trim(),
     likeCount: 0,
@@ -866,4 +865,44 @@ exports.deleteFeedComment = onCall(async (request) => {
 
     return {success: true, message: "Comment deleted."};
   });
+});
+
+exports.saveUserAvatar = onCall(async (request) => {
+  const {data, auth} = request;
+
+  if (!auth) {
+    throw new HttpsError("unauthenticated", "You must be logged in.");
+  }
+
+  const {avatarSvg} = data;
+  if (!avatarSvg || typeof avatarSvg !== "string") {
+    throw new HttpsError(
+        "invalid-argument",
+        "A valid avatar SVG string is required.",
+    );
+  }
+
+  const userId = auth.uid;
+
+  // Find the user's aviary ID, whether they are a guardian or caregiver
+  const userDoc = await db.collection("users").doc(userId).get();
+  let aviaryId;
+  if (userDoc.exists && userDoc.data().partOfAviary) {
+    aviaryId = userDoc.data().partOfAviary;
+  } else {
+    aviaryId = userId;
+  }
+
+  if (!aviaryId) {
+    throw new HttpsError("not-found", "Could not determine the user's Aviary.");
+  }
+
+  const aviaryRef = db.collection("aviaries").doc(aviaryId);
+
+  // Save the SVG string to the Aviary document
+  await aviaryRef.set({
+    avatarSvg: avatarSvg,
+  }, {merge: true});
+
+  return {success: true, message: "Avatar updated successfully."};
 });

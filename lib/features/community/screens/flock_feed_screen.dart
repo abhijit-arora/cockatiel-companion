@@ -137,6 +137,7 @@ class _FlockFeedScreenState extends State<FlockFeedScreen> {
 
                 return UnifiedPostCard(
                   postType: PostType.feed,
+                  authorId: data['authorId'] ?? '', // FIX: Add the required authorId
                   authorLabel: data['authorLabel'] ?? AppStrings.anonymous,
                   timestamp: _formatTimestamp(data['createdAt']),
                   body: data['body'],
