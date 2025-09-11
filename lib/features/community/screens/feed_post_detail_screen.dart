@@ -269,7 +269,7 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
                             color: isCommentAuthor ? Theme.of(context).colorScheme.primaryContainer.withAlpha(77) : null,
                             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                             child: ListTile(
-                              leading: StreamBuilder<DocumentSnapshot>( // NEW StreamBuilder
+                              leading: StreamBuilder<DocumentSnapshot>(
                                 stream: FirebaseFirestore.instance.collection('aviaries').doc(authorId).snapshots(),
                                 builder: (context, snapshot) {
                                   String? avatarSvg;
@@ -303,10 +303,10 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
                                   ],
                                 ),
                               ),
-                              // --- FULLY REVISED TRAILING WIDGET ---
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
+                                  // --- LIKE BUTTON ---
                                   StreamBuilder<DocumentSnapshot>(
                                     stream: comment.reference.collection('likes').doc(currentUser.uid).snapshots(),
                                     builder: (context, likeSnapshot) {
@@ -315,19 +315,17 @@ class _FeedPostDetailScreenState extends State<FeedPostDetailScreen> {
                                         icon: Icon(
                                           isLiked ? Icons.favorite : Icons.favorite_border,
                                           size: 20,
+                                          color: isLiked ? Colors.red : Colors.grey,
                                         ),
                                         label: Text((data['likeCount'] ?? 0).toString()),
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: isLiked ? Colors.red : Colors.grey,
-                                        ),
+                                        style: TextButton.styleFrom(foregroundColor: Colors.grey),
                                         onPressed: () {
-                                          if (!isCommentAuthor) {
-                                            _toggleCommentLike(comment.reference.path);
-                                          }
+                                           _toggleCommentLike(comment.reference.path);
                                         },
                                       );
                                     }
                                   ),
+                                  // --- DELETE / REPORT MENU ---
                                   PopupMenuButton<String>(
                                     icon: const Icon(Icons.more_vert, size: 20.0),
                                     onSelected: (value) {
